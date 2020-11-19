@@ -1,0 +1,4 @@
+{
+    "app_name":"StanLab",
+    "mongodb_URI":"mongodb://localhost/StanLab_Teacher"
+}
