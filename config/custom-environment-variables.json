@@ -1,3 +1,4 @@
 {
-    "app_name":"StanLab"
+    "app_name":"StanLab",
+    "jwtKey":"jwtPrivateKey"
 }
