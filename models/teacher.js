@@ -11,6 +11,7 @@ const teacherSchema = new mongoose.Schema({
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   role: { type: String, default: "Teacher" },
+  avatar: { type: Buffer },
 });
 
 function validateTeacher(teacher) {

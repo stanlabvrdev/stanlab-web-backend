@@ -27,7 +27,6 @@ function validateQuestion(question) {
     questionText: Joi.string().required(),
     options: Joi.array().required(),
     subject: Joi.string().required(),
-    teacher: Joi.objectId().required(),
   });
 
   return schema.validate(question);

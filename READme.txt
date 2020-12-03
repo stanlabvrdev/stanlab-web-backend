@@ -3,7 +3,7 @@ role: Teacher
 create Teacher
 
 A teacher can have many students
-
+A teacher add student
 
 ************************
 Question API
@@ -20,3 +20,4 @@ Create student
 
 
 A student can only have one teacher
+A student send add request

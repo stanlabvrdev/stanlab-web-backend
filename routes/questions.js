@@ -1,31 +1,19 @@
 const express = require("express");
 const { Question, validateQuestion } = require("../models/question");
+const { teacherAuth } = require("../middleware/auth");
 const router = express.Router();
 
-/*
-ROUTES: -> get total questions
-        -> simulate questions base on subject
-
-        question format -> [
-            {questionText: "", options:[{label:a, text:"", isCorrect:false, }], subject: "chemistry"    }
-        ]
-        
-*/
-
-/** 
- Route: Post
- condition: Teacher should be log in to access this route
- Task : Authentication and Authorization using JWT
-        Password Encryption using Bcryptjs
-      
-*/
-router.get("/", async (req, res) => {
-  const questions = await Question.find();
+router.get("/quiz", teacherAuth, async (req, res) => {
+  const teacher = req.teacher._id;
+  const questions = await Question.find({ teacher });
+  console.log(teacher);
   res.send(questions);
 });
 
-// only authenticated teacher can post a question
-router.post("/", async (req, res) => {
+/* only authenticated teacher can post a question
+Post: Teacher set Quiz question
+*/
+router.post("/quiz", teacherAuth, async (req, res) => {
   const { error } = validateQuestion(req.body);
   const { questionText, options, subject, isCorrect, teacher } = req.body;
   if (error) return res.status(400).send(error.details[0].message);
@@ -36,9 +24,17 @@ router.post("/", async (req, res) => {
     options,
     subject,
     isCorrect,
-    teacher,
+    teacher: req.teacher._id,
   });
   await question.save();
   res.send(question);
+});
+
+/* only authenticated teacher can post a question
+Post: Teacher set Lab question
+*/
+
+router.post("/lab", teacherAuth, async (req, res) => {
+  res.send("Lab questions");
 });
 module.exports = router;
