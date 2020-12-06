@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 const { studentAuth } = require("../middleware/auth");
 const { Student, validateStudent, validateIDs } = require("../models/student");
+const { Teacher } = require("../models/teacher");
 const router = express.Router();
 
 /*
@@ -40,6 +41,26 @@ router.post("/request-teacher/teacherId", studentAuth, async (req, res) => {
   student.teacher = teacherID;
   await student.save();
   res.send(_.pick(student, ["name", "email", "teacher", "studentClass"]));
+});
+
+// Send add request to a teacher
+
+router.post("/add-request", studentAuth, async (req, res) => {
+  const { teacherID } = req.body;
+  const studentID = req.student._id;
+  try {
+    const teacher = await Teacher.findById(teacherID);
+    let student = teacher.students.find(
+      (s) => s.toString() === studentID.toString()
+    );
+    if (student)
+      return res.status(409).send({ message: "Student already exist" });
+    teacher.students.push(studentID);
+    await teacher.save();
+    res.send({ message: "request sent" });
+  } catch (error) {
+    res.status(400).send({ message: "Invalid teacher ID" });
+  }
 });
 
 module.exports = router;

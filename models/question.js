@@ -20,6 +20,8 @@ const questionSchema = new mongoose.Schema({
     ref: "Teacher",
     required: true,
   },
+  isPublished: { type: Boolean, default: false },
+  dueDate: { type: Date },
 });
 
 function validateQuestion(question) {

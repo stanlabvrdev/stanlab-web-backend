@@ -21,6 +21,12 @@ const studentSchema = new mongoose.Schema({
     ref: "Teacher",
     default: () => new mongoose.Types.ObjectId(),
   },
+  isAccepted: { type: Boolean, default: false },
+  avatar: { type: Buffer },
+  questions: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+    default: [],
+  },
 });
 
 studentSchema.methods.generateAuthToken = function () {
@@ -44,9 +50,9 @@ function validateStudent(student) {
   return schema.validate(student);
 }
 
-function validateIDs(id) {
+function validateIDs(id, testString) {
   return Joi.object({
-    teacherID: Joi.objectId(),
+    [testString]: Joi.objectId(),
   }).validate(id);
 }
 

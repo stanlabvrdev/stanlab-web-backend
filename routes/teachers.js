@@ -3,30 +3,23 @@ const bcrypt = require("bcryptjs");
 const sharp = require("sharp");
 const multer = require("multer");
 const _ = require("lodash");
-const { Teacher, validateTeacher } = require("../models/teacher");
-const { Student } = require("../models/student");
+const {
+  Teacher,
+  validateTeacher,
+  validateUpdateTeacher,
+} = require("../models/teacher");
+const { Student, validateIDs } = require("../models/student");
 const { teacherAuth, studentAuth } = require("../middleware/auth");
+const { Question } = require("../models/question");
 const router = express.Router();
 
-// get a teacher
+// get all teachers
 router.get("/", studentAuth, async (req, res) => {
   const teachers = await Teacher.find().select("-password");
   res.send(teachers);
 });
 
-router.get("/:id", async (req, res) => {
-  try {
-    const teacher = await Teacher.findById(req.params.id).select(
-      "-password -avatar"
-    );
-    if (!teacher)
-      return res.status(404).send("Teacher with this ID was not found");
-    res.send(teacher);
-  } catch (error) {
-    console.log(error.message);
-    res.status(400).send("Invalid teacher ID");
-  }
-});
+// get a teacher
 
 // post: Teacher avatar
 
@@ -56,7 +49,7 @@ router.post(
       await teacher.save();
       res.send({ message: "successful" });
     } catch (error) {
-      res.status(400).send("Invalid ID");
+      res.status(400).send({ message: "Invalid ID" });
     }
   },
   (error, req, res, next) => {
@@ -68,15 +61,15 @@ router.post(
 router.get("/:id/avatar", async (req, res) => {
   try {
     const teacher = await Teacher.findById(req.params.id);
-    console.log(teacher);
-    if (!teacher || !teacher.avatar) return res.status(404).send("Not Found");
+    if (!teacher || !teacher.avatar)
+      return res.status(404).send({ message: "Not Found" });
     res.set("Content-Type", "image/png").send(teacher.avatar);
   } catch (error) {
-    res.status(400).send("Invalid ID");
+    res.status(400).send({ message: "Invalid ID" });
   }
 });
 
-// post, questions,students
+// create a teacher
 router.post("/", async (req, res) => {
   const { error } = validateTeacher(req.body);
   let { name, email, password } = req.body;
@@ -84,13 +77,12 @@ router.post("/", async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
   let teacher = await Teacher.findOne({ email });
-  if (teacher) return res.status(400).send("Teacher already Registered");
+  if (teacher)
+    return res.status(400).send({ message: "Teacher already Registered" });
   teacher = new Teacher({
     name,
     password,
     email,
-    questions: [],
-    students: [],
   });
 
   await teacher.save();
@@ -101,26 +93,117 @@ router.post("/", async (req, res) => {
     .send(_.pick(teacher, ["name", "email", "questions", "students"]));
 });
 
-/* 
-Add Student Route
-*/
-
-router.post("/add-student/:id", teacherAuth, async (req, res) => {
-  const student = await Student.findById(req.params.id);
-  if (!student) res.status(404).send("Invalid Student ID");
-  const teacherID = req.teacher._id;
+// update teacher via email and name
+router.put("/", teacherAuth, async (req, res) => {
   try {
-    const teacher = await Teacher.findById(teacherID);
-    teacher.students.push(
-      _.pick(student, ["name", "_id", "email", "studentClass"])
-    );
+    const teacher = await Teacher.findById(req.teacher._id);
+    if (!teacher)
+      return res.status(404).send({ message: "teacher was not found" });
+
+    const { email, name } = req.body;
+    const { error } = validateUpdateTeacher(req.body);
+
+    if (error) return res.status(400).send(error.details[0].message);
+    teacher.name = name;
+    teacher.email = email;
     await teacher.save();
-    student.teacher = teacherID;
-    await student.save();
     res.send(teacher);
   } catch (error) {
+    console.log(error.message);
     res.status(500).send("Something went wrong");
+  }
+});
+
+/* 
+post: Add Student Route
+*/
+
+// find the student, set isaccepted to true
+
+router.get("/students", teacherAuth, async (req, res) => {
+  try {
+    const students = await Teacher.find({ _id: req.teacher._id })
+      .populate("students", "-__v -password")
+      .select("students");
+    if (!students) return res.send([]);
+    return res.send(students);
+  } catch (error) {
     console.log(error.message);
   }
 });
+
+// get teacher questions
+router.get("/questions", teacherAuth, async (req, res) => {
+  const { subject } = req.query;
+
+  if (!subject) return res.status(400).send({ message: "Invalid URL" });
+  const questions = await Teacher.find({
+    _id: req.teacher._id,
+  })
+    .populate({ path: "questions", match: { subject, isPublished: false } })
+    .select("questions");
+  return res.send(questions);
+});
+
+// delete a question
+router.delete("/questions/:id", teacherAuth, async (req, res) => {
+  const questionID = req.params.id;
+  const teacherID = req.teacher._id;
+  const teacher = await Teacher.findById(teacherID);
+  try {
+    const question = await Question.findByIdAndRemove(questionID);
+    if (!question)
+      return res
+        .status(404)
+        .send({ message: "Question with this ID was not found" });
+    const quesIndex = teacher.questions.findIndex(
+      (q) => q.toString() === questionID.toString()
+    );
+    if (!quesIndex)
+      return res
+        .status(404)
+        .send({ message: "Question with this ID was not found" });
+    teacher.questions.splice(quesIndex, 1);
+    await teacher.save();
+    res.send({ message: "Question successfully deleted" });
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).send({ message: "Invalid Question ID" });
+  }
+});
+
+router.post("/add-student", teacherAuth, async (req, res) => {
+  const { studentID } = req.body;
+  try {
+    const student = await Student.findById(studentID);
+    console.log(student.questions);
+    console.log(req.teacher._id);
+    if (!student) return res.status(404).send({ message: "Student not found" });
+    student.isAccepted = true;
+    student.teacher = req.teacher._id;
+
+    await student.save();
+    res.send({ message: "student added" });
+  } catch (error) {
+    console.log(error.message);
+    return res.status(400).send({ message: "Invalid student ID" });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(req.params.id).select(
+      "-password -avatar"
+    );
+    if (!teacher)
+      return res
+        .status(404)
+        .send({ message: "Teacher with this ID was not found" });
+    res.send(teacher);
+  } catch (error) {
+    console.log(error.message);
+    res.status(400).send({ message: "Invalid teacher ID" });
+  }
+});
+// Get: all students
 module.exports = router;

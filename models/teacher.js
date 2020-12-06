@@ -8,8 +8,14 @@ const teacherSchema = new mongoose.Schema({
   name: { type: String, minlength: 5, maxlength: 50, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, minlength: 5, maxlength: 1024, required: true },
-  questions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
-  students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
+  questions: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+    default: [],
+  },
+  students: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
+    default: [],
+  },
   role: { type: String, default: "Teacher" },
   avatar: { type: Buffer },
 });
@@ -25,6 +31,14 @@ function validateTeacher(teacher) {
   return schema.validate(teacher);
 }
 
+function validateUpdateTeacher(teacher) {
+  const schema = Joi.object({
+    name: Joi.string().min(5).max(50).required(),
+    email: Joi.string().email().required(),
+  });
+  return schema.validate(teacher);
+}
+
 teacherSchema.methods.generateAuthToken = function () {
   const token = jwt.sign(
     { _id: this._id, role: this.role },
@@ -35,4 +49,4 @@ teacherSchema.methods.generateAuthToken = function () {
 
 const Teacher = mongoose.model("Teacher", teacherSchema);
 
-module.exports = { Teacher, validateTeacher };
+module.exports = { Teacher, validateTeacher, validateUpdateTeacher };
