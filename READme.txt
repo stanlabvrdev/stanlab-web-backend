@@ -28,3 +28,6 @@ A student send add request
 A student send a add request with the teacherID in the body of the request and the studentID as a query params
 
 when a student send a request it is partially added to teacher list of student waiting for teacher to click accept
+
+
+SendGridPassword => &+qcyTT5Hy+#&CHH
