@@ -13,9 +13,10 @@ const {
     validateUpdateTeacher,
 } = require("../models/teacher");
 const { Student, validateIDs } = require("../models/student");
-const { teacherAuth, studentAuth } = require("../middleware/auth");
+const { teacherAuth } = require("../middleware/auth");
 const { Question } = require("../models/question");
 const sendInvitation = require("../services/email");
+const { validateClass, TeacherClass } = require("../models/teacherClass");
 const router = express.Router();
 
 // login via google oauth
@@ -37,13 +38,64 @@ router.get(
     }
 );
 
-// get all teachers
-router.get("/", studentAuth, async(req, res) => {
-    const teachers = await Teacher.find().select(
-        "-password -questions -students -role -avatar -__v"
-    );
-    res.send(teachers);
+// teacher create class
+/*
+body => title, subject, section
+*/
+router.post("/create-class", teacherAuth, async(req, res) => {
+    const { title, subject, section } = req.body;
+    const { error } = validateClass(req.body);
+    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    try {
+        const teacher = await Teacher.findOne({ _id: req.teacher._id });
+        let teacherClass = new TeacherClass({ title, subject, section });
+        teacherClass = await teacherClass.save();
+        teacher.classes.push(teacherClass._id);
+        await teacher.save();
+        res.send({ message: "class created" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: "error creating" });
+    }
 });
+
+// teacher create Quiz
+
+// {
+//     questions: [{
+//         question: {
+//             type: mongoose.Schema.Types.ObjectId,
+//             ref: "Question",
+//         },
+//         point: { type: Number, required: true },
+//         dueDate: { type: Date },
+//         sendDate: { type: Date, default: Date.now() },
+//     }, ],
+// }, ],
+// }
+// teacher class id as parameter
+router.post(
+    "/create-class/:classId/create-quiz",
+    teacherAuth,
+    async(req, res) => {
+        // points, dueDate-> date, sendDate,
+        const { points, dueDate, sendDate } = req.body;
+
+        const { classId } = req.params;
+        // teacher class
+        const teacher = await Teacher.findOne({ _id: req.teacher._id });
+        const teacherClass = teacher.classes.find(
+            (c) => c._id.toString() === classId.toString()
+        );
+        if (!teacherClass)
+            return res.status(404).send({ message: "Invalid classID" });
+        const question = {
+            question,
+        };
+        teacherClass.questions.push(question);
+    }
+);
 
 // post: Teacher avatar
 
@@ -299,7 +351,7 @@ router.post("/invite-student", teacherAuth, async(req, res) => {
 
         // send mail to student
         // this method may not need to be waited in the future -> decision has to be made here on this
-        sendInvitation(teacher, student);
+        sendInvitation(teacher, student, "teacher");
 
         teacher.students.push(student._id);
         await teacher.save();
@@ -312,7 +364,6 @@ router.post("/invite-student", teacherAuth, async(req, res) => {
     }
 });
 
-router.post("/decline-invite/:teacherId", studentAuth, (req, res) => {});
 // get a teacher
 router.get("/:id", async(req, res) => {
     try {

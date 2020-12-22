@@ -2,53 +2,85 @@ const express = require("express");
 const { Question, validateQuestion } = require("../models/question");
 const { teacherAuth } = require("../middleware/auth");
 const { Teacher } = require("../models/teacher");
+const { TeacherClass } = require("../models/teacherClass");
 const router = express.Router();
 
-router.get("/quiz", teacherAuth, async (req, res) => {
-  const teacher = req.teacher._id;
-  const questions = await Question.find({ teacher });
-  console.log(teacher);
-  res.send(questions);
+router.get("/quiz/:classId", teacherAuth, async(req, res) => {
+    const { classId } = req.params;
+    const teacherClass = await TeacherClass.findOne({ _id: classId });
+    const quiz = teacherClass.quiz;
+    console.log(quiz);
+    res.send(quiz);
 });
 
 /* only authenticated teacher can post a question
 Post: Teacher set Quiz question
+add questions to list of questions and add reference to the class
 */
-router.post("/quiz", teacherAuth, async (req, res) => {
-  const { error } = validateQuestion(req.body);
-  let { questionText, options, subject, isCorrect, teacher } = req.body;
 
-  if (error) return res.status(400).send(error.details[0].message);
-  let question = await Question.findOne({ questionText });
-  if (question) return res.status(400).send("This question already exist");
-  question = new Question({
-    questionText,
-    options,
-    subject,
-    isCorrect,
-    teacher: req.teacher._id,
-  });
+router.delete("/quiz/:quizId", teacherAuth, async(req, res) => {
+    const { quizId } = req.params;
+    try {
+        const quiz = await Question.findOne({ _id: quizId });
+        if (!quiz)
+            return res.status(404).send({ message: "Quiz with this ID not found" });
+        const teacherClass = await TeacherClass.findOne({
+            _id: quiz.teacherClass,
+        });
+        const classworkQuiz = teacherClass.classwork.quiz;
+        const indx = classworkQuiz.findIndex(
+            (w) => w.toString() === quizId.toString()
+        );
+        classworkQuiz.splice(indx, 1);
+        await teacherClass.save();
+        await Question.deleteOne({ _id: quizId });
+        res.send({ message: "deleted" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: "something went wrong" });
+    }
+});
+router.post("/quiz/:classId", teacherAuth, async(req, res) => {
+    const { error } = validateQuestion(req.body);
+    const { classId } = req.params;
+    try {
+        const teacherClass = await TeacherClass.findOne({ _id: classId });
+        if (!teacherClass)
+            return res
+                .status(400)
+                .send({ message: "Please create your class first" });
+        let { questionText, options, dueDate, points } = req.body;
+        dueDate = new Date(dueDate);
+        let subject = teacherClass.subject;
+        if (error) return res.status(400).send(error.details[0].message);
+        let question = await Question.findOne({ questionText });
+        if (question) return res.status(400).send("This question already exist");
+        question = new Question({
+            questionText,
+            options,
+            subject,
+            dueDate,
+            points,
+            teacher: req.teacher._id,
+            teacherClass: classId,
+        });
 
-  try {
-    teacher = await Teacher.findById(req.teacher._id);
-    if (!teacher)
-      return res.status(400).send({ message: "Teacher does not exist" });
-    question = await question.save();
-    teacher.questions.push(question._id);
-    await teacher.save();
+        question = await question.save();
+        teacherClass.classwork.quiz.push(question._id);
+        await teacherClass.save();
 
-    res.send(question);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).send({ message: "something went wrong" });
-  }
+        res.send(question);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: "something went wrong" });
+    }
 });
 
 /* only authenticated teacher can post a question
 Post: Teacher set Lab question
 */
 
-router.post("/lab", teacherAuth, async (req, res) => {
-  res.send("Lab questions");
+router.post("/lab", teacherAuth, async(req, res) => {
+    res.send("Lab questions");
 });
 module.exports = router;

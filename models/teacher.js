@@ -18,8 +18,12 @@ const teacherSchema = new mongoose.Schema({
     students: [{
         studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
         status: { type: String, default: "" },
+        isAccepted: { type: Boolean, default: false },
     }, ],
-
+    classes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TeacherClass",
+    }, ],
     archivedQuestions: { type: [] },
     role: { type: String, default: "Teacher" },
     avatar: { type: Buffer },

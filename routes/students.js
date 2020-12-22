@@ -4,8 +4,9 @@ const _ = require("lodash");
 const { studentAuth } = require("../middleware/auth");
 const { Student, validateStudent, validateIDs } = require("../models/student");
 const { Teacher } = require("../models/teacher");
-const student = require("../models/student");
 const { studentPassport } = require("../services/initPassport");
+const sendInvitation = require("../services/email");
+
 const router = express.Router();
 
 // login via google oauth
@@ -27,6 +28,54 @@ router.get(
     }
 );
 
+// Student send invitation to teacher
+/*
+post: 
+*/
+router.post("/invite-teacher", studentAuth, async(req, res) => {
+    const { teacherEmail } = req.body;
+    const { _id } = req.student;
+    if (!teacherEmail)
+        return res.status(400).send({ message: "teacherEmail is required" });
+
+    try {
+        const student = await Student.findOne({ _id });
+        const teacher = await Teacher.findOne({ email: teacherEmail });
+
+        if (!teacher) {
+            sendInvitation(teacher, student, "student");
+            return res.send({
+                message: "student not on platform, request has been sent to student email",
+            });
+        }
+
+        const studentTeacher = teacher.students.find(
+            (s) => s._id.toString() === _id.toString()
+        );
+        if (studentTeacher && !studentTeacher.isAccepted)
+            return res
+                .status(400)
+                .send({ message: "Invite already sent to this teacher" });
+
+        if (
+            student.teachers.find((t) => t._id.toString() === teacher._id.toString())
+        )
+            return res.status(400).send({ message: "teacher already exist" });
+
+        // send mail to student
+        // this method may not need to be waited in the future -> decision has to be made here on this
+        sendInvitation(teacher, student);
+
+        teacher.students.push(_id);
+        await teacher.save();
+        student.teachers.push(teacher._id);
+        await student.save();
+        res.send({ message: "Invitation sent to student" });
+    } catch (ex) {
+        console.log(ex.message);
+        res.status(404).send({ message: "No teacher with this Email found" });
+    }
+});
 /*
 Post: Register a new Student
 */
