@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const generateRandomString = require("../utils/randomStr");
+const { Teacher } = require("../models/teacher");
+const { Student } = require("../models/student");
 
-module.exports = function(Model, configSettings, callbackUri) {
+module.exports = function(Model, configSettings, callbackUri, role) {
     return new GoogleStrategy({
             clientID: configSettings.clientID,
             clientSecret: configSettings.clientSecret,
@@ -17,7 +19,27 @@ module.exports = function(Model, configSettings, callbackUri) {
             if (modelRes) {
                 // console.log("login teacher from passportjs");
 
-                done(null, modelRes);
+                return done(null, modelRes);
+            }
+            if (
+                role === "student" &&
+                (await Teacher.findOne({
+                    email: profile.emails[0].value,
+                }))
+            ) {
+                return done(null, false, {
+                    message: "You cannot use same email registered as  teacher",
+                });
+            }
+            if (
+                role === "teacher" &&
+                (await Student.findOne({
+                    email: profile.emails[0].value,
+                }))
+            ) {
+                return done(null, false, {
+                    message: "You cannot use same email registered as Student",
+                });
             } else {
                 // create this Teacher
                 try {

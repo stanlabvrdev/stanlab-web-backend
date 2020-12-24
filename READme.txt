@@ -1,33 +1,24 @@
 Teacher API
 role: Teacher
-create Teacher
 
-A teacher can have many students
-A teacher add student
+create Teacher via social login [Teacher with cannot register as a student with thesame email and student cannot register as a teacher with thesame email]
+Teacher invite student via email
+Teacher create a class before he can create a quiz or lab for a class
+Teacher create quiz with points and due date
+Teacher can accept student invite and decline
 
-A teacher accept student request with the studentID in the body of the request and teacherID in the query parameter
 
-when a teacher click on accept request then student isaccepted is set to true
 ************************
 Question API
-create Question -> the following fields are required: questionText, options(must be an array), subject
-
-read Question
-delete Question
-edit question
+quiz are create based on a class 
+quiz references the teacher and the class
+delete a quiz.. remove all instances of the quiz Deleted
 
 ************************
 Student API
-role:Student
-Create student
 
+student register and sign up via social login and can do same manually
 
-A student can only have one teacher
-A student send add request
-
-A student send a add request with the teacherID in the body of the request and the studentID as a query params
-
-when a student send a request it is partially added to teacher list of student waiting for teacher to click accept
-
-
-SendGridPassword => &+qcyTT5Hy+#&CHH
+student cannot register as teacher with same email
+student can send invitation to teacher
+student can accept teacher teacher invitation

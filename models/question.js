@@ -21,7 +21,7 @@ const questionSchema = new mongoose.Schema({
         ref: "Teacher",
         required: true,
     },
-
+    isSend: { type: Boolean, default: false },
     points: { type: Number, required: true },
     isDue: { type: Boolean, default: false },
     sendDate: { type: Date, default: Date.now },

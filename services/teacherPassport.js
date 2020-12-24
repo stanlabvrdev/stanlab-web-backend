@@ -12,7 +12,8 @@ module.exports = function(passport) {
         googleStrategy(
             Teacher,
             configSettings,
-            "/api/teachers/auth/google/callback"
+            "/api/teachers/auth/google/callback",
+            "teacher"
         )
     );
 };

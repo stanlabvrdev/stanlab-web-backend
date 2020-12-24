@@ -17,7 +17,14 @@ const studentSchema = new mongoose.Schema({
     googleId: { type: String },
     provider: { type: String },
     password: { type: String, minlength: 5, maxlength: 1024, required: true },
-    studentClass: { type: String, default: "" },
+    classes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TeacherClass",
+    }, ],
+    classwork: [{
+        classId: { type: mongoose.Schema.Types.ObjectId, ref: "TeacherClass" },
+        quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+    }, ],
     role: { type: String, default: "Student" },
     teachers: [{
         teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },

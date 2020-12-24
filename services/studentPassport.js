@@ -12,7 +12,8 @@ module.exports = function(passport) {
         googleStrategy(
             Student,
             configSettings,
-            "/api/students/auth/google/callback"
+            "/api/students/auth/google/callback",
+            "student"
         )
     );
 };

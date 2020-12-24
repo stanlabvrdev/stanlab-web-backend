@@ -4,7 +4,10 @@ const _ = require("lodash");
 const { studentAuth } = require("../middleware/auth");
 const { Student, validateStudent, validateIDs } = require("../models/student");
 const { Teacher } = require("../models/teacher");
+const { TeacherClass } = require("../models/teacherClass");
+const { Question } = require("../models/question");
 const { studentPassport } = require("../services/initPassport");
+const passportAuth = require("../middleware/studentPassportAuth");
 const sendInvitation = require("../services/email");
 
 const router = express.Router();
@@ -15,18 +18,7 @@ router.get(
     "/auth/google",
     studentPassport.authenticate("google", { scope: ["profile", "email"] })
 );
-router.get(
-    "/auth/google/callback",
-    studentPassport.authenticate("google", {
-        session: false,
-    }),
-    (req, res) => {
-        // login teacher here
-        // console.log("teacher =", req.teacher, "user =", req.user);
-        const token = req.user.generateAuthToken();
-        res.send(token);
-    }
-);
+router.get("/auth/google/callback", passportAuth);
 
 // Student send invitation to teacher
 /*
@@ -86,7 +78,9 @@ router.post("/", async(req, res) => {
     let { name, email, password, studentClass, teacher } = req.body;
     const teacherEmail = await Teacher.findOne({ email });
     if (teacherEmail)
-        return res.status(400).send({ message: "user already exist" });
+        return res
+            .status(400)
+            .send({ message: "You cannot use same email registered as  teacher" });
     let student = await Student.findOne({ email });
     if (student) return res.status(400).send("Email already registered");
     const salt = await bcrypt.genSalt(10);
@@ -106,7 +100,7 @@ router.post("/", async(req, res) => {
         .send(_.pick(student, ["name", "email", "studentClass", "teacher"]));
 });
 
-// get a student
+// get login  student
 router.get("/", studentAuth, async(req, res) => {
     try {
         const student = await Student.findById(req.student._id).select(
@@ -167,6 +161,71 @@ router.post("/decline-invite/:teacherId", studentAuth, async(req, res) => {
         res.status(500).send({ message: "student went wrong" });
     }
 });
+
+// get student classwork -> quiz
+// {
+//     classId: { type: mongoose.Schema.Types.ObjectId, ref: "TeacherClass" },
+//     quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+// }
+
+// get student classwork
+router.get("/classwork/:classId", studentAuth, async(req, res) => {
+    const { classId } = req.params;
+
+    if (!classId)
+        return res
+            .status(400)
+            .send({ message: "Invalid request, teacher classId not found" });
+    try {
+        let student = await Student.findOne({ _id: req.student._id });
+        if (!student) return res.status(404).send({ message: "Student not found" });
+        const teacherClass = await TeacherClass.findOne({ _id: classId });
+        if (!teacherClass)
+            return res.status(404).send({ message: "class not found" });
+        const quizs = teacherClass.classwork.quiz;
+        if (quizs.length === 0) return res.send(quizs);
+
+        if (
+            student.classwork &&
+            student.classwork.some((c) => c.classId.toString() === classId.toString())
+        ) {
+            const getQ = await student
+                .populate({ path: "classwork.quizs" })
+                .execPopulate();
+            return res.send(_.pick(getQ, ["classwork"]));
+        }
+        async function getQuiz() {
+            let classwork = {
+                classId: "",
+                quizs: [],
+                lab: [],
+            };
+            classwork.classId = classId;
+            for (let i = 0; i < quizs.length; i++) {
+                const question = await Question.findOne({ _id: quizs[i] });
+
+                if (question.isSend) {
+                    classwork.quizs.push(quizs[i]);
+                }
+            }
+            if (classwork.quizs.length === 0)
+                return res.send({
+                    message: "You don't have active question from this class",
+                });
+            student.classwork.push(classwork);
+            student = await student.save();
+            const getQ = await student.populate("classwork.quizs").execPopulate();
+
+            res.send(_.pick(getQ, ["classwork"]));
+        }
+
+        await getQuiz();
+    } catch (error) {
+        console.log(error.message);
+        res.status(400).send({ message: "something went wrong" });
+    }
+});
+
 // get student avatar
 router.get("/:id/avatar", async(req, res) => {
     try {

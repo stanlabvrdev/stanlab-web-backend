@@ -18,28 +18,6 @@ Post: Teacher set Quiz question
 add questions to list of questions and add reference to the class
 */
 
-router.delete("/quiz/:quizId", teacherAuth, async(req, res) => {
-    const { quizId } = req.params;
-    try {
-        const quiz = await Question.findOne({ _id: quizId });
-        if (!quiz)
-            return res.status(404).send({ message: "Quiz with this ID not found" });
-        const teacherClass = await TeacherClass.findOne({
-            _id: quiz.teacherClass,
-        });
-        const classworkQuiz = teacherClass.classwork.quiz;
-        const indx = classworkQuiz.findIndex(
-            (w) => w.toString() === quizId.toString()
-        );
-        classworkQuiz.splice(indx, 1);
-        await teacherClass.save();
-        await Question.deleteOne({ _id: quizId });
-        res.send({ message: "deleted" });
-    } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "something went wrong" });
-    }
-});
 router.post("/quiz/:classId", teacherAuth, async(req, res) => {
     const { error } = validateQuestion(req.body);
     const { classId } = req.params;
@@ -70,6 +48,30 @@ router.post("/quiz/:classId", teacherAuth, async(req, res) => {
         await teacherClass.save();
 
         res.send(question);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send({ message: "something went wrong" });
+    }
+});
+
+// teacher delete quiz
+router.delete("/quiz/:quizId", teacherAuth, async(req, res) => {
+    const { quizId } = req.params;
+    try {
+        const quiz = await Question.findOne({ _id: quizId });
+        if (!quiz)
+            return res.status(404).send({ message: "Quiz with this ID not found" });
+        const teacherClass = await TeacherClass.findOne({
+            _id: quiz.teacherClass,
+        });
+        const classworkQuiz = teacherClass.classwork.quiz;
+        const indx = classworkQuiz.findIndex(
+            (w) => w.toString() === quizId.toString()
+        );
+        classworkQuiz.splice(indx, 1);
+        await teacherClass.save();
+        await Question.deleteOne({ _id: quizId });
+        res.send({ message: "deleted" });
     } catch (error) {
         console.log(error.message);
         res.status(500).send({ message: "something went wrong" });

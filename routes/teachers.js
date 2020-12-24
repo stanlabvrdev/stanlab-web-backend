@@ -17,26 +17,17 @@ const { teacherAuth } = require("../middleware/auth");
 const { Question } = require("../models/question");
 const sendInvitation = require("../services/email");
 const { validateClass, TeacherClass } = require("../models/teacherClass");
+const passportAuth = require("../middleware/teacherPassportAuth");
 const router = express.Router();
 
+// const info;
 // login via google oauth
 
 router.get(
     "/auth/google",
     teacherPassport.authenticate("google", { scope: ["profile", "email"] })
 );
-router.get(
-    "/auth/google/callback",
-    teacherPassport.authenticate("google", {
-        session: false,
-    }),
-    (req, res) => {
-        // login teacher here
-        // console.log("teacher =", req.teacher, "user =", req.user);
-        const token = req.user.generateAuthToken();
-        res.send(token);
-    }
-);
+router.get("/auth/google/callback", passportAuth);
 
 // teacher create class
 /*
@@ -53,27 +44,13 @@ router.post("/create-class", teacherAuth, async(req, res) => {
         teacherClass = await teacherClass.save();
         teacher.classes.push(teacherClass._id);
         await teacher.save();
-        res.send({ message: "class created" });
+        res.send(teacherClass);
     } catch (error) {
         console.log(error.message);
         res.status(500).send({ message: "error creating" });
     }
 });
 
-// teacher create Quiz
-
-// {
-//     questions: [{
-//         question: {
-//             type: mongoose.Schema.Types.ObjectId,
-//             ref: "Question",
-//         },
-//         point: { type: Number, required: true },
-//         dueDate: { type: Date },
-//         sendDate: { type: Date, default: Date.now() },
-//     }, ],
-// }, ],
-// }
 // teacher class id as parameter
 router.post(
     "/create-class/:classId/create-quiz",
@@ -150,6 +127,11 @@ router.post("/", async(req, res) => {
     const { error } = validateTeacher(req.body);
     let { name, email, password } = req.body;
     if (error) return res.status(400).send(error.details[0].message);
+    const registeredStudent = await Student.findOne({ email });
+    if (registeredStudent)
+        return res
+            .status(401)
+            .send({ message: "You cannot use same email registered as Student" });
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
     let teacher = await Teacher.findOne({ email });
@@ -190,34 +172,63 @@ router.put("/", teacherAuth, async(req, res) => {
     }
 });
 
-// Send questions to all students
-router.post("/students/questions", teacherAuth, async(req, res) => {
-    // array of questions
+// teacher add student to class
+// by passing the studentId to the body of the request
+router.post("/add-student/:classId", async(req, res) => {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+    if (!studentId)
+        return res.status(400).send({ message: "studentId is required" });
     try {
-        const teacher = await Teacher.findById(req.teacher._id)
-            .populate("students", "-avatar")
-            .select("-avatar");
-
-        const questions = teacher.questions;
-
-        if (teacher.students.length === 0)
-            return res.status(400).send({ message: "You don't have any students" });
-
-        for (let i = 0; i < teacher.students.length; i++) {
-            const studentsId = teacher.students[i]._id;
-            const student = await Student.findById(studentsId);
-            student.questions = questions;
-            await student.save();
-        }
-        // send to teacher archives
-        teacher.archivedQuestions = questions;
-        teacher.questions = null;
-        await teacher.save();
-        res.send({ message: "Questions sent!" });
+        const teacherClass = await TeacherClass.findOne({ _id: classId });
+        const student = await Student.findOne({ _id: studentId });
+        if (!student) return res.status(404).send({ message: "student not found" });
+        const classStudents = teacherClass.students;
+        if (classStudents.find((s) => s.toString() === studentId.toString()))
+            return res
+                .status(400)
+                .send({ message: "student already added to this class" });
+        if (student.classes.find((c) => c.toString() === classId.toString()))
+            return res.status(400).send({ message: "student already in this class" });
+        student.classes.push(classId);
+        teacherClass.students.push(student._id);
+        await student.save();
+        await teacherClass.save();
+        res.send(teacherClass);
     } catch (error) {
+        res.status(400).send({ message: "Invalid class or student id" });
         console.log(error.message);
-        res.status(500).send({ message: "Something went wrong" });
     }
+});
+// Send questions to all students
+router.post("/send-quiz/:classId", teacherAuth, async(req, res) => {
+    //    go to the teacher class
+    const { classId } = req.params;
+    try {
+        const teacher = await Teacher.findOne({ _id: req.teacher._id });
+        const teacherClassId = teacher.classes.find(
+            (c) => c.toString() === classId.toString()
+        );
+        const teacherClass = await TeacherClass.findOne({ _id: teacherClassId });
+        const classworkQuizs = teacherClass.classwork.quiz;
+        if (classworkQuizs.length === 0)
+            return res
+                .status(400)
+                .send({ message: "Please create a question for this class." });
+        classworkQuizs.forEach(async(q) => {
+            let question = await Question.findOne({ _id: q });
+            question.isSend = true;
+            await question.save();
+        });
+        res.send({ message: "question sent" });
+    } catch (error) {
+        res.status(500).send({ message: "something went wrong" });
+        console.log(error.message);
+    }
+
+    // select the questions referecence from the classwork
+    // set all the question publish to true
+    // send the question reference to the students
 });
 /*
  */
