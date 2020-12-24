@@ -1,4 +1,4 @@
 {
     "app_name": "StanLab",
-    "mongodb_URI": "mongodb://localhost/StanLab"
+    "mongodb_URI": "mongodb+srv://stanlab:ETrN8THWxStrNVEp@cluster0.5wktf.mongodb.net/Stanlab?retryWrites=true&w=majority"
 }
