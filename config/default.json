@@ -3,7 +3,7 @@
     "jwtKey": "",
     "sendGrid_API_KEY": "",
     "teacher_google_CLIENT_ID": "1094973986747-fmd3kp8tfrt9i8u2q8sbp8idnek1r7ln.apps.googleusercontent.com",
-    "teacher_google_CLIENT_SECRET": "0bSxeavemgOufOGUvgxOj_Uq",
+    "teacher_google_CLIENT_SECRET": "",
     "student_google_CLIENT_ID": "1087787957509-nv7oqahrn21kmabcdtruke53lkqajv5k.apps.googleusercontent.com",
-    "student_google_CLIENT_SECRET": "sfFIndIMwdqmbID94nkz3FLy"
+    "student_google_CLIENT_SECRET": ""
 }
