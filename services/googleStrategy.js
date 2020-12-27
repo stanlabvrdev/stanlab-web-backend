@@ -9,6 +9,7 @@ module.exports = function(Model, configSettings, callbackUri, role) {
             clientID: configSettings.clientID,
             clientSecret: configSettings.clientSecret,
             callbackURL: callbackUri,
+            proxy: true,
         },
         async(request, accessToken, refreshToken, profile, done) => {
             const modelRes = await Model.findOne({

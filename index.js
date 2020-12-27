@@ -32,7 +32,6 @@ app.use("/api/teachers", teachersRoute);
 app.use("/api/students", studentRoute);
 app.use("/api/login", loginRoute);
 
-console.log(config.get("student_google_CLIENT_SECRET"));
 console.log(app.get("env"));
 if (!config.get("jwtKey")) {
     console.log("FETAL ERROR: jwtKey is not set");
@@ -40,8 +39,6 @@ if (!config.get("jwtKey")) {
 if (!config.get("sendGrid_API_KEY")) {
     console.log("FETAL ERROR: SendGrid API Key is not set");
 }
-console.log(config.get("student_google_CLIENT_SECRET"));
-console.log(config.get("teacher_google_CLIENT_SECRET"));
 mongoDB
     .then((res) => console.log("Connected to MongoDB..."))
     .catch((err) => console.log("Could not connect to Database ", err));

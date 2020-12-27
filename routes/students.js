@@ -162,12 +162,6 @@ router.post("/decline-invite/:teacherId", studentAuth, async(req, res) => {
     }
 });
 
-// get student classwork -> quiz
-// {
-//     classId: { type: mongoose.Schema.Types.ObjectId, ref: "TeacherClass" },
-//     quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
-// }
-
 // get student classwork
 router.get("/classwork/:classId", studentAuth, async(req, res) => {
     const { classId } = req.params;

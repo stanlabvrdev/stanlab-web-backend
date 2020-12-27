@@ -1,0 +1,758 @@
+AuthExpose
+URL = https://stanlab.herokuapp.com/api
+    Intro:
+        Auth is for Teacher authentication.
+		signup and signin via google oauth
+		Method:
+		   POST
+***************************************************************
+				Teachers   
+			url:{{URL}}/teachers/auth/google
+				Student
+			url:{{URL}}/students/auth/google
+
+	Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "jwt token"
+            }
+*****************************************************************
+	
+		Manual signup
+	sign-up-teacher => url: {{URL}}/teachers; sign-up-student => url: {{URL}}/students
+        Intro:
+            This method is called when a teacher signs up.
+            Password: Minimum five characters, 
+        Method:
+            POST
+        Args:
+            {
+                "name":  {"type" : "string"},
+                "email":  {"type" : "email-string"},
+                "password": {"type" : "string"}
+            }
+        Returns:
+            HTTP: success code 200
+	    HTTP_header("x-auth-token", token)
+		{
+		createdTeacher object
+		}
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+***************************************************************************************************************************************
+	login-teacher => url: {{URL}}/login/teachers; login-student => url: {{URL}}/login/students
+        Intro:
+            This method is called when a user logs in.
+        Method:
+            POST
+        Args:
+            {
+                "email": {"type" : "string"},
+                "password": {"type" : "string"}
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+***************************************************************************************************************************************
+TEACHER ROUTES
+
+Teacher create class	
+		url: {{URL}}/teachers/create-class
+        Intro:
+            This method create a logged in teacher class.
+        Method:
+            POST
+        Args:
+            {
+                "title": "reason for deleting user"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "message": "${message}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${message}"
+            }
+
+	reset_password
+		url: /api/reset_password
+        Intro:
+            This api is called to reset password.
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+                "url": "${string}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${message}"
+            }
+
+	change_password
+		url: /api/change_password
+        Intro:
+            This api is called to change password.
+        Method:
+            POST
+        Args:
+            {
+                "password": {
+                    "type" : "string",
+                    "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                }
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${message}"
+            }
+
+	change_email
+		url: /api/change_email
+        Intro:
+            This api is called to change email.
+        Method:
+            POST
+        Args:
+            {
+                "email": {
+                    "type" : "string",
+                    "pattern": '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+                }
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${message}"
+            }
+
+ItemExpose
+        Intro:
+            Item is an individual entity in a shipment.
+
+	create_item
+		url: /api/create_item
+        Intro:
+            Call this api to create an item.
+        Method:
+            POST
+        Args:
+             {
+                "shipment_uid": {"type" : "string"},
+                "item_data":{
+                        "title":  {"type" : "string"},
+                        "description": {"type" : "string"},
+                        "note": {"type" : "string"},
+                        "content": {
+                            "item_type":  {"type" : "string"},
+                            "quantity":  {"type" : "number"}
+                        },
+                        "info": {
+                                "carrier": {"type" : "string"},
+                                "source": {"type" : "string"},
+                                "tracking": {"type": "string"}
+                        },
+                        "weight": {
+                                "unit": {"enum" : ["kg", "lb"]},
+                                "value": {"type" : "number"}
+                        }
+                    }
+        }
+        Returns:
+            HTTP: success code 200
+            {
+                "item_uid": "${some_cryptic_alpha_numeric}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	update_item
+		url: /api/update_item
+        Intro:
+            Call this api to update an item.
+        Method:
+            POST
+        Args:
+           {
+               "shipment_uid": {"type" : "string"},
+                "item_uid": {"type" : "string"},
+                "update_data":{
+                       "title":  {"type" : "string"},
+                        "description": {"type" : "string"},
+                        "note": {"type" : "string"},
+                        "content": {
+                                "item_type":  {"type" : "string"},
+                                "quantity":  {"type" : "number"}
+                        },
+                        "info": {
+                                "carrier": {"type" : "string"},
+                                "source": {"type" : "string"},
+                                "tracking": {"type": "string"}
+                        },
+                        "weight": {
+                                "unit": {"enum" : ["kg", "lb"]},
+                                "value": {"type" : "number"}
+                        }
+                    }
+                } 
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	delete_item
+		url: /api/delete_item
+        Intro:
+            Call this api to delete an item.
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {"type" : "string"},
+                "item_uid": {"type" : "string"}
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	track_item
+		url: /api/track_item
+        Intro:
+            Call this api to track an item 
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {"type" : "string"},
+                "item_uid": {"type" : "string"}
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "location_history": [
+                    "${timestamp}":{
+                        "location": "location title",
+                        "message": "Message or note"
+                    },...
+                ],
+                "progress": ${numerical}
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_all_items_for_shipment
+		url: /api/get_all_items_for_shipment
+        Intro:
+            Call this api to get all items for a shipment 
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {"type" : "string"}
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "items": [
+                    "${item_uid}":{
+                       item data
+                       },...
+                ]
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_item_types
+		url: /api/get_item_types
+        Intro:
+            Call this api to get item types 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "item_type": "${string description}",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_item_sources
+		url: /api/get_item_sources
+        Intro:
+            Call this api to get item sources 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "item_source": "${string description}",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_item_carriers
+		url: /api/get_item_carriers
+        Intro:
+            Call this api to get item sources 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "item_source": "${string description}",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+LocationExpose
+        Intro:
+            Locaton is the physical position of something.
+
+	add_location
+		url: /api/add_location
+        Intro:
+            Call this api to get list of office locations 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "country_uid": "${
+                   location_uid: description
+               }",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	update_location
+		url: /api/update_location
+        Intro:
+            Call this api to get list of office locations 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "country_uid": "${
+                   location_uid: description
+               }",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	delete_location
+		url: /api/delete_location
+        Intro:
+            Call this api to get list of office locations 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "country_uid": "${
+                   location_uid: description
+               }",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_location
+		url: /api/get_location
+        Intro:
+            Call this api to get list of office locations 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "country_uid": "${
+                   location_uid: description
+               }",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_list_of_locations
+		url: /api/get_list_of_locations
+        Intro:
+            Call this api to get list of office locations 
+        Method:
+            GET
+        Returns:
+            HTTP: success code 200
+            {
+               "country_uid": "${
+                   location_uid: description
+               }",
+               .
+               .
+               .
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+Receiver
+    Intro:
+        Receiver is someone who receives clients shipment at destination. A client can only have 10 receivers.
+
+	create_receiver
+		url: /api/create_receiver
+        Intro:
+            This method is used to create a receiver.
+        Method:
+            POST
+        Args:
+            {
+                "fname": "first name",
+                "lname": "last name",
+                "email": "user email (optional)",
+                "phoneNumber": "user phone number",
+                "address": "user address (optional)"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "receiver_uid": "${some_cryptic_alpha_numeric}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	update_receiver
+		url: /api/update_receiver
+        Intro:
+            This method is used to update a receivers detail/info.
+        Method:
+            POST
+        Args:
+            {
+                "receiver_uid": "${some_cryptic_alpha_numeric}",
+                "fname": "first name (optional)",
+                "lname": "last name (optional)",
+                "email": "user email (optional)",
+                "phoneNumber": "user phone number (optional)",
+                "address": "user address (optional)"
+            }
+            
+        Returns:
+            HTTP: success code 200
+            {
+                "receiver_uid": "${some_cryptic_alpha_numeric}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	delete_receiver
+		url: /api/delete_receiver
+        Intro:
+            This method is used to delete a receiver.
+        Method:
+            POST
+        Args:
+            {
+                "receiver_uid": "${receiver_uid}",
+            }    
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+ShipmentExpose
+        Intro:
+            Shipment is a collecion/group of items to be shipped together.
+
+	create_shipment
+		url: /api/create_shipment
+        Intro:
+            Call this api to create a new shipment
+        Method:
+            POST
+        Args:
+            {
+                "title":  {"type" : "string"},
+                "tier":  {"enum" : ["expedited", "standard"]},
+                "receiver_uid": {"type" : "string"}, Can be "self"
+                "source_location": {"type" : "string"},
+                "destination_location": {"type" : "string"},
+                "is_packaging_required": {"type" : "boolean"},
+                "is_protective_packaging_required": {"type" : "boolean"},
+                "shipment_worth": {
+                        "currency": {"type" : "string"},
+                        "value": {"type" : "number"}
+                    },
+                "is_insurance_required": {"type" : "boolean"},
+                "delivery_option":  {"enum" : ["door_delivery", "pickup"]},
+                "payment": {
+                        "currency": {"type" : "string"}
+                    },
+                "is_term_accepted": {"type": boolean}
+            }
+
+        Returns:
+            HTTP: success code 200
+            {
+                "shipment_uid": "${some_cryptic_alpha_numeric}",
+                "expected_delivery": "extimated date of delivery ${timestamp}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	update_shipment
+		url: /api/update_shipment
+        Intro:
+            Call this api to update shipment
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {
+                    "type" : "string",
+                    "minLength": 1
+                    },
+                "update_data": {
+                        "title":  {"type" : "string"},
+                        "tier":  {"enum" : ["expedited", "standard"]},
+                        "receiver_uid": {"type" : "string"},  Can be "self"
+                        "source_location": {"type" : "string"},
+                        "destination_location": {"type" : "string"},
+                        "is_packaging_required": {"type" : "boolean"},
+                        "is_protective_packaging_required": {"type" : "boolean"},
+                        "shipment_worth": {
+                                "currency": {"type" : "string"},
+                                "value": {"type" : "number"}
+                            },
+                        "is_insurance_required": {"type" : "boolean"},
+                        "delivery_option":  {"enum" : ["door_delivery", "pickup"]},
+                        "payment": {
+                                "currency": {"type" : "string"}
+                            }
+                }
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "expected_delivery": "extimated date of delivery ${timestamp}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	remove_items
+		url: /api/remove_items
+        Intro:
+            Call this api to delete a list of items
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {
+                    "type" : "string"
+                },
+                "data_to_delete": {
+                    "type": "array",
+                    "item_uid": {
+                        "type": "string"
+                    }
+                }
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	delete_shipment
+		url: /api/delete_shipment
+        Intro:
+            Call this api to delete shipment
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": {
+                    "type" : "string"
+                }
+            }
+        Returns:
+            HTTP: success code 200
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_shipments
+		url: /api/get_shipments
+        Intro:
+            Call this api to get shipments
+        Method:
+            POST
+        Args:
+            {
+                "starting_from": "{"type": "string"}"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "shipments": [
+                    "${shipment_uid}": {
+                    "title": "shipment title ${string}",
+                    "shipment_tier": "${shipment_tier}"
+                    "receiver_uid": "${receiver_uid}",
+                    "destination_country": "${local_id}",
+                    "source_country": "${local_id}",
+                    "is_packaging_required": "${bool}",
+                    "is_protective_packaging_required": "${bool}",
+                    "is_insurance_required": "${bool}",
+                    "shipment_worth": "${shipment_worth}",
+                    "delivery_option": "${delivery_option}",
+                    "payment_country": "${local_id}"
+                    "expected_delivery": "extimated date of delivery ${timestamp}",
+                    "items": [item_uid,...]
+                },...
+                ]    
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	track_shipment
+		url: /api/track_shipment
+        Intro:
+            Call this api to track shipment
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": "${shipment_uid}"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "location_history": [
+                    "${timestamp}":{
+                        "location": "location title",
+                        "message": "Message or note"
+                    },...
+                ],
+                "progress": ${numerical},
+                "expected_delivery": "extimated date of delivery ${timestamp}"
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_shipment_invoice
+		url: /api/get_shipment_invoice
+        Intro:
+            Call this api to get shipment invoice
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": "${shipment_uid}"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "url": "${url}"   
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+	get_shipment_quote
+		url: /api/get_shipment_quote
+        Intro:
+            Call this api to get shipment quote
+        Method:
+            POST
+        Args:
+            {
+                "shipment_uid": "${shipment_uid}"
+            }
+        Returns:
+            HTTP: success code 200
+            {
+                "price": "${numerical}",
+                "locale": "${payment_locale}"   
+            }
+            HTTP: error code [any error]
+            {
+                "message": "${some_reason_for_failure}"
+            }
+
+
+Note: API doc is auto generated. please reachout to Victor for more info.
