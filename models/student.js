@@ -1,11 +1,20 @@
-const mongoose = require("mongoose");
-const Joi = require("joi");
-const jwt = require("jsonwebtoken");
-const config = require("config");
+const mongoose = require('mongoose')
+const Joi = require('joi')
+const jwt = require('jsonwebtoken')
+const config = require('config')
 
 // profile:snapshot of the student
 const studentSchema = new mongoose.Schema({
-    name: { type: String, minlength: 5, maxlength: 255, required: true },
+    avatar: { type: Buffer },
+    classes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TeacherClass',
+    }, ],
+    classwork: [{
+        classId: { type: mongoose.Schema.Types.ObjectId, ref: 'TeacherClass' },
+        quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
+    }, ],
+    googleId: { type: String },
     email: {
         type: String,
         minlength: 5,
@@ -13,36 +22,36 @@ const studentSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    photo: { type: String },
-    googleId: { type: String },
-    provider: { type: String },
+    name: { type: String, minlength: 5, maxlength: 255, required: true },
     password: { type: String, minlength: 5, maxlength: 1024, required: true },
-    classes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "TeacherClass",
-    }, ],
-    classwork: [{
-        classId: { type: mongoose.Schema.Types.ObjectId, ref: "TeacherClass" },
-        quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
-    }, ],
-    role: { type: String, default: "Student" },
+    photo: { type: String },
+    plan: {
+        charge: { type: Number, default: 0 },
+        description: String,
+        name: String,
+    },
+
+    provider: { type: String },
+
+    role: { type: String, default: 'Student' },
+
     teachers: [{
-        teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
+        teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
         isAccepted: { type: Boolean, default: false },
     }, ],
-    avatar: { type: Buffer },
+
     questions: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
         default: [],
     },
-});
+})
 
 studentSchema.methods.generateAuthToken = function() {
     const token = jwt.sign({ _id: this._id, role: this.role },
-        config.get("jwtKey")
-    );
-    return token;
-};
+        config.get('jwtKey'),
+    )
+    return token
+}
 
 function validateStudent(student) {
     const schema = Joi.object({
@@ -52,16 +61,16 @@ function validateStudent(student) {
         studentClass: Joi.string(),
         role: Joi.string(),
         teacher: Joi.objectId(),
-    });
+    })
 
-    return schema.validate(student);
+    return schema.validate(student)
 }
 
 function validateIDs(id, testString) {
     return Joi.object({
         [testString]: Joi.objectId(),
-    }).validate(id);
+    }).validate(id)
 }
 
-const Student = mongoose.model("Student", studentSchema);
-module.exports = { Student, validateStudent, validateIDs };
+const Student = mongoose.model('Student', studentSchema)
+module.exports = { Student, validateStudent, validateIDs }

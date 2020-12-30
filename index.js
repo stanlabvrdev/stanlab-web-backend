@@ -9,6 +9,7 @@ const questionsRoute = require('./routes/questions')
 const teachersRoute = require('./routes/teachers')
 const studentRoute = require('./routes/students')
 const loginRoute = require('./routes/login')
+const studentBillingRoute = require('./routes/studentBilling')
 
 const { teacherPassport } = require('./services/initPassport')
 const { studentPassport } = require('./services/initPassport')
@@ -26,13 +27,12 @@ app.use(express.json())
 app.use(cors())
 
 // initialize teacherAccount
-console.log(config.get('mongodb_URI'))
 app.use('/api/questions', questionsRoute)
 app.use('/api/teachers', teachersRoute)
 app.use('/api/students', studentRoute)
 app.use('/api/login', loginRoute)
+app.use('/api/students/billing', studentBillingRoute)
 
-console.log(app.get('env'))
 if (!config.get('jwtKey')) {
     console.log('FETAL ERROR: jwtKey is not set')
 }
