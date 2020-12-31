@@ -8,5 +8,7 @@
     "student_google_CLIENT_SECRET": "student_google_client_secret_key",
 
     "stripe_Publishable_Key": "stripe_publishable_key",
-    "stripe_Secret_Key": "stripe_secret_key"
+    "stripe_Secret_Key": "stripe_secret_key",
+    "cloudinary_api_key": "cloudinary_api_key",
+    "cloudinary_secret_key": "cloudinary_secret_key"
 }

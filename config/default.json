@@ -8,5 +8,7 @@
     "student_google_CLIENT_SECRET": "",
     "mongodb_URI": "",
     "stripe_Publishable_Key": "",
-    "stripe_Secret_Key": ""
+    "stripe_Secret_Key": "",
+    "cloudinary_api_key": "",
+    "cloudinary_secret_key": ""
 }
