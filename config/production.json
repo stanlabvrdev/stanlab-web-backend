@@ -1,4 +1,5 @@
 {
     "app_name": "StanLab",
+    "lab_backend_url": "",
     "mongodb_URI": "MongoDB_URI_prod"
 }

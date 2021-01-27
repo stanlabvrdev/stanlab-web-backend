@@ -1,45 +1,15 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const Joi = require("joi");
-const { Teacher } = require("../models/teacher");
-const { Student } = require("../models/student");
+const express = require('express')
+const loginController = require('../controllers/loginController')
+const router = express.Router()
 
-function validateAuth(auth) {
-  const schema = Joi.object({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  });
+// login and signup with googleOAUTH for teacher
 
-  return schema.validate(auth);
-}
+router.post('/teachers/auth/google', loginController.teacherGoogleAuth)
 
-const router = express.Router();
+router.post('/teachers', loginController.teacherLogin)
 
-router.post("/teachers", async (req, res) => {
-  const { email, password } = req.body;
-  const { error } = validateAuth(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-  const teacher = await Teacher.findOne({ email });
-  if (!teacher) return res.status(400).send("Invalid Credentials");
+router.post('/students/auth/google', loginController.studentGoogleAuth)
 
-  const isValid = await bcrypt.compare(password, teacher.password);
+router.post('/students', loginController.studentLogin)
 
-  if (!isValid) return res.status(400).send("Invalid credentials");
-  const token = teacher.generateAuthToken();
-  res.send(token);
-});
-
-router.post("/students", async (req, res) => {
-  const { email, password } = req.body;
-  const { error } = validateAuth(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-  const student = await Student.findOne({ email });
-  if (!student) return res.status(400).send("Invalid Credentials");
-
-  const isValid = await bcrypt.compare(password, student.password);
-
-  if (!isValid) return res.status(400).send("Invalid credentials");
-  const token = student.generateAuthToken();
-  res.send(token);
-});
-module.exports = router;
+module.exports = router

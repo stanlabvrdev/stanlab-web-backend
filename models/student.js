@@ -10,11 +10,13 @@ const studentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'TeacherClass',
     }, ],
-    classwork: [{
-        classId: { type: mongoose.Schema.Types.ObjectId, ref: 'TeacherClass' },
-        quizs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
-    }, ],
-    googleId: { type: String },
+    classworks: {
+        quizClasswork: [
+            { type: mongoose.Schema.Types.ObjectId, ref: 'QuizClasswork' },
+        ],
+        labClasswork: [],
+    },
+
     email: {
         type: String,
         minlength: 5,
@@ -24,20 +26,20 @@ const studentSchema = new mongoose.Schema({
     },
     name: { type: String, minlength: 5, maxlength: 255, required: true },
     password: { type: String, minlength: 5, maxlength: 1024, required: true },
-    photo: { type: String },
+    imageUrl: { type: String },
     plan: {
         charge: { type: Number, default: 0 },
         description: String,
-        name: String,
+        name: { type: String, default: 'basic' },
     },
-
-    provider: { type: String },
 
     role: { type: String, default: 'Student' },
 
     teachers: [{
-        teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
+        teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
         isAccepted: { type: Boolean, default: false },
+        status: { type: String },
+        invite: { type: String, default: 'student' },
     }, ],
 
     questions: {
@@ -51,6 +53,67 @@ studentSchema.methods.generateAuthToken = function() {
         config.get('jwtKey'),
     )
     return token
+}
+
+studentSchema.methods.addTeacher = function(teacherId, inviteFrom) {
+    let teacher = this.teachers.find(
+        (td) => td.teacher.toString() === teacherId.toString(),
+    )
+
+    if (teacher) {
+        teacher.status = ''
+        return this
+    }
+
+    if (inviteFrom)
+        teacher = { teacher: teacherId, isAccepted: false, invite: inviteFrom }
+    else teacher = { teacher: teacherId, isAccepted: false, invite: 'student' }
+
+    this.teachers.push(teacher)
+    return this
+}
+
+studentSchema.methods.checkTeacherById = function(teacherId) {
+    if (
+        this.teachers.find((s) => s.teacher.toString() === teacherId.toString())
+    ) {
+        return true
+    }
+    return false
+}
+
+studentSchema.methods.acceptTeacher = function(teacherId) {
+    let teacher = this.teachers.find(
+        (td) => td.teacher.toString() === teacherId.toString(),
+    )
+
+    if (teacher) {
+        teacher.isAccepted = true
+        return this
+    }
+    return this
+}
+
+studentSchema.methods.removeTeacher = function(teacherId) {
+    const index = this.teachers.findIndex(
+        (data) => data.teacher.toString() === teacherId.toString(),
+    )
+    if (index < 0) return null
+
+    this.teachers.splice(index, 1)
+    return this
+}
+
+studentSchema.methods.markTeacherAsRemoved = function(teacherId) {
+    let teacher = this.teachers.find(
+        (td) => td.teacher.toString() === teacherId.toString(),
+    )
+
+    if (teacher) {
+        teacher.status = 'removed'
+        return this
+    }
+    return this
 }
 
 function validateStudent(student) {

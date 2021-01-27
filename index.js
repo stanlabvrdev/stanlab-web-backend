@@ -10,6 +10,8 @@ const teachersRoute = require('./routes/teachers')
 const studentRoute = require('./routes/students')
 const loginRoute = require('./routes/login')
 const studentBillingRoute = require('./routes/studentBilling')
+const teacherClassRoute = require('./routes/teacherClasses')
+const labsetupRoute = require('./routes/lapSetup')
 
 const { teacherPassport } = require('./services/initPassport')
 const { studentPassport } = require('./services/initPassport')
@@ -29,7 +31,9 @@ app.use(cors())
 
 // initialize teacherAccount
 app.use('/api/questions', questionsRoute)
+app.use('/api/lab', labsetupRoute)
 app.use('/api/teachers', teachersRoute)
+app.use('/api/classes', teacherClassRoute)
 app.use('/api/students', studentRoute)
 app.use('/api/login', loginRoute)
 app.use('/api/students/billing', studentBillingRoute)

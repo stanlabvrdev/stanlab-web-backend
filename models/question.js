@@ -2,12 +2,9 @@ const mongoose = require('mongoose')
 const Joi = require('joi')
 
 const questionSchema = new mongoose.Schema({
-    dueDate: { type: Date },
-    isDue: { type: Boolean, default: false },
-    isSend: { type: Boolean, default: false },
+    created: { type: String, default: Date.now },
     points: { type: Number, required: true },
     imageUrl: { type: String },
-    sendDate: { type: Date, default: Date.now },
     questionText: { type: String, required: true },
     options: {
         type: [{
@@ -27,6 +24,7 @@ const questionSchema = new mongoose.Schema({
         ref: 'Teacher',
         required: true,
     },
+    subject: { type: String },
 })
 
 function validateQuestion(question) {
@@ -34,7 +32,7 @@ function validateQuestion(question) {
         questionText: Joi.string().required(),
         options: Joi.array().required(),
         points: Joi.number().required(),
-        dueDate: Joi.date().required(),
+        // dueDate: Joi.date().required(),
         image: Joi.string(),
     })
 

@@ -22,3 +22,25 @@ student register and sign up via social login and can do same manually
 student cannot register as teacher with same email
 student can send invitation to teacher
 student can accept teacher teacher invitation
+
+
+
+
+const client = new net.Socket()
+
+    client.connect(
+        config.get('lab_backend_port'),
+        config.get('lab_backend_url'),
+        function() {
+            console.log('connected')
+            client.write('Hello from nodejs')
+        },
+    )
+
+    client.on('data', function(data) {
+        console.log('Recieved' + data)
+    })
+
+    client.on('close', function() {
+        console.log('connection closed')
+    })

@@ -1,7 +1,7 @@
 module.exports = {
     plans: {
-        basic: 'Basic',
-        premium: 'Premium',
-        Standard: 'Standard',
+        basic: 'basic',
+        premium: 'premium',
+        Standard: 'standard',
     },
 }
