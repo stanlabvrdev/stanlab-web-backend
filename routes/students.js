@@ -30,9 +30,15 @@ router.post(
 router.post('/', studentsController.createStudent)
 
 // get login  student
-router.get('/', studentAuth, studentsController.getStudent)
 
 // student accept teacher Invite
+
+/**
+ * functionalities and edge cases to implement
+ *
+ * => student should be able to add only one teacher, if not upgraded
+ */
+
 router.post(
     '/accept-invite/:teacherId',
     studentAuth,
@@ -60,7 +66,14 @@ router.get(
     studentsController.getQuizClasswork,
 )
 
+// get student teachers
+
+router.get('/teachers', studentAuth, studentsController.getTeachers)
+
 // get student avatar
 router.get('/:id/avatar', studentsController.getAvatar)
+
+// get a student
+router.get('/:studentId', studentAuth, studentsController.getStudent)
 
 module.exports = router

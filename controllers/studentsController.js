@@ -15,7 +15,11 @@ async function inviteTeacher(req, res) {
         let teacher = await Teacher.findOne({ email: teacherEmail })
 
         if (!teacher) {
-            sendInvitation(teacher, student, 'student')
+            let isStudent = student.addUnregisterTeacher(teacherEmail)
+            if (!isStudent)
+                return res.status(400).send({ message: 'Invite already sent' })
+            sendInvitation({ email: teacherEmail, name: '' }, student, 'student')
+            await student.save()
             return res.send({
                 message: 'Teacher not on platform, request has been sent to Teacher email',
             })
@@ -39,7 +43,7 @@ async function inviteTeacher(req, res) {
 
         res.send({ message: 'Invitation sent' })
     } catch (ex) {
-        console.log(ex.message)
+        console.log(ex)
         res.status(500).send({ message: 'something went wrong' })
     }
 }
@@ -74,8 +78,9 @@ async function createStudent(req, res) {
 }
 
 async function getStudent(req, res) {
+    const { studentId } = req.params
     try {
-        const student = await Student.findById(req.student._id).select(
+        const student = await Student.findOne({ _id: studentId }).select(
             '-password -__v -avatar',
         )
 
@@ -223,6 +228,21 @@ async function getAvatar(req, res) {
         res.status(400).send({ message: 'Invalid ID' })
     }
 }
+
+async function getTeachers(req, res) {
+    try {
+        const teachers = await Student.findOne({ _id: req.student._id })
+            .populate({
+                path: 'teachers.teacher',
+                select: 'name email imageUrl avatar _id isAccepted',
+            })
+            .select('teachers')
+        res.send(teachers)
+    } catch (error) {
+        res.status(500).send({ message: 'Something went wrong' })
+        console.log(error.message)
+    }
+}
 module.exports = {
     acceptTeacher,
     createStudent,
@@ -231,5 +251,6 @@ module.exports = {
     getAvatar,
     getQuizClasswork,
     getStudent,
+    getTeachers,
     inviteTeacher,
 }

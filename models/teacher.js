@@ -18,10 +18,13 @@ const teacherSchema = new mongoose.Schema({
         default: [],
     },
     students: [{
-        student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
-        status: { type: String, default: '' },
-        isAccepted: { type: Boolean, default: false },
-        invite: { type: String, default: 'teacher' },
+        student: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Student',
+        },
+        status: { type: String },
+        isAccepted: { type: Boolean },
+        invite: { type: String },
     }, ],
     studentsByEmail: [],
     sentQuizclasswork: [
@@ -153,10 +156,9 @@ teacherSchema.methods.markStudentAsRemoved = function(studentId) {
 }
 
 teacherSchema.methods.addUnregisterStudent = function(email) {
-    if (this.students.length > 0) {
-        const student = this.studentsByEmail.find((s) => s === email)
-        if (student) return this
-    }
+    const student = this.studentsByEmail.find((s) => s === email)
+    if (student) return this
+
     this.studentsByEmail.push(email)
     return this
 }

@@ -242,6 +242,10 @@ async function sendInviteToStudent(req, res) {
          * Tasks => student should be added from the list of teacher students
          * invite student from a class should be from pool of students
          */
+        if (teacher.email === studentEmail)
+            return res
+                .status(400)
+                .send({ message: "You can't send invite to yourself" })
         if (student) {
             const isStudent = teacher.checkStudentById(student._id)
             if (isStudent)
@@ -257,7 +261,7 @@ async function sendInviteToStudent(req, res) {
             // add teacher to student list
             student = student.addTeacher(teacher._id, 'teacher')
 
-            sendInvitation(teacher, { email: studentEmail }, 'teacher')
+            sendInvitation(teacher, student, 'teacher')
 
             await teacher.save()
             await student.save()
@@ -266,7 +270,7 @@ async function sendInviteToStudent(req, res) {
 
         if (!student) {
             teacher = teacher.addUnregisterStudent(studentEmail)
-            sendInvitation(teacher, { email: studentEmail }, 'teacher')
+            sendInvitation(teacher, { email: studentEmail, name: '' }, 'teacher')
             await teacher.save()
             return res.send({ message: 'Invitation sent' })
         }
@@ -314,14 +318,13 @@ async function getStudents(req, res) {
         const students = await Teacher.findOne({ _id: req.teacher._id })
             .populate({
                 path: 'students.student',
-                select: 'name email imageUrl avatar ',
+                select: 'name email imageUrl avatar _id isAccepted',
             })
             .select('students')
-
         res.send(students)
     } catch (error) {
+        res.status(500).send({ message: 'Something went wrong' })
         console.log(error.message)
-        res.status(500).send({ message: 'something went wrong' })
     }
 }
 module.exports = {

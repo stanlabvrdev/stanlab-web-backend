@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    p,
+    h1 {
+        color: #909090;
+    }
+    
+    button:focus {
+        outline: none;
+    }
+    
+    .body {
+        background-color: '#f8f8f8';
+    }
+    
+    .btn {
+        background-color: '#0078f2';
+        color: #fff;
+        border: none;
+        width: 100%;
+        padding: 0.25rem;
+    }
+</style>
+
+<body>
+    <div style="background-color: '#f8f8f8';">
+        <h1 style="font-size: 20px; color: #909090;">Hello, ${student.name}</h1>
+        <p style="color: #909090;">
+            ${teacher.name} (${teacher.email}) Invited you to join his class
+        </p>
+        <a style="
+          background-color: '#0078f2';
+          color: #fff;
+          border: none;
+          width: 100%;
+          padding: 0.25rem;
+          color: #909090;
+        " href="#" class="btn">
+        Accept
+      </a>
+    </div>
+</body>
+
+</html>

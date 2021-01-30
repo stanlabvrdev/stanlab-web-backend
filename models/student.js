@@ -36,12 +36,15 @@ const studentSchema = new mongoose.Schema({
     role: { type: String, default: 'Student' },
 
     teachers: [{
-        teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
-        isAccepted: { type: Boolean, default: false },
+        teacher: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Teacher',
+        },
+        isAccepted: { type: Boolean },
         status: { type: String },
-        invite: { type: String, default: 'student' },
+        invite: { type: String },
     }, ],
-
+    unregisteredTeacher: [{ type: String }],
     questions: {
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
         default: [],
@@ -113,6 +116,13 @@ studentSchema.methods.markTeacherAsRemoved = function(teacherId) {
         teacher.status = 'removed'
         return this
     }
+    return this
+}
+
+studentSchema.methods.addUnregisterTeacher = function(email) {
+    const teacher = this.unregisteredTeacher.find((t) => t === email)
+    if (teacher) return null
+    this.unregisteredTeacher.push(email)
     return this
 }
 
