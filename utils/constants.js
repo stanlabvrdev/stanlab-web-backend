@@ -4,4 +4,9 @@ module.exports = {
         premium: 'premium',
         Standard: 'standard',
     },
+
+    trialPeriod: {
+        title: 'trialPeriodEnds',
+        days: 7,
+    },
 }

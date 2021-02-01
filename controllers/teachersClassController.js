@@ -128,8 +128,8 @@ async function getClass(req, res) {
         if (!teacherClass)
             return res.status(404).send({ message: 'Class not found' })
 
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: 'Not autorized!' })
+        // if (teacherClass.teacher.toString() !== req.teacher._id.toString())
+        //     return res.status(401).send({ message: 'Not autorized!' })
 
         res.send(teacherClass)
     } catch (error) {

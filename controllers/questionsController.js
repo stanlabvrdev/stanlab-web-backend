@@ -80,8 +80,40 @@ async function deleteQuestion(req, res) {
         res.status(500).send({ message: 'something went wrong' })
     }
 }
+
+async function getQuestion(req, res) {
+    const questionId = req.params.questionId
+    if (!questionId)
+        return res.status(404).send({ message: 'Question not found' })
+    try {
+        const question = await Question.findOne({ _id: questionId })
+        if (!question)
+            return res.status(404).send({ message: 'Question Not found' })
+        res.send(question)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'Something went wrong' })
+    }
+}
+async function postManyQuestions(req, res) {
+    const { questionIds } = req.body
+
+    if (!questionIds || !Array.isArray(questionIds))
+        return res.status(400).send({ message: 'Invalid request' })
+
+    try {
+        const questions = await Question.find({ _id: { $in: questionIds } })
+            // console.log(questions)
+        res.send(questions)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'Something went wrong' })
+    }
+}
 module.exports = {
     createQuestion,
     deleteQuestion,
     getQuiz,
+    getQuestion,
+    postManyQuestions,
 }

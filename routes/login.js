@@ -8,8 +8,16 @@ router.post('/teachers/auth/google', loginController.teacherGoogleAuth)
 
 router.post('/teachers', loginController.teacherLogin)
 
-router.post('/students/auth/google', loginController.studentGoogleAuth)
+router.post(
+    '/students/auth/google',
 
-router.post('/students', loginController.studentLogin)
+    loginController.studentGoogleAuth,
+)
+
+router.post(
+    '/students',
+
+    loginController.studentLogin,
+)
 
 module.exports = router

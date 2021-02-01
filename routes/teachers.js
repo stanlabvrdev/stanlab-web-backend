@@ -47,16 +47,23 @@ router.get('/classes', teacherAuth, teachersController.getClass)
 // post: Teacher avatar
 
 const upload = multer({
-    limits: {
-        fileSize: 1000000,
-    },
-    fileFilter: (req, file, cb) => {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error('Please upload valid image'))
-        }
-        cb(null, true)
-    },
-})
+        limits: {
+            fileSize: 1000000,
+        },
+        fileFilter: (req, file, cb) => {
+            if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+                return cb(new Error('Please upload valid image'))
+            }
+            cb(null, true)
+        },
+    })
+    // get published quiz
+
+router.get(
+    '/classes/:classId/published-quiz',
+    teacherAuth,
+    teachersController.getPublishedQUiz,
+)
 
 router.post(
     '/avatar',

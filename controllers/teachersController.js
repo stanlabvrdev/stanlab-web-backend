@@ -201,14 +201,14 @@ async function sendQuizToStudents(req, res) {
             classId,
         })
         newQuiz = await newQuiz.save()
-        for (let studentData of students) {
+
+        for (let studentId of students) {
             // console.log('From send quiz route  student are = ', studentData)
-            const student = await Student.findOne({ _id: studentData.student })
-            if (student && studentData.isAccepted) {
-                student.classworks.quizClasswork.push(newQuiz._id)
-                await student.save()
-            }
+            const student = await Student.findOne({ _id: studentId })
+            student.classworks.quizClasswork.push(newQuiz._id)
+            await student.save()
         }
+
         let teacherClass = await TeacherClass.findOne({ _id: classId })
         teacherClass = teacherClass.publishClass(classId)
         teacherClass.classwork.quiz = []
@@ -327,6 +327,22 @@ async function getStudents(req, res) {
         console.log(error.message)
     }
 }
+
+async function getPublishedQUiz(req, res) {
+    const { classId } = req.params
+    if (!classId) return res.status(400).send({ message: 'class not found' })
+
+    try {
+        const quizs = await TeacherClass.findOne({ _id: classId }).populate({
+            path: 'sentQuiz',
+            select: '-teacher',
+        })
+        res.send(quizs)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'Something went wrong' })
+    }
+}
 module.exports = {
     acceptStudentInvite,
     addStudentToClass,
@@ -336,6 +352,7 @@ module.exports = {
     deleteStudent,
     getAvatar,
     getClass,
+    getPublishedQUiz,
     getStudents,
     getTeacher,
     sendQuizToStudents,

@@ -1,8 +1,10 @@
 const bcrypt = require('bcryptjs')
+const moment = require('moment')
 const _ = require('lodash')
 const sendInvitation = require('../services/email')
 const { Student, validateStudent } = require('../models/student')
 const { Teacher } = require('../models/teacher')
+const constants = require('../utils/constants')
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body
@@ -69,6 +71,11 @@ async function createStudent(req, res) {
         studentClass,
         teacher,
     })
+
+    student[constants.trialPeriod.title] = moment().add(
+        constants.trialPeriod.days,
+        'days',
+    )
     await student.save()
     const token = student.generateAuthToken()
     res
@@ -162,59 +169,15 @@ async function declineInvite(req, res) {
 }
 
 async function getQuizClasswork(req, res) {
-    const { classId } = req.params
-
-    if (!classId)
-        return res
-            .status(400)
-            .send({ message: 'Invalid request, teacher classId not found' })
     try {
-        let student = await Student.findOne({ _id: req.student._id })
-        if (!student) return res.status(404).send({ message: 'Student not found' })
-        const teacherClass = await TeacherClass.findOne({ _id: classId })
-        if (!teacherClass)
-            return res.status(404).send({ message: 'class not found' })
-        const quizs = teacherClass.classwork.quiz
-        if (quizs.length === 0) return res.send(quizs)
+        const quizClass = await Student.findOne({ _id: req.student._id })
+            .populate({ path: 'classworks.quizClasswork' })
+            .select('classworks.quizClasswork')
 
-        if (
-            student.classwork &&
-            student.classwork.some((c) => c.classId.toString() === classId.toString())
-        ) {
-            const getQ = await student
-                .populate({ path: 'classwork.quizs' })
-                .execPopulate()
-            return res.send(_.pick(getQ, ['classwork']))
-        }
-        async function getQuiz() {
-            let classwork = {
-                classId: '',
-                quizs: [],
-                lab: [],
-            }
-            classwork.classId = classId
-            for (let i = 0; i < quizs.length; i++) {
-                const question = await Question.findOne({ _id: quizs[i] })
-
-                if (question.isSend) {
-                    classwork.quizs.push(quizs[i])
-                }
-            }
-            if (classwork.quizs.length === 0)
-                return res.send({
-                    message: "You don't have active question from this class",
-                })
-            student.classwork.push(classwork)
-            student = await student.save()
-            const getQ = await student.populate('classwork.quizs').execPopulate()
-
-            res.send(_.pick(getQ, ['classwork']))
-        }
-
-        await getQuiz()
+        res.send(quizClass)
     } catch (error) {
-        console.log(error.message)
-        res.status(400).send({ message: 'something went wrong' })
+        console.log(error)
+        res.status(500).send({ message: 'something went wrong' })
     }
 }
 

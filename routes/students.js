@@ -5,6 +5,7 @@ const express = require('express')
 const { studentAuth } = require('../middleware/auth')
 const paymentAuth = require('../middleware/paymentAuth.')
 const studentsController = require('../controllers/studentsController')
+const studentTrialPeriodChecker = require('../middleware/studentTrialPeriodChecker')
 
 const router = express.Router()
 
@@ -20,6 +21,7 @@ const router = express.Router()
 /*
 post: 
 */
+// student should be able to invite many teachers if => in trial period or paid version.
 router.post(
     '/invite-teacher', [studentAuth, paymentAuth],
     studentsController.inviteTeacher,
@@ -60,11 +62,7 @@ router.post(
 )
 
 // get student classwork
-router.get(
-    '/classwork/:classId',
-    studentAuth,
-    studentsController.getQuizClasswork,
-)
+router.get('/classwork/quiz', studentAuth, studentsController.getQuizClasswork)
 
 // get student teachers
 
@@ -74,6 +72,9 @@ router.get('/teachers', studentAuth, studentsController.getTeachers)
 router.get('/:id/avatar', studentsController.getAvatar)
 
 // get a student
-router.get('/:studentId', studentAuth, studentsController.getStudent)
+router.get(
+    '/:studentId', [studentAuth, studentTrialPeriodChecker],
+    studentsController.getStudent,
+)
 
 module.exports = router

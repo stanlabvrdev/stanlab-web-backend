@@ -40,8 +40,8 @@ router.delete(
     teachersClassController.deleteUnpublishedClass,
 )
 
-// get a class by id
-router.get('/:classId', teacherAuth, teachersClassController.getClass)
+// get a class by id => a bug needs to be fix
+router.get('/:classId', teachersClassController.getClass)
 
 // remove a student from a class
 router.delete(

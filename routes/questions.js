@@ -15,5 +15,7 @@ router.post('/quiz/:classId', teacherAuth, questionsController.createQuestion)
 
 // teacher delete quiz
 router.delete('/quiz/:quizId', teacherAuth, questionsController.deleteQuestion)
+router.post('/some-questions', questionsController.postManyQuestions)
+router.get('/:questionId', teacherAuth, questionsController.getQuestion)
 
 module.exports = router

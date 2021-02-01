@@ -49,6 +49,8 @@ const studentSchema = new mongoose.Schema({
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
         default: [],
     },
+    signupDate: { type: Date, default: Date.now },
+    trialPeriodEnds: { type: Date },
 })
 
 studentSchema.methods.generateAuthToken = function() {
