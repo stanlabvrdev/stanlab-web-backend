@@ -170,10 +170,14 @@ async function declineInvite(req, res) {
 
 async function getQuizClasswork(req, res) {
     try {
+        // .sentQuizId
         const quizClass = await Student.findOne({ _id: req.student._id })
-            .populate({ path: 'classworks.quizClasswork' })
+            .populate({ path: 'classworks.quizClasswork.sentQuizId' })
+            // .lean()
+            // .exec()
             .select('classworks.quizClasswork')
 
+        // console.log(quizClass.classworks.quizClasswork)
         res.send(quizClass)
     } catch (error) {
         console.log(error)
@@ -206,6 +210,24 @@ async function getTeachers(req, res) {
         console.log(error.message)
     }
 }
+async function postFinishedQuiz(req, res) {
+    // mark sentQuiz as completed => set it to true
+    // create new Instance of finishedQuiz
+    const { _id } = req.student
+    const { sentQuizId, totalPoints, questions, scores } = req.body
+    if (!sentQuizId || !totalPoints || !questions)
+        return res.status(400).send({ message: 'Please provide valid data' })
+
+    try {
+        let student = await Student.findOne({ _id })
+        student = student.addCompletQuiz(sentQuizId, totalPoints, questions, scores)
+        await student.save()
+        res.send(student)
+    } catch (error) {
+        res.status(500).send({ message: 'something went wrong' })
+        console.log(error)
+    }
+}
 module.exports = {
     acceptTeacher,
     createStudent,
@@ -216,4 +238,5 @@ module.exports = {
     getStudent,
     getTeachers,
     inviteTeacher,
+    postFinishedQuiz,
 }

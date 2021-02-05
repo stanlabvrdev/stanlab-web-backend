@@ -6,6 +6,8 @@ const Joi = require('joi')
 const { Teacher } = require('../models/teacher')
 const { Student } = require('../models/student')
 const generateRandomString = require('../utils/randomStr')
+const constants = require('../utils/constants')
+const moment = require('moment')
 
 function validateAuth(auth) {
     const schema = Joi.object({
@@ -109,6 +111,10 @@ async function studentGoogleAuth(req, res) {
                     email,
                     imageUrl: picture,
                 })
+                student[constants.trialPeriod.title] = moment().add(
+                    constants.trialPeriod.days,
+                    'days',
+                )
                 await student.save()
                 const token = student.generateAuthToken()
                 res.send(token)

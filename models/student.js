@@ -11,9 +11,17 @@ const studentSchema = new mongoose.Schema({
         ref: 'TeacherClass',
     }, ],
     classworks: {
-        quizClasswork: [
-            { type: mongoose.Schema.Types.ObjectId, ref: 'QuizClasswork' },
-        ],
+        quizClasswork: [{
+            sentQuizId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'QuizClasswork',
+            },
+            isCompleted: { type: Boolean },
+            totalPoints: { type: Number },
+            scores: { type: Number },
+            questions: { type: Array },
+        }, ],
+
         labClasswork: [],
     },
 
@@ -58,6 +66,44 @@ studentSchema.methods.generateAuthToken = function() {
         config.get('jwtKey'),
     )
     return token
+}
+
+studentSchema.methods.addQuiz = function(quizId) {
+    const newQuiz = {
+        sentQuizId: quizId,
+        isCompleted: false,
+    }
+
+    if (
+        this.classworks.quizClasswork.find(
+            (data) => data.sentQuizId.toString() === quizId.toString(),
+        )
+    ) {
+        return this
+    }
+
+    this.classworks.quizClasswork.push(newQuiz)
+    return this
+}
+
+studentSchema.methods.addCompletQuiz = function(
+    sentQuizId,
+    totalPoints,
+    questions,
+    scores,
+) {
+    const quizData = this.classworks.quizClasswork.find((data) => {
+            // console.log(data, sentQuizId)
+            return data._id.toString() === sentQuizId.toString()
+        })
+        // console.log(quizData)
+    if (quizData) {
+        quizData.isCompleted = true
+        quizData.totalPoints = totalPoints
+        quizData.scores = scores
+        quizData.questions = questions
+    }
+    return this
 }
 
 studentSchema.methods.addTeacher = function(teacherId, inviteFrom) {

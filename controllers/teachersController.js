@@ -204,8 +204,9 @@ async function sendQuizToStudents(req, res) {
 
         for (let studentId of students) {
             // console.log('From send quiz route  student are = ', studentData)
-            const student = await Student.findOne({ _id: studentId })
-            student.classworks.quizClasswork.push(newQuiz._id)
+            let student = await Student.findOne({ _id: studentId })
+                // classworks.quizClasswork.push(newQuiz._id)
+            student = student.addQuiz(newQuiz._id)
             await student.save()
         }
 

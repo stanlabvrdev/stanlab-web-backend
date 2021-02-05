@@ -64,6 +64,13 @@ router.post(
 // get student classwork
 router.get('/classwork/quiz', studentAuth, studentsController.getQuizClasswork)
 
+// send completed quiz
+router.post(
+    '/classwork/completed-quiz',
+    studentAuth,
+    studentsController.postFinishedQuiz,
+)
+
 // get student teachers
 
 router.get('/teachers', studentAuth, studentsController.getTeachers)
