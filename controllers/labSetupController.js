@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 
 const LabSetup = require('../models/labSetup')
 const { TeacherClass } = require('../models/teacherClass')
+const { Student } = require('../models/student')
 
 async function postCreateLab(req, res) {
     const { classId } = req.params
@@ -45,38 +46,38 @@ async function postCreateLab(req, res) {
     }
 }
 
-async function sendCreateLabToServer(req, res) {
-    const { classId, labId } = req.params
+async function getActiveExperiment(req, res) {
+    const { experimentId } = req.params
 
     try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId })
-        const labsetupId = teacherClass.classwork.lab.find(
-            (lab) => lab.toString() === labId.toString(),
-        )
+        const labsetup = await LabSetup.findOne({ _id: experimentId })
 
-        if (!labsetupId) return res.status(404).send({ message: 'no lab found' })
-        const labsetupData = await LabSetup.findOne({ _id: labsetupId })
-        console.log(labsetupData)
-        if (!labsetupData.students.find(
-                (s) => s.toString() == req.student._id.toString(),
-            ))
-            return res.status(403).send({ message: 'Not authorized' })
-        const response = await fetch(config.get('lab_backend_url'), {
-            method: 'POST',
-            body: JSON.stringify(labsetupData),
-            headers: { 'Content-Type': 'application/json' },
-        })
-
-        const result = await response.json()
-        console.log(response, result)
-
-        return res.send({ result })
+        if (!labsetup) return res.status(404).send({ message: 'Not Found' })
+        res.send(labsetup)
     } catch (error) {
-        console.log(error.message)
-        res.status(500).send({ message: 'unable to send ' })
+        console.log(error)
+        res.send({ message: 'Something went wrong' })
+    }
+}
+
+async function postLabResult(req, res) {
+    const { experimentId, scores, experiment } = req.body
+    if (!experimentId || !scores || !experiment)
+        return res
+            .status(400)
+            .send({ message: 'Please provide "experimentId" and "scores"' })
+    try {
+        let student = await Student.findOne({ _id: req.student._id })
+        student = student.addCompleteExperiment(experimentId, scores, experiment)
+        await student.save()
+        res.send(true)
+    } catch (error) {
+        console.log(error)
+        res.send({ message: 'Something went wrong' })
     }
 }
 module.exports = {
     postCreateLab,
-    sendCreateLabToServer,
+    getActiveExperiment,
+    postLabResult,
 }

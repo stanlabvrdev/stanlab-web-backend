@@ -6,7 +6,10 @@ const teacherClassSchema = new mongoose.Schema({
     subject: { type: String, required: true },
     section: { type: String },
     classwork: {
-        lab: [],
+        lab: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'LabSetup',
+        }, ],
         quiz: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Question',
@@ -21,6 +24,7 @@ const teacherClassSchema = new mongoose.Schema({
     studentsByEmail: [],
     teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
     sentQuiz: [{ type: mongoose.Schema.Types.ObjectId, ref: 'QuizClasswork' }],
+    sentLab: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Experiment' }],
     isPublished: { type: Boolean, default: false },
 })
 
@@ -39,6 +43,16 @@ teacherClassSchema.methods.addSentQuiz = function(quizClassworkId) {
     }
 
     this.sentQuiz.push(quizClassworkId)
+    return this
+}
+teacherClassSchema.methods.addSentLab = function(experimentId) {
+    let scl = this.sentLab.find((l) => l.toString() === experimentId.toString())
+
+    if (scl) {
+        return this
+    }
+
+    this.sentLab.push(quizClassworkId)
     return this
 }
 

@@ -168,6 +168,22 @@ async function declineInvite(req, res) {
     }
 }
 
+async function getLabClasswork(req, res) {
+    try {
+        // .sentQuizId
+        const labClass = await Student.findOne({ _id: req.student._id })
+            .populate({ path: 'classworks.labClasswork.sentLab' })
+            // .lean()
+            // .exec()
+            .select('classworks.labClasswork')
+
+        // console.log(quizClass.classworks.quizClasswork)
+        res.send(labClass)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'something went wrong' })
+    }
+}
 async function getQuizClasswork(req, res) {
     try {
         // .sentQuizId
@@ -234,6 +250,7 @@ module.exports = {
     declineInvite,
     deleteTeacher,
     getAvatar,
+    getLabClasswork,
     getQuizClasswork,
     getStudent,
     getTeachers,

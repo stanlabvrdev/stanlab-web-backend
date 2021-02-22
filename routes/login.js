@@ -20,4 +20,6 @@ router.post(
     loginController.studentLogin,
 )
 
+router.post('/lab/students', loginController.studentLabLogin)
+
 module.exports = router

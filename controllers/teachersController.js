@@ -10,6 +10,7 @@ const {
 const { Student } = require('../models/student')
 const { TeacherClass, validateClass } = require('../models/teacherClass')
 const QuizClasswork = require('../models/quizClasswork')
+const Experiment = require('../models/experiment')
 const sendInvitation = require('../services/email')
 
 async function deleteStudent(req, res) {
@@ -225,6 +226,59 @@ async function sendQuizToStudents(req, res) {
         console.log(error)
     }
 }
+async function sendLabToStudents(req, res) {
+    const { classId } = req.params
+    let { dueDate, students, experiments, startDate } = req.body
+
+    if (!Array.isArray(students) && !Array.isArray(questions))
+        return res
+            .status(400)
+            .send({ message: 'students and labs must be array of objectIds' })
+
+    if (experiments.length === 0)
+        return res
+            .status(400)
+            .send({ message: 'Please add experiment to this class' })
+    if (students.length === 0)
+        return res
+            .status(400)
+            .send({ message: 'Please add students to this class' })
+
+    if (startDate) startDate = new Date(startDate)
+    else startDate = Date.now
+
+    try {
+        let newExperiment = new Experiments({
+            experiments,
+            students,
+            dueDate,
+            startDate,
+            teacher: req.teacher._id,
+            classId,
+        })
+        newExperiment = await newExperiment.save()
+
+        for (let studentId of students) {
+            let student = await Student.findOne({ _id: studentId })
+            student = student.addLab(newExperiment._id)
+            await student.save()
+        }
+
+        let teacherClass = await TeacherClass.findOne({ _id: classId })
+        teacherClass = teacherClass.publishClass(classId)
+        teacherClass.classwork.lab = []
+        teacherClass = teacherClass.addSentLab(newExperiment._id)
+        await teacherClass.save()
+
+        let teacher = await Teacher.findOne({ _id: req.teacher._id })
+        teacher = teacher.addSentLabClasswork(newExperiment._id)
+        await teacher.save()
+        res.send({ message: 'Sent!' })
+    } catch (error) {
+        res.status(500).send({ message: 'something went wrong' })
+        console.log(error)
+    }
+}
 
 async function sendInviteToStudent(req, res) {
     // const { studentEmail, classId } = req.body
@@ -359,4 +413,5 @@ module.exports = {
     sendQuizToStudents,
     sendInviteToStudent,
     updateTeacher,
+    sendLabToStudents,
 }

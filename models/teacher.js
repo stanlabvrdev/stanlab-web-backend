@@ -30,6 +30,9 @@ const teacherSchema = new mongoose.Schema({
     sentQuizclasswork: [
         { type: mongoose.Schema.Types.ObjectId, ref: 'QuizClasswork' },
     ],
+    sentLabClasswork: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'Experiment' },
+    ],
     archivedQuestions: { type: [] },
     role: { type: String, default: 'Teacher' },
     avatar: { type: Buffer },
@@ -130,6 +133,18 @@ teacherSchema.methods.addSentQuizClasswork = function(quizClassworkId) {
     }
 
     this.sentQuizclasswork.push(quizClassworkId)
+    return this
+}
+teacherSchema.methods.addSentLabClasswork = function(labClassworkId) {
+    let scl = this.sentLabClasswork.find(
+        (l) => l.toString() === labClassworkId.toString(),
+    )
+
+    if (scl) {
+        return this
+    }
+
+    this.sentLabClasswork.push(labClassworkId)
     return this
 }
 

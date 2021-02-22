@@ -12,20 +12,16 @@ const router = express.Router()
  */
 
 router.post(
-        '/create-lab/:classId',
-        teacherAuth,
-        labSetupController.postCreateLab,
-    )
-    // "lab_backend_port": 5000
+    '/create-lab/:classId',
+    teacherAuth,
+    labSetupController.postCreateLab,
+)
 
-/**
- * every students in the class can access this route
- * and get redirect to chucks url
- */
+// set x-auth-token in header
 router.get(
-    '/:classId/:labId',
+    '/student/active-experiment/:experimentId',
     studentAuth,
-    labSetupController.sendCreateLabToServer,
+    labSetupController.getActiveExperiment,
 )
 
 module.exports = router

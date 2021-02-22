@@ -105,6 +105,12 @@ router.post(
     teachersController.sendQuizToStudents,
 )
 
+router.post(
+    '/send-lab/:classId',
+    teacherAuth,
+    teachersController.sendLabToStudents,
+)
+
 /*
  */
 

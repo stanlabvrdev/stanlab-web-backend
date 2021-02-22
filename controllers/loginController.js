@@ -139,9 +139,33 @@ async function studentLogin(req, res) {
     const token = student.generateAuthToken()
     res.send(token)
 }
+
+async function studentLabLogin(req, res) {
+    const { email, password } = req.body
+
+    try {
+        const student = await Student.findOne({ email })
+        if (!student) return res.status(400).send('Invalid Credentials')
+        const isPasswordValid = await bcrypt.compare(password, student.password)
+        if (!isPasswordValid) return res.status(400).send('Invalid credentials')
+
+        const token = student.generateAuthToken()
+        const studentCredentials = {
+            token,
+            name: student.name,
+            email: student.email,
+            _id: student._id,
+        }
+        res.send(studentCredentials)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'something went wrong' })
+    }
+}
 module.exports = {
     studentGoogleAuth,
     studentLogin,
     teacherGoogleAuth,
     teacherLogin,
+    studentLabLogin,
 }

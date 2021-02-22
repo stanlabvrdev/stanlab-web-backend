@@ -22,7 +22,16 @@ const studentSchema = new mongoose.Schema({
             questions: { type: Array },
         }, ],
 
-        labClasswork: [],
+        labClasswork: [{
+            sentLab: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Experiment',
+            },
+            isCompleted: { type: Boolean },
+            totalPoints: { type: Number },
+            scores: { type: Number },
+            experiments: { type: Array, default: [] },
+        }, ],
     },
 
     email: {
@@ -85,6 +94,23 @@ studentSchema.methods.addQuiz = function(quizId) {
     this.classworks.quizClasswork.push(newQuiz)
     return this
 }
+studentSchema.methods.addLab = function(experimentId) {
+    const newExperiment = {
+        sentLab: experimentId,
+        isCompleted: false,
+    }
+
+    if (
+        this.classworks.quizClasswork.find(
+            (data) => data.sentLab.toString() === experimentId.toString(),
+        )
+    ) {
+        return this
+    }
+
+    this.classworks.labClasswork.push(newExperiment)
+    return this
+}
 
 studentSchema.methods.addCompletQuiz = function(
     sentQuizId,
@@ -102,6 +128,22 @@ studentSchema.methods.addCompletQuiz = function(
         quizData.totalPoints = totalPoints
         quizData.scores = scores
         quizData.questions = questions
+    }
+    return this
+}
+studentSchema.methods.addCompleteExperiment = function(
+    experimentId,
+    scores,
+    experiment,
+) {
+    const labData = this.classworks.labClasswork.find((data) => {
+        // console.log(data, sentQuizId)
+        return data._id.toString() === experimentId.toString()
+    })
+    if (labData) {
+        labData.isCompleted = true
+        labData.scores = scores
+        labData.experiments.push(experiment)
     }
     return this
 }
