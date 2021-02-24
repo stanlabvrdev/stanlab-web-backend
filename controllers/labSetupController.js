@@ -48,7 +48,12 @@ async function getActiveExperiment(req, res) {
     const { experimentId } = req.params
 
     try {
-        const experiment = await LabSetup.findOne({ _id: experimentId })
+        const experiment = await LabSetup.findOne({ _id: experimentId }).select(
+            '-students -teacher',
+        )
+        const student = await Student.findOne({ _id: req.student._id })
+
+        if (!student) return res.status(403).send({ message: 'Access Denied' })
 
         if (!experiment) return res.status(404).send({ message: 'Not Found' })
         res.send(experiment)
