@@ -50,10 +50,10 @@ async function getActiveExperiment(req, res) {
     const { experimentId } = req.params
 
     try {
-        const labsetup = await LabSetup.findOne({ _id: experimentId })
+        const experiment = await LabSetup.findOne({ _id: experimentId })
 
-        if (!labsetup) return res.status(404).send({ message: 'Not Found' })
-        res.send(labsetup)
+        if (!experiment) return res.status(404).send({ message: 'Not Found' })
+        res.send(experiment)
     } catch (error) {
         console.log(error)
         res.send({ message: 'Something went wrong' })

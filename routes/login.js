@@ -14,11 +14,7 @@ router.post(
     loginController.studentGoogleAuth,
 )
 
-router.post(
-    '/students',
-
-    loginController.studentLogin,
-)
+router.post('/students', loginController.studentLogin)
 
 router.post('/lab/students', loginController.studentLabLogin)
 

@@ -23,5 +23,10 @@ router.get(
     studentAuth,
     labSetupController.getActiveExperiment,
 )
+router.post(
+    '/student/active-experiment/result',
+    studentAuth,
+    labSetupController.postLabResult,
+)
 
 module.exports = router
