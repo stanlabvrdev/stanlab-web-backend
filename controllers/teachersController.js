@@ -248,7 +248,7 @@ async function sendLabToStudents(req, res) {
     else startDate = Date.now
 
     try {
-        let newExperiment = new Experiments({
+        let newExperiment = new Experiment({
             experiments,
             students,
             dueDate,
