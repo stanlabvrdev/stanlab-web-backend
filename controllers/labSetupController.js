@@ -7,21 +7,21 @@ const { Student } = require('../models/student')
 
 async function postCreateLab(req, res) {
     const { classId } = req.params
+
+    if (!classId) return res.status(400).send({ message: 'Please create class' })
     let {
         acidName,
         baseName,
         indicatorName,
         acidVolume,
         baseVolume,
-        dueDate,
         points,
-        students,
         experiment,
         subject,
     } = req.body
+
     const teacherClass = await TeacherClass.findOne({ _id: classId })
 
-    dueDate = new Date(dueDate)
     let labsetup = new LabSetup({
         experiment,
         subject,
@@ -30,9 +30,7 @@ async function postCreateLab(req, res) {
         acidVolume,
         baseVolume,
         indicatorName,
-        dueDate,
         points,
-        students,
     })
     try {
         labsetup.teacher = req.teacher._id
