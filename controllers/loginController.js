@@ -141,13 +141,14 @@ async function studentLogin(req, res) {
 }
 
 async function studentLabLogin(req, res) {
+    console.log(req.body)
     const { email, password } = req.body
 
     try {
         const student = await Student.findOne({ email })
-        if (!student) return res.status(400).send('Invalid Credentials')
+        if (!student) return res.status(404).send('Invalid Credentials')
         const isPasswordValid = await bcrypt.compare(password, student.password)
-        if (!isPasswordValid) return res.status(400).send('Invalid credentials')
+        if (!isPasswordValid) return res.status(404).send('Invalid credentials')
 
         const token = student.generateAuthToken()
         const studentCredentials = {
