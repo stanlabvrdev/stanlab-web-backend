@@ -10,5 +10,6 @@
     "stripe_Publishable_Key": "stripe_publishable_key",
     "stripe_Secret_Key": "stripe_secret_key",
     "cloudinary_api_key": "cloudinary_api_key",
-    "cloudinary_secret_key": "cloudinary_secret_key"
+    "cloudinary_secret_key": "cloudinary_secret_key",
+    "mongodb_URI": "MongoDB_URI_prod"
 }

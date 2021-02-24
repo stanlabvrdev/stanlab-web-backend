@@ -1,6 +1,6 @@
 {
     "app_name": "StanLab",
-    "lab_backend_url": "https://hyiprecover.000webhostapp.com/stanlabUnityServer/DownloadStudentSetupData.php",
+
     "lab_backend_port": 5000,
     "mongodb_URI": "mongodb://localhost/StanLab"
 }
