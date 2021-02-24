@@ -52,7 +52,7 @@ teacherClassSchema.methods.addSentLab = function(experimentId) {
         return this
     }
 
-    this.sentLab.push(quizClassworkId)
+    this.sentLab.push(experimentId)
     return this
 }
 
