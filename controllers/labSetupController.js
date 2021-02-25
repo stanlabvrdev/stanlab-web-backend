@@ -49,7 +49,7 @@ async function getActiveExperiment(req, res) {
 
     try {
         const experiment = await LabSetup.findOne({ _id: experimentId }).select(
-            '-students -teacher',
+            '-students -teacher -__v',
         )
         const student = await Student.findOne({ _id: req.student._id })
 
