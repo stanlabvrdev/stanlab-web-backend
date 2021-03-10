@@ -9,29 +9,20 @@ async function postCreateLab(req, res) {
     const { classId } = req.params
 
     if (!classId) return res.status(400).send({ message: 'Please create class' })
-    let {
-        acidName,
-        baseName,
-        indicatorName,
-        acidVolume,
-        baseVolume,
-        points,
-        experiment,
-        subject,
-    } = req.body
+        // let {
+        //     acidName,
+        //     baseName,
+        //     indicatorName,
+        //     acidVolume,
+        //     baseVolume,
+        //     points,
+        //     experiment,
+        //     subject,
+        // } = req.body
 
     const teacherClass = await TeacherClass.findOne({ _id: classId })
 
-    let labsetup = new LabSetup({
-        experiment,
-        subject,
-        acidName,
-        baseName,
-        acidVolume,
-        baseVolume,
-        indicatorName,
-        points,
-    })
+    let labsetup = new LabSetup({...req.body })
     try {
         labsetup.teacher = req.teacher._id
         labsetup = await labsetup.save()
@@ -62,6 +53,22 @@ async function getActiveExperiment(req, res) {
         res.send({ message: 'Something went wrong' })
     }
 }
+async function getExperiments(req, res) {
+    const { experiments } = req.body
+
+    if (!experiments || !Array.isArray(experiments))
+        return res.status(400).send({ message: 'array of experiments is required' })
+    try {
+        const lab = await LabSetup.find({ _id: { $in: experiments } }).select(
+            '-students -teacher -__v',
+        )
+
+        res.send(lab)
+    } catch (error) {
+        console.log(error)
+        res.send({ message: 'Something went wrong' })
+    }
+}
 
 async function postLabResult(req, res) {
     const { experimentId, scores, experiment } = req.body
@@ -83,4 +90,5 @@ module.exports = {
     postCreateLab,
     getActiveExperiment,
     postLabResult,
+    getExperiments,
 }

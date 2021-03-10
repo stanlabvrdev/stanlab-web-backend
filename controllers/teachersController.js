@@ -11,7 +11,7 @@ const { Student } = require('../models/student')
 const { TeacherClass, validateClass } = require('../models/teacherClass')
 const QuizClasswork = require('../models/quizClasswork')
 const Experiment = require('../models/experiment')
-const sendInvitation = require('../services/email')
+const { sendInvitation } = require('../services/email')
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params
@@ -121,7 +121,7 @@ async function createTeacher(req, res) {
     res
         .header('x-auth-token', token)
         .header('access-control-expose-headers', 'x-auth-token')
-        .send(_.pick(teacher, ['name', 'email', 'questions', 'students']))
+        .send(_.pick(teacher, ['name', 'email', 'questions', 'students', '_id']))
 }
 
 async function updateTeacher(req, res) {
@@ -230,7 +230,7 @@ async function sendLabToStudents(req, res) {
     const { classId } = req.params
     let { dueDate, students, experiments, startDate } = req.body
 
-    if (!Array.isArray(students) && !Array.isArray(questions))
+    if (!Array.isArray(students) && !Array.isArray(experiments))
         return res
             .status(400)
             .send({ message: 'students and labs must be array of objectIds' })
@@ -383,21 +383,6 @@ async function getStudents(req, res) {
     }
 }
 
-async function getPublishedQUiz(req, res) {
-    const { classId } = req.params
-    if (!classId) return res.status(400).send({ message: 'class not found' })
-
-    try {
-        const quizs = await TeacherClass.findOne({ _id: classId }).populate({
-            path: 'sentQuiz',
-            select: '-teacher',
-        })
-        res.send(quizs)
-    } catch (error) {
-        console.log(error)
-        res.status(500).send({ message: 'Something went wrong' })
-    }
-}
 module.exports = {
     acceptStudentInvite,
     addStudentToClass,
@@ -407,7 +392,6 @@ module.exports = {
     deleteStudent,
     getAvatar,
     getClass,
-    getPublishedQUiz,
     getStudents,
     getTeacher,
     sendQuizToStudents,

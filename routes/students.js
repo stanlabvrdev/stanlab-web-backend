@@ -4,6 +4,7 @@ const express = require('express')
 // const passportAuth = require('../middleware/studentPassportAuth')
 const { studentAuth } = require('../middleware/auth')
 const paymentAuth = require('../middleware/paymentAuth.')
+const { isFreelanceStudent } = require('../middleware/isFreelance')
 const studentsController = require('../controllers/studentsController')
 const studentTrialPeriodChecker = require('../middleware/studentTrialPeriodChecker')
 
@@ -23,7 +24,7 @@ post:
 */
 // student should be able to invite many teachers if => in trial period or paid version.
 router.post(
-    '/invite-teacher', [studentAuth, paymentAuth],
+    '/invite-teacher', [studentAuth, isFreelanceStudent, paymentAuth],
     studentsController.inviteTeacher,
 )
 
@@ -62,14 +63,20 @@ router.post(
 )
 
 // get student classwork
-router.get('/classwork/quiz', studentAuth, studentsController.getQuizClasswork)
+router.get('/classworks', studentAuth, studentsController.getClasswork)
 router.get('/classwork/lab', studentAuth, studentsController.getLabClasswork)
 
 // send completed quiz
 router.post(
-    '/classwork/completed-quiz',
+        '/classwork/completed-quiz',
+        studentAuth,
+        studentsController.postFinishedQuiz,
+    )
+    // get completed quiz
+router.get(
+    '/classwork/completed-quiz/:quizId',
     studentAuth,
-    studentsController.postFinishedQuiz,
+    studentsController.getFinishedQuiz,
 )
 
 // get student teachers

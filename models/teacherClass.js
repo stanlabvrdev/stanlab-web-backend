@@ -84,6 +84,15 @@ teacherClassSchema.methods.removeStudentFromClass = function(studentId) {
 
     return this
 }
+teacherClassSchema.methods.deleteLabById = function(labId) {
+    const index = this.classwork.lab.findIndex(
+        (l) => l.toString() === labId.toString(),
+    )
+    if (index < 0) return null
+
+    this.classwork.lab.splice(index, 1)
+    return this
+}
 
 function validateClass(classObj) {
     const schema = Joi.object({

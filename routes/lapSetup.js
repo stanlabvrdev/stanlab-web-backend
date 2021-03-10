@@ -23,6 +23,8 @@ router.get(
     studentAuth,
     labSetupController.getActiveExperiment,
 )
+router.post('/experiments', labSetupController.getExperiments)
+
 router.post(
     '/student/active-experiment/result',
     studentAuth,

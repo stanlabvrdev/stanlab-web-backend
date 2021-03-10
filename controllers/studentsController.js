@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs')
 const moment = require('moment')
 const _ = require('lodash')
-const sendInvitation = require('../services/email')
+const { sendInvitation } = require('../services/email')
 const { Student, validateStudent } = require('../models/student')
 const { Teacher } = require('../models/teacher')
 const constants = require('../utils/constants')
@@ -81,7 +81,7 @@ async function createStudent(req, res) {
     res
         .header('x-auth-token', token)
         .header('access-control-expose-headers', 'x-auth-token')
-        .send(_.pick(student, ['name', 'email', 'studentClass', 'teacher']))
+        .send(_.pick(student, ['name', 'email', 'studentClass', 'teacher', '_id']))
 }
 
 async function getStudent(req, res) {
@@ -184,17 +184,19 @@ async function getLabClasswork(req, res) {
         res.status(500).send({ message: 'something went wrong' })
     }
 }
-async function getQuizClasswork(req, res) {
+async function getClasswork(req, res) {
     try {
         // .sentQuizId
-        const quizClass = await Student.findOne({ _id: req.student._id })
-            .populate({ path: 'classworks.quizClasswork.sentQuizId' })
+        const classworks = await Student.findOne({ _id: req.student._id })
+            .populate({
+                path: 'classworks.quizClasswork.sentQuizId  classworks.labClasswork.sentLab',
+            })
             // .lean()
             // .exec()
-            .select('classworks.quizClasswork')
+            .select('classworks')
 
         // console.log(quizClass.classworks.quizClasswork)
-        res.send(quizClass)
+        res.send(classworks)
     } catch (error) {
         console.log(error)
         res.status(500).send({ message: 'something went wrong' })
@@ -230,15 +232,39 @@ async function postFinishedQuiz(req, res) {
     // mark sentQuiz as completed => set it to true
     // create new Instance of finishedQuiz
     const { _id } = req.student
-    const { sentQuizId, totalPoints, questions, scores } = req.body
-    if (!sentQuizId || !totalPoints || !questions)
+    const { sentQuizId, totalPoints, answersSummary, scores } = req.body
+    if (!sentQuizId || !totalPoints || !answersSummary)
         return res.status(400).send({ message: 'Please provide valid data' })
 
     try {
         let student = await Student.findOne({ _id })
-        student = student.addCompletQuiz(sentQuizId, totalPoints, questions, scores)
+        const quizId = student.addCompletQuiz(
+            sentQuizId,
+            totalPoints,
+            answersSummary,
+            scores,
+        )
         await student.save()
-        res.send(student)
+        res.send(quizId)
+    } catch (error) {
+        res.status(500).send({ message: 'something went wrong' })
+        console.log(error)
+    }
+}
+async function getFinishedQuiz(req, res) {
+    const { _id } = req.student
+    const { quizId } = req.params
+
+    try {
+        let student = await Student.findOne({
+            _id,
+            // 'classworks.quizClasswork': { $elemMatch: { _id: quizId } },
+        }).populate('classworks.quizClasswork.answersSummary.questionId')
+
+        const quiz = student.getCompletedQuizById(quizId)
+        if (!quiz) return res.status(400).send({ message: 'invalid quiz' })
+
+        res.send(quiz)
     } catch (error) {
         res.status(500).send({ message: 'something went wrong' })
         console.log(error)
@@ -251,9 +277,10 @@ module.exports = {
     deleteTeacher,
     getAvatar,
     getLabClasswork,
-    getQuizClasswork,
+    getClasswork,
     getStudent,
     getTeachers,
     inviteTeacher,
     postFinishedQuiz,
+    getFinishedQuiz,
 }

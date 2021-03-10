@@ -25,12 +25,30 @@ router.get(
     teacherAuth,
     teachersClassController.getAllQuiz,
 )
+router.get(
+    '/:classId/added-lab',
+    teacherAuth,
+    teachersClassController.getAllLab,
+)
+
+router.get(
+    '/:classId/published-class',
+    teacherAuth,
+    teachersClassController.getPublishedClassData,
+)
 
 // delete question from class and from list of questions
 router.delete(
     '/:classId/questions/:questionId',
     teacherAuth,
     teachersClassController.deleteQuiz,
+)
+
+// delete lab from class and from list of questions
+router.delete(
+    '/:classId/labs/:labId',
+    teacherAuth,
+    teachersClassController.deleteLab,
 )
 
 // delete a class that is not published class

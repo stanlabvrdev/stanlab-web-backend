@@ -18,6 +18,9 @@ const teachersController = require('../controllers/teachersController')
 // )
 // router.get('/auth/google/callback', passportAuth)
 
+// create a teacher
+router.post('/', teachersController.createTeacher)
+
 // get teacher students
 
 router.get('/students', teacherAuth, teachersController.getStudents)
@@ -59,12 +62,6 @@ const upload = multer({
     })
     // get published quiz
 
-router.get(
-    '/classes/:classId/published-quiz',
-    teacherAuth,
-    teachersController.getPublishedQUiz,
-)
-
 router.post(
     '/avatar',
     teacherAuth,
@@ -77,9 +74,6 @@ router.post(
 
 // get teacher avatar
 router.get('/:id/avatar', teachersController.getAvatar)
-
-// create a teacher
-router.post('/', teachersController.createTeacher)
 
 // update a teacher via email and name
 router.put('/', teacherAuth, teachersController.updateTeacher)

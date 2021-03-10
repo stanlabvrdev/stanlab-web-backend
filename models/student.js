@@ -19,7 +19,13 @@ const studentSchema = new mongoose.Schema({
             isCompleted: { type: Boolean },
             totalPoints: { type: Number },
             scores: { type: Number },
-            questions: { type: Array },
+            answersSummary: [{
+                questionId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Question',
+                },
+                choosenOption: {},
+            }, ],
         }, ],
 
         labClasswork: [{
@@ -68,6 +74,7 @@ const studentSchema = new mongoose.Schema({
     },
     signupDate: { type: Date, default: Date.now },
     trialPeriodEnds: { type: Date },
+    school: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolAdmin' },
 })
 
 studentSchema.methods.generateAuthToken = function() {
@@ -95,13 +102,14 @@ studentSchema.methods.addQuiz = function(quizId) {
     return this
 }
 studentSchema.methods.addLab = function(experimentId) {
+    // console.log('addLab', experimentId)
     const newExperiment = {
         sentLab: experimentId,
         isCompleted: false,
     }
 
     if (
-        this.classworks.quizClasswork.find(
+        this.classworks.labClasswork.find(
             (data) => data.sentLab.toString() === experimentId.toString(),
         )
     ) {
@@ -115,7 +123,7 @@ studentSchema.methods.addLab = function(experimentId) {
 studentSchema.methods.addCompletQuiz = function(
     sentQuizId,
     totalPoints,
-    questions,
+    answersSummary,
     scores,
 ) {
     const quizData = this.classworks.quizClasswork.find((data) => {
@@ -127,9 +135,20 @@ studentSchema.methods.addCompletQuiz = function(
         quizData.isCompleted = true
         quizData.totalPoints = totalPoints
         quizData.scores = scores
-        quizData.questions = questions
+        quizData.answersSummary = answersSummary
     }
-    return this
+    return quizData._id
+}
+studentSchema.methods.getCompletedQuizById = function(quizId) {
+    const quizData = this.classworks.quizClasswork.find((data) => {
+        // console.log(data, sentQuizId)
+        return data._id.toString() === quizId.toString()
+    })
+
+    if (quizData) {
+        return quizData
+    }
+    return null
 }
 studentSchema.methods.addCompleteExperiment = function(
     experimentId,

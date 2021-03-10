@@ -63,4 +63,46 @@ function sendInvitation(teacher, student, role) {
         .catch((err) => console.log(err.message))
 }
 
-module.exports = sendInvitation
+function sendLoginDetails(email, name, password, schoolName, isNew = false) {
+    msg = {
+            to: email,
+            from: stanLabMail,
+            subject: 'School Invitation',
+            html: `
+        <!DOCTYPE html>
+<html lang="en">
+
+
+<body>
+    <div style="background-color: '#f8f8f8';">
+        <h1 style="font-size: 20px; color: #909090;">Hello, ${name}</h1>
+        <p style="color: #909090;">
+            ${schoolName}  school has created a teacher account for you
+        </p>
+        <p style="color: #909090;">
+        ${
+          isNew
+            ? `here are your login details <br/>
+        email:  ${email}
+        password: ${password}`
+            : ''
+        } <br/>
+
+    </p>
+
+    <a href='#'>Login</a>
+    </div>
+</body>
+
+</html>
+        
+        `,
+  }
+
+  return sgMail
+    .send(msg)
+    .then(() => console.log('sent mail'))
+    .catch((err) => console.log(err.message))
+}
+
+module.exports = { sendInvitation, sendLoginDetails }

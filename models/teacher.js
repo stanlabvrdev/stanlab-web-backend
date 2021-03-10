@@ -5,6 +5,7 @@ const config = require('config')
 
 // postedBy: {type: mongoose.Schema.Types.ObjectId, ref: 'User'},
 const teacherSchema = new mongoose.Schema({
+    avatar: { type: Buffer },
     email: { type: String, required: true, unique: true },
     classes: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -35,7 +36,12 @@ const teacherSchema = new mongoose.Schema({
     ],
     archivedQuestions: { type: [] },
     role: { type: String, default: 'Teacher' },
-    avatar: { type: Buffer },
+    schools: [{
+        school: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolAdmin' },
+        students: [
+            { student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' } },
+        ],
+    }, ],
 })
 
 function validateTeacher(teacher) {
@@ -64,6 +70,21 @@ teacherSchema.methods.generateAuthToken = function() {
     return token
 }
 
+teacherSchema.methods.addSchool = function(schoolId) {
+    const newSchool = { school: schoolId, students: [] }
+    if (this.schools.find((s) => s.school.toString() === schoolId.toString())) {
+        return this
+    }
+
+    this.schools.push(newSchool)
+    return this
+}
+teacherSchema.methods.checkIsSchool = function(schoolId) {
+    if (this.schools.find((s) => s.school.toString() === schoolId.toString())) {
+        return true
+    }
+    return false
+}
 teacherSchema.methods.checkStudentById = function(studentId) {
     if (
         this.students.find((s) => s.student.toString() === studentId.toString())

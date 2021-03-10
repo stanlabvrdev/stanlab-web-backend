@@ -1,3 +1,4 @@
+const LabSetup = require('../models/labSetup')
 const { Question } = require('../models/question')
 const { Teacher } = require('../models/teacher')
 const { TeacherClass } = require('../models/teacherClass')
@@ -91,6 +92,24 @@ async function getAllQuiz(req, res) {
         console.log(error.message)
     }
 }
+async function getAllLab(req, res) {
+    try {
+        const teacherClass = await TeacherClass.findOne({
+            _id: req.params.classId,
+        })
+
+        if (!teacherClass)
+            return res.status(404).send({ message: 'Class not found' })
+
+        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
+            return res.status(401).send({ message: 'Not autorized!' })
+
+        res.send(teacherClass.classwork.lab)
+    } catch (error) {
+        res.status(400).send({ message: 'Invalid ID' })
+        console.log(error.message)
+    }
+}
 
 async function deleteQuiz(req, res) {
     const questionId = req.params.questionId
@@ -112,6 +131,31 @@ async function deleteQuiz(req, res) {
 
         quiz.splice(index, 1)
         await Question.deleteOne({ _id: questionId })
+        await teacherClass.save()
+
+        res.status(204).send(true)
+    } catch (error) {
+        res.status(400).send({ message: 'Invalid ID' })
+        console.log(error.message)
+    }
+}
+async function deleteLab(req, res) {
+    const labId = req.params.labId
+    try {
+        const teacherClass = await TeacherClass.findOne({
+            _id: req.params.classId,
+        })
+
+        if (!teacherClass)
+            return res.status(404).send({ message: 'Class not found' })
+
+        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
+            return res.status(401).send({ message: 'Not autorized!' })
+        const lab = teacherClass.deleteLabById(labId)
+
+        if (!lab) return res.status(400).send({ message: 'Lab not found' })
+
+        await LabSetup.deleteOne({ _id: labId })
         await teacherClass.save()
 
         res.status(204).send(true)
@@ -167,13 +211,31 @@ async function deleteStudentFromClass(req, res) {
         res.status(500).send({ message: 'Something went wrong' })
     }
 }
+
+async function getPublishedClassData(req, res) {
+    const { classId } = req.params
+    if (!classId) return res.status(400).send({ message: 'class not found' })
+
+    try {
+        const quizs = await TeacherClass.findOne({ _id: classId }).populate({
+            path: 'sentQuiz sentLab',
+            select: '-teacher',
+        })
+        res.send(quizs)
+    } catch (error) {
+        console.log(error)
+        res.status(500).send({ message: 'Something went wrong' })
+    }
+}
 module.exports = {
     addStudentToClass,
+    deleteLab,
     deleteQuiz,
     deleteStudentFromClass,
     deleteUnpublishedClass,
-
+    getAllLab,
     getAllQuiz,
+    getPublishedClassData,
     getClass,
     getStudents,
 }
