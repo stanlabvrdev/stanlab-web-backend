@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const labsetupSchema = new mongoose.Schema({
     acidName: { type: String },
@@ -9,7 +9,8 @@ const labsetupSchema = new mongoose.Schema({
     baseVolume: { type: Number },
     points: { type: Number, default: 0 },
     subject: { type: String },
-    teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
-}, { strict: false }, )
+    isActive: { type: Boolean, default: true },
+    teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
+}, { strict: false });
 
-module.exports = mongoose.model('LabSetup', labsetupSchema)
+module.exports = mongoose.model("LabSetup", labsetupSchema);
