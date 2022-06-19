@@ -2,6 +2,7 @@ const config = require("config");
 const fetch = require("node-fetch");
 
 const LabSetup = require("../models/labSetup");
+const Experiment = require("../models/experiment");
 const { TeacherClass } = require("../models/teacherClass");
 const { Student } = require("../models/student");
 
@@ -54,7 +55,14 @@ async function getActiveExperiment(req, res) {
 
 async function getActiveExperiments(req, res) {
     try {
-        const experiments = await LabSetup.find()
+        const _experiments = await Experiment.find({ students: { $in: [req.student._id] } });
+
+        let experimentIds = [];
+        _experiments.forEach((data) => {
+            experimentIds = experimentIds.concat(data.experiments);
+        });
+
+        const experiments = await LabSetup.find({ _id: { $in: experimentIds } })
             .select("-students -__v")
             .populate({ path: "teacher", select: ["name", "_id", "email"] });
         const student = await Student.findOne({ _id: req.student._id });
