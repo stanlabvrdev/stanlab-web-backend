@@ -13,6 +13,8 @@ const studentBillingRoute = require("./routes/studentBilling");
 const teacherClassRoute = require("./routes/teacherClasses");
 const labsetupRoute = require("./routes/lapSetup");
 const schoolAdminRoute = require("./routes/schoolAdmins");
+const systemExperimentRoute = require("./routes/systemExperiment");
+const labExperimentRoute = require("./routes/lab");
 
 const { teacherPassport } = require("./services/initPassport");
 const { studentPassport } = require("./services/initPassport");
@@ -38,6 +40,8 @@ app.use("/api/students", studentRoute);
 app.use("/api/teachers", teachersRoute);
 app.use("/api/classes", teacherClassRoute);
 app.use("/api/questions", questionsRoute);
+app.use("/api/system-experiments", systemExperimentRoute);
+app.use("/api/system-experiments/lab", labExperimentRoute);
 
 if (!config.get("jwtKey")) {
     console.log("FETAL ERROR: jwtKey is not set");

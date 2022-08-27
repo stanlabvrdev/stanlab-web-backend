@@ -1,20 +1,28 @@
-const mongoose = require('mongoose')
-const Joi = require('joi')
-const jwt = require('jsonwebtoken')
-const config = require('config')
+const mongoose = require("mongoose");
+const Joi = require("joi");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
 // profile:snapshot of the student
 const studentSchema = new mongoose.Schema({
     avatar: { type: Buffer },
     classes: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TeacherClass',
+        ref: "TeacherClass",
     }, ],
+
+    labs: [{
+        experimentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "LabExperiment",
+        },
+    }, ],
+
     classworks: {
         quizClasswork: [{
             sentQuizId: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'QuizClasswork',
+                ref: "QuizClasswork",
             },
             isCompleted: { type: Boolean },
             totalPoints: { type: Number },
@@ -22,7 +30,7 @@ const studentSchema = new mongoose.Schema({
             answersSummary: [{
                 questionId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: 'Question',
+                    ref: "Question",
                 },
                 choosenOption: {},
             }, ],
@@ -31,7 +39,7 @@ const studentSchema = new mongoose.Schema({
         labClasswork: [{
             sentLab: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: 'Experiment',
+                ref: "Experiment",
             },
             isCompleted: { type: Boolean },
             totalPoints: { type: Number },
@@ -53,15 +61,15 @@ const studentSchema = new mongoose.Schema({
     plan: {
         charge: { type: Number, default: 0 },
         description: String,
-        name: { type: String, default: 'basic' },
+        name: { type: String, default: "basic" },
     },
 
-    role: { type: String, default: 'Student' },
+    role: { type: String, default: "Student" },
 
     teachers: [{
         teacher: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Teacher',
+            ref: "Teacher",
         },
         isAccepted: { type: Boolean },
         status: { type: String },
@@ -69,171 +77,141 @@ const studentSchema = new mongoose.Schema({
     }, ],
     unregisteredTeacher: [{ type: String }],
     questions: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
         default: [],
     },
     signupDate: { type: Date, default: Date.now },
     trialPeriodEnds: { type: Date },
-    school: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolAdmin' },
-})
+    school: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin" },
+});
 
 studentSchema.methods.generateAuthToken = function() {
-    const token = jwt.sign({ _id: this._id, role: this.role },
-        config.get('jwtKey'),
-    )
-    return token
-}
+    const token = jwt.sign({ _id: this._id, role: this.role }, config.get("jwtKey"));
+    return token;
+};
 
 studentSchema.methods.addQuiz = function(quizId) {
     const newQuiz = {
         sentQuizId: quizId,
         isCompleted: false,
+    };
+
+    if (this.classworks.quizClasswork.find((data) => data.sentQuizId.toString() === quizId.toString())) {
+        return this;
     }
 
-    if (
-        this.classworks.quizClasswork.find(
-            (data) => data.sentQuizId.toString() === quizId.toString(),
-        )
-    ) {
-        return this
-    }
-
-    this.classworks.quizClasswork.push(newQuiz)
-    return this
-}
+    this.classworks.quizClasswork.push(newQuiz);
+    return this;
+};
 studentSchema.methods.addLab = function(experimentId) {
     // console.log('addLab', experimentId)
     const newExperiment = {
         sentLab: experimentId,
         isCompleted: false,
+    };
+
+    if (this.classworks.labClasswork.find((data) => data.sentLab.toString() === experimentId.toString())) {
+        return this;
     }
 
-    if (
-        this.classworks.labClasswork.find(
-            (data) => data.sentLab.toString() === experimentId.toString(),
-        )
-    ) {
-        return this
-    }
+    this.classworks.labClasswork.push(newExperiment);
+    return this;
+};
 
-    this.classworks.labClasswork.push(newExperiment)
-    return this
-}
-
-studentSchema.methods.addCompletQuiz = function(
-    sentQuizId,
-    totalPoints,
-    answersSummary,
-    scores,
-) {
+studentSchema.methods.addCompletQuiz = function(sentQuizId, totalPoints, answersSummary, scores) {
     const quizData = this.classworks.quizClasswork.find((data) => {
-            // console.log(data, sentQuizId)
-            return data._id.toString() === sentQuizId.toString()
-        })
-        // console.log(quizData)
+        // console.log(data, sentQuizId)
+        return data._id.toString() === sentQuizId.toString();
+    });
+    // console.log(quizData)
     if (quizData) {
-        quizData.isCompleted = true
-        quizData.totalPoints = totalPoints
-        quizData.scores = scores
-        quizData.answersSummary = answersSummary
+        quizData.isCompleted = true;
+        quizData.totalPoints = totalPoints;
+        quizData.scores = scores;
+        quizData.answersSummary = answersSummary;
     }
-    return quizData._id
-}
+    return quizData._id;
+};
 studentSchema.methods.getCompletedQuizById = function(quizId) {
     const quizData = this.classworks.quizClasswork.find((data) => {
         // console.log(data, sentQuizId)
-        return data._id.toString() === quizId.toString()
-    })
+        return data._id.toString() === quizId.toString();
+    });
 
     if (quizData) {
-        return quizData
+        return quizData;
     }
-    return null
-}
-studentSchema.methods.addCompleteExperiment = function(
-    experimentId,
-    scores,
-    experiment,
-) {
+    return null;
+};
+studentSchema.methods.addCompleteExperiment = function(experimentId, scores, experiment) {
     const labData = this.classworks.labClasswork.find((data) => {
         // console.log(data, sentQuizId)
-        return data._id.toString() === experimentId.toString()
-    })
+        return data._id.toString() === experimentId.toString();
+    });
     if (labData) {
-        labData.isCompleted = true
-        labData.scores = scores
-        labData.experiments.push(experiment)
+        labData.isCompleted = true;
+        labData.scores = scores;
+        labData.experiments.push(experiment);
     }
-    return this
-}
+    return this;
+};
 
 studentSchema.methods.addTeacher = function(teacherId, inviteFrom) {
-    let teacher = this.teachers.find(
-        (td) => td.teacher.toString() === teacherId.toString(),
-    )
+    let teacher = this.teachers.find((td) => td.teacher.toString() === teacherId.toString());
 
     if (teacher) {
-        teacher.status = ''
-        return this
+        teacher.status = "";
+        return this;
     }
 
-    if (inviteFrom)
-        teacher = { teacher: teacherId, isAccepted: false, invite: inviteFrom }
-    else teacher = { teacher: teacherId, isAccepted: false, invite: 'student' }
+    if (inviteFrom) teacher = { teacher: teacherId, isAccepted: false, invite: inviteFrom };
+    else teacher = { teacher: teacherId, isAccepted: false, invite: "student" };
 
-    this.teachers.push(teacher)
-    return this
-}
+    this.teachers.push(teacher);
+    return this;
+};
 
 studentSchema.methods.checkTeacherById = function(teacherId) {
-    if (
-        this.teachers.find((s) => s.teacher.toString() === teacherId.toString())
-    ) {
-        return true
+    if (this.teachers.find((s) => s.teacher.toString() === teacherId.toString())) {
+        return true;
     }
-    return false
-}
+    return false;
+};
 
 studentSchema.methods.acceptTeacher = function(teacherId) {
-    let teacher = this.teachers.find(
-        (td) => td.teacher.toString() === teacherId.toString(),
-    )
+    let teacher = this.teachers.find((td) => td.teacher.toString() === teacherId.toString());
 
     if (teacher) {
-        teacher.isAccepted = true
-        return this
+        teacher.isAccepted = true;
+        return this;
     }
-    return this
-}
+    return this;
+};
 
 studentSchema.methods.removeTeacher = function(teacherId) {
-    const index = this.teachers.findIndex(
-        (data) => data.teacher.toString() === teacherId.toString(),
-    )
-    if (index < 0) return null
+    const index = this.teachers.findIndex((data) => data.teacher.toString() === teacherId.toString());
+    if (index < 0) return null;
 
-    this.teachers.splice(index, 1)
-    return this
-}
+    this.teachers.splice(index, 1);
+    return this;
+};
 
 studentSchema.methods.markTeacherAsRemoved = function(teacherId) {
-    let teacher = this.teachers.find(
-        (td) => td.teacher.toString() === teacherId.toString(),
-    )
+    let teacher = this.teachers.find((td) => td.teacher.toString() === teacherId.toString());
 
     if (teacher) {
-        teacher.status = 'removed'
-        return this
+        teacher.status = "removed";
+        return this;
     }
-    return this
-}
+    return this;
+};
 
 studentSchema.methods.addUnregisterTeacher = function(email) {
-    const teacher = this.unregisteredTeacher.find((t) => t === email)
-    if (teacher) return null
-    this.unregisteredTeacher.push(email)
-    return this
-}
+    const teacher = this.unregisteredTeacher.find((t) => t === email);
+    if (teacher) return null;
+    this.unregisteredTeacher.push(email);
+    return this;
+};
 
 function validateStudent(student) {
     const schema = Joi.object({
@@ -243,16 +221,16 @@ function validateStudent(student) {
         studentClass: Joi.string(),
         role: Joi.string(),
         teacher: Joi.objectId(),
-    })
+    });
 
-    return schema.validate(student)
+    return schema.validate(student);
 }
 
 function validateIDs(id, testString) {
     return Joi.object({
         [testString]: Joi.objectId(),
-    }).validate(id)
+    }).validate(id);
 }
 
-const Student = mongoose.model('Student', studentSchema)
-module.exports = { Student, validateStudent, validateIDs }
+const Student = mongoose.model("Student", studentSchema);
+module.exports = { Student, validateStudent, validateIDs };

@@ -1,196 +1,169 @@
-const sharp = require('sharp')
-const bcrypt = require('bcryptjs')
-const _ = require('lodash')
+const sharp = require("sharp");
+const bcrypt = require("bcryptjs");
+const _ = require("lodash");
 
-const {
-    Teacher,
-    validateTeacher,
-    validateUpdateTeacher,
-} = require('../models/teacher')
-const { Student } = require('../models/student')
-const { TeacherClass, validateClass } = require('../models/teacherClass')
-const QuizClasswork = require('../models/quizClasswork')
-const Experiment = require('../models/experiment')
-const { sendInvitation } = require('../services/email')
+const { Teacher, validateTeacher, validateUpdateTeacher } = require("../models/teacher");
+const { Student } = require("../models/student");
+const { TeacherClass, validateClass } = require("../models/teacherClass");
+const QuizClasswork = require("../models/quizClasswork");
+const Experiment = require("../models/experiment");
+const { sendInvitation } = require("../services/email");
 
 async function deleteStudent(req, res) {
-    const { studentId } = req.params
+    const { studentId } = req.params;
     try {
-        let teacher = await Teacher.findOne({ _id: req.teacher._id })
-        let student = await Student.findOne({ _id: studentId })
+        let teacher = await Teacher.findOne({ _id: req.teacher._id });
+        let student = await Student.findOne({ _id: studentId });
 
-        let updatedTeacher = teacher.removeStudent(studentId)
-        if (!updatedTeacher)
-            return res.status(404).send({ message: 'Student not found' })
+        let updatedTeacher = teacher.removeStudent(studentId);
+        if (!updatedTeacher) return res.status(404).send({ message: "Student not found" });
 
-        await updatedTeacher.save()
-        if (!student) return res.status(400).send({ message: 'Something is wrong' })
+        await updatedTeacher.save();
+        if (!student) return res.status(400).send({ message: "Something is wrong" });
 
-        student = student.markTeacherAsRemoved(teacher._id)
-        await student.save()
-        res.status(204).send(true)
+        student = student.markTeacherAsRemoved(teacher._id);
+        await student.save();
+        res.status(204).send(true);
     } catch (error) {
-        console.log(error.message)
-        res.status(500).send({ message: 'something went wrong' })
+        console.log(error.message);
+        res.status(500).send({ message: "something went wrong" });
     }
 }
 
 async function createClass(req, res) {
-    const { title, subject, section } = req.body
-    const { error } = validateClass(req.body)
-    if (error) return res.status(400).send({ message: error.details[0].message })
+    const { title, subject, section } = req.body;
+    const { error } = validateClass(req.body);
+    if (error) return res.status(400).send({ message: error.details[0].message });
 
     try {
-        const teacher = await Teacher.findOne({ _id: req.teacher._id })
+        const teacher = await Teacher.findOne({ _id: req.teacher._id });
         let teacherClass = new TeacherClass({
             title,
             subject,
             section,
             teacher: req.teacher._id,
-        })
+        });
 
-        teacherClass = await teacherClass.save()
-        teacher.classes.push(teacherClass._id)
-        await teacher.save()
-        res.send(teacherClass)
+        teacherClass = await teacherClass.save();
+        teacher.classes.push(teacherClass._id);
+        await teacher.save();
+        res.send(teacherClass);
     } catch (error) {
-        console.log(error.message)
-        res.status(500).send({ message: 'error creating' })
+        console.log(error.message);
+        res.status(500).send({ message: "error creating" });
     }
 }
 
 async function getClass(req, res) {
     try {
-        const teacherClasses = await Teacher.findOne({ _id: req.teacher._id })
-            .populate('classes')
-            .select('classes')
-        res.send(teacherClasses)
+        const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
+        res.send(teacherClasses);
     } catch (error) {
-        res.status(500).send({ message: 'Something went wrong' })
-        console.log(error.message)
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error.message);
     }
 }
 
 async function createAvatar(req, res) {
     try {
-        const teacher = await Teacher.findById(req.teacher._id)
-        teacher.avatar = await sharp(req.file.buffer)
-            .resize({ width: 180, height: 180 })
-            .png()
-            .toBuffer()
-        await teacher.save()
-        res.send({ message: 'successful' })
+        const teacher = await Teacher.findById(req.teacher._id);
+        teacher.avatar = await sharp(req.file.buffer).resize({ width: 180, height: 180 }).png().toBuffer();
+        await teacher.save();
+        res.send({ message: "successful" });
     } catch (error) {
-        res.status(400).send({ message: 'Invalid ID' })
+        res.status(400).send({ message: "Invalid ID" });
     }
 }
 
 async function getAvatar(req, res) {
     try {
-        const teacher = await Teacher.findById(req.params.id)
-        if (!teacher || !teacher.avatar)
-            return res.status(404).send({ message: 'Not Found' })
-        res.set('Content-Type', 'image/png').send(teacher.avatar)
+        const teacher = await Teacher.findById(req.params.id);
+        if (!teacher || !teacher.avatar) return res.status(404).send({ message: "Not Found" });
+        res.set("Content-Type", "image/png").send(teacher.avatar);
     } catch (error) {
-        res.status(400).send({ message: 'Invalid ID' })
+        res.status(400).send({ message: "Invalid ID" });
     }
 }
 
 async function createTeacher(req, res) {
-    const { error } = validateTeacher(req.body)
-    let { name, email, password } = req.body
-    if (error) return res.status(400).send(error.details[0].message)
-    const registeredStudent = await Student.findOne({ email })
-    if (registeredStudent)
-        return res
-            .status(401)
-            .send({ message: 'You cannot use same email registered as Student' })
-    const salt = await bcrypt.genSalt(10)
-    password = await bcrypt.hash(password, salt)
-    let teacher = await Teacher.findOne({ email })
-    if (teacher)
-        return res.status(400).send({ message: 'Email already Registered' })
+    const { error } = validateTeacher(req.body);
+    let { name, email, password } = req.body;
+    if (error) return res.status(400).send(error.details[0].message);
+    const registeredStudent = await Student.findOne({ email });
+    if (registeredStudent) return res.status(401).send({ message: "You cannot use same email registered as Student" });
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+    let teacher = await Teacher.findOne({ email });
+    if (teacher) return res.status(400).send({ message: "Email already Registered" });
     teacher = new Teacher({
         name,
         password,
         email,
-    })
+    });
 
-    await teacher.save()
-    const token = teacher.generateAuthToken()
+    await teacher.save();
+    const token = teacher.generateAuthToken();
     res
-        .header('x-auth-token', token)
-        .header('access-control-expose-headers', 'x-auth-token')
-        .send(_.pick(teacher, ['name', 'email', 'questions', 'students', '_id']))
+        .header("x-auth-token", token)
+        .header("access-control-expose-headers", "x-auth-token")
+        .send(_.pick(teacher, ["name", "email", "questions", "students", "_id"]));
 }
 
 async function updateTeacher(req, res) {
     try {
-        const teacher = await Teacher.findById(req.teacher._id)
-        if (!teacher)
-            return res.status(404).send({ message: 'teacher was not found' })
+        const teacher = await Teacher.findById(req.teacher._id);
+        if (!teacher) return res.status(404).send({ message: "teacher was not found" });
 
-        const { email, name } = req.body
-        const { error } = validateUpdateTeacher(req.body)
+        const { email, name } = req.body;
+        const { error } = validateUpdateTeacher(req.body);
 
-        if (error) return res.status(400).send(error.details[0].message)
-        teacher.name = name
-        teacher.email = email
-        await teacher.save()
-        res.send(teacher)
+        if (error) return res.status(400).send(error.details[0].message);
+        teacher.name = name;
+        teacher.email = email;
+        await teacher.save();
+        res.send(teacher);
     } catch (error) {
-        console.log(error.message)
-        res.status(500).send('Something went wrong')
+        console.log(error.message);
+        res.status(500).send("Something went wrong");
     }
 }
 
 async function addStudentToClass(req, res) {
-    const { classId } = req.params
-    const { studentId } = req.body
-    if (!studentId)
-        return res.status(400).send({ message: 'studentId is required' })
+    const { classId } = req.params;
+    const { studentId } = req.body;
+    if (!studentId) return res.status(400).send({ message: "studentId is required" });
     try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId })
-        const student = await Student.findOne({ _id: studentId })
-        if (!student) return res.status(404).send({ message: 'student not found' })
-        const classStudents = teacherClass.students
+        const teacherClass = await TeacherClass.findOne({ _id: classId });
+        const student = await Student.findOne({ _id: studentId });
+        if (!student) return res.status(404).send({ message: "student not found" });
+        const classStudents = teacherClass.students;
         if (classStudents.find((s) => s.toString() === studentId.toString()))
-            return res
-                .status(400)
-                .send({ message: 'student already added to this class' })
+            return res.status(400).send({ message: "student already added to this class" });
         if (student.classes.find((c) => c.toString() === classId.toString()))
-            return res.status(400).send({ message: 'student already in this class' })
-        student.classes.push(classId)
-        teacherClass.students.push(student._id)
-        await student.save()
-        await teacherClass.save()
-        res.send(teacherClass)
+            return res.status(400).send({ message: "student already in this class" });
+        student.classes.push(classId);
+        teacherClass.students.push(student._id);
+        await student.save();
+        await teacherClass.save();
+        res.send(teacherClass);
     } catch (error) {
-        res.status(400).send({ message: 'Invalid class or student id' })
-        console.log(error.message)
+        res.status(400).send({ message: "Invalid class or student id" });
+        console.log(error.message);
     }
 }
 
 async function sendQuizToStudents(req, res) {
-    const { classId } = req.params
-    let { dueDate, students, questions, startDate } = req.body
+    const { classId } = req.params;
+    let { dueDate, students, questions, startDate } = req.body;
 
     if (!Array.isArray(students) && !Array.isArray(questions))
-        return res
-            .status(400)
-            .send({ message: 'students and question must be array of objectIds' })
+        return res.status(400).send({ message: "students and question must be array of objectIds" });
 
-    if (questions.length === 0)
-        return res
-            .status(400)
-            .send({ message: 'Please add questions to this class' })
-    if (students.length === 0)
-        return res
-            .status(400)
-            .send({ message: 'Please add students to this class' })
+    if (questions.length === 0) return res.status(400).send({ message: "Please add questions to this class" });
+    if (students.length === 0) return res.status(400).send({ message: "Please add students to this class" });
 
-    if (startDate) startDate = new Date(startDate)
-    else startDate = Date.now
+    if (startDate) startDate = new Date(startDate);
+    else startDate = Date.now;
 
     try {
         let newQuiz = new QuizClasswork({
@@ -200,52 +173,44 @@ async function sendQuizToStudents(req, res) {
             startDate,
             teacher: req.teacher._id,
             classId,
-        })
-        newQuiz = await newQuiz.save()
+        });
+        newQuiz = await newQuiz.save();
 
         for (let studentId of students) {
             // console.log('From send quiz route  student are = ', studentData)
-            let student = await Student.findOne({ _id: studentId })
-                // classworks.quizClasswork.push(newQuiz._id)
-            student = student.addQuiz(newQuiz._id)
-            await student.save()
+            let student = await Student.findOne({ _id: studentId });
+            // classworks.quizClasswork.push(newQuiz._id)
+            student = student.addQuiz(newQuiz._id);
+            await student.save();
         }
 
-        let teacherClass = await TeacherClass.findOne({ _id: classId })
-        teacherClass = teacherClass.publishClass(classId)
-        teacherClass.classwork.quiz = []
-        teacherClass = teacherClass.addSentQuiz(newQuiz._id)
-        await teacherClass.save()
+        let teacherClass = await TeacherClass.findOne({ _id: classId });
+        teacherClass = teacherClass.publishClass(classId);
+        teacherClass.classwork.quiz = [];
+        teacherClass = teacherClass.addSentQuiz(newQuiz._id);
+        await teacherClass.save();
 
-        let teacher = await Teacher.findOne({ _id: req.teacher._id })
-        teacher = teacher.addSentQuizClasswork(newQuiz._id)
-        await teacher.save()
-        res.send({ message: 'Sent!' })
+        let teacher = await Teacher.findOne({ _id: req.teacher._id });
+        teacher = teacher.addSentQuizClasswork(newQuiz._id);
+        await teacher.save();
+        res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: 'something went wrong' })
-        console.log(error)
+        res.status(500).send({ message: "something went wrong" });
+        console.log(error);
     }
 }
 async function sendLabToStudents(req, res) {
-    const { classId } = req.params
-    let { dueDate, students, experiments, startDate } = req.body
+    const { classId } = req.params;
+    let { dueDate, students, experiments, startDate } = req.body;
 
     if (!Array.isArray(students) && !Array.isArray(experiments))
-        return res
-            .status(400)
-            .send({ message: 'students and labs must be array of objectIds' })
+        return res.status(400).send({ message: "students and labs must be array of objectIds" });
 
-    if (experiments.length === 0)
-        return res
-            .status(400)
-            .send({ message: 'Please add experiment to this class' })
-    if (students.length === 0)
-        return res
-            .status(400)
-            .send({ message: 'Please add students to this class' })
+    if (experiments.length === 0) return res.status(400).send({ message: "Please add experiment to this class" });
+    if (students.length === 0) return res.status(400).send({ message: "Please add students to this class" });
 
-    if (startDate) startDate = new Date(startDate)
-    else startDate = Date.now
+    if (startDate) startDate = new Date(startDate);
+    else startDate = Date.now;
 
     try {
         let newExperiment = new Experiment({
@@ -255,41 +220,40 @@ async function sendLabToStudents(req, res) {
             startDate,
             teacher: req.teacher._id,
             classId,
-        })
-        newExperiment = await newExperiment.save()
+        });
+        newExperiment = await newExperiment.save();
 
         for (let studentId of students) {
-            let student = await Student.findOne({ _id: studentId })
-            student = student.addLab(newExperiment._id)
-            await student.save()
+            let student = await Student.findOne({ _id: studentId });
+            student = student.addLab(newExperiment._id);
+            await student.save();
         }
 
-        let teacherClass = await TeacherClass.findOne({ _id: classId })
-        teacherClass = teacherClass.publishClass(classId)
-        teacherClass.classwork.lab = []
-        teacherClass = teacherClass.addSentLab(newExperiment._id)
-        await teacherClass.save()
+        let teacherClass = await TeacherClass.findOne({ _id: classId });
+        teacherClass = teacherClass.publishClass(classId);
+        teacherClass.classwork.lab = [];
+        teacherClass = teacherClass.addSentLab(newExperiment._id);
+        await teacherClass.save();
 
-        let teacher = await Teacher.findOne({ _id: req.teacher._id })
-        teacher = teacher.addSentLabClasswork(newExperiment._id)
-        await teacher.save()
-        res.send({ message: 'Sent!' })
+        let teacher = await Teacher.findOne({ _id: req.teacher._id });
+        teacher = teacher.addSentLabClasswork(newExperiment._id);
+        await teacher.save();
+        res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: 'something went wrong' })
-        console.log(error)
+        res.status(500).send({ message: "something went wrong" });
+        console.log(error);
     }
 }
 
 async function sendInviteToStudent(req, res) {
     // const { studentEmail, classId } = req.body
-    const { studentEmail } = req.body
-    const { _id } = req.teacher
-    if (!studentEmail)
-        return res.status(400).send({ message: 'Please include student Email' })
+    const { studentEmail } = req.body;
+    const { _id } = req.teacher;
+    if (!studentEmail) return res.status(400).send({ message: "Please include student Email" });
 
     try {
-        let teacher = await Teacher.findOne({ _id })
-        let student = await Student.findOne({ email: studentEmail })
+        let teacher = await Teacher.findOne({ _id });
+        let student = await Student.findOne({ email: studentEmail });
 
         // save student in class
 
@@ -297,74 +261,63 @@ async function sendInviteToStudent(req, res) {
          * Tasks => student should be added from the list of teacher students
          * invite student from a class should be from pool of students
          */
-        if (teacher.email === studentEmail)
-            return res
-                .status(400)
-                .send({ message: "You can't send invite to yourself" })
+        if (teacher.email === studentEmail) return res.status(400).send({ message: "You can't send invite to yourself" });
         if (student) {
-            const isStudent = teacher.checkStudentById(student._id)
-            if (isStudent)
-                return res
-                    .status(400)
-                    .send({ message: 'Invitation already sent to this student' })
+            const isStudent = teacher.checkStudentById(student._id);
+            if (isStudent) return res.status(400).send({ message: "Invitation already sent to this student" });
 
             // add student to class
 
             // add student to teacher list of students
-            teacher = teacher.addStudent(student._id)
+            teacher = teacher.addStudent(student._id);
 
             // add teacher to student list
-            student = student.addTeacher(teacher._id, 'teacher')
+            student = student.addTeacher(teacher._id, "teacher");
 
-            sendInvitation(teacher, student, 'teacher')
+            sendInvitation(teacher, student, "teacher");
 
-            await teacher.save()
-            await student.save()
-            return res.send({ message: 'Invitation sent!' })
+            await teacher.save();
+            await student.save();
+            return res.send({ message: "Invitation sent!" });
         }
 
         if (!student) {
-            teacher = teacher.addUnregisterStudent(studentEmail)
-            sendInvitation(teacher, { email: studentEmail, name: '' }, 'teacher')
-            await teacher.save()
-            return res.send({ message: 'Invitation sent' })
+            teacher = teacher.addUnregisterStudent(studentEmail);
+            sendInvitation(teacher, { email: studentEmail, name: "" }, "teacher");
+            await teacher.save();
+            return res.send({ message: "Invitation sent" });
         }
     } catch (ex) {
-        console.log(ex)
-        res.status(500).send({ message: 'Something went wrong' })
+        console.log(ex);
+        res.status(500).send({ message: "Something went wrong" });
     }
 }
 
 async function acceptStudentInvite(req, res) {
-    const studentId = req.params.studentId
+    const studentId = req.params.studentId;
     try {
-        let teacher = await Teacher.findOne({ _id: req.teacher._id })
-        let student = await Student.findOne({ _id: studentId })
-        teacher = teacher.acceptStudent(studentId)
-        student = student.acceptTeacher(teacher._id)
+        let teacher = await Teacher.findOne({ _id: req.teacher._id });
+        let student = await Student.findOne({ _id: studentId });
+        teacher = teacher.acceptStudent(studentId);
+        student = student.acceptTeacher(teacher._id);
 
-        await student.save()
-        await teacher.save()
-        res.send({ message: 'Invite accepted' })
+        await student.save();
+        await teacher.save();
+        res.send({ message: "Invite accepted" });
     } catch (error) {
-        console.log(error)
-        res.status(500).send({ message: 'something went wrong' })
+        console.log(error);
+        res.status(500).send({ message: "something went wrong" });
     }
 }
 
 async function getTeacher(req, res) {
     try {
-        const teacher = await Teacher.findById(req.params.id).select(
-            '-password -avatar',
-        )
-        if (!teacher)
-            return res
-                .status(404)
-                .send({ message: 'Teacher with this ID was not found' })
-        res.send(teacher)
+        const teacher = await Teacher.findById(req.params.id).select("-password -avatar");
+        if (!teacher) return res.status(404).send({ message: "Teacher with this ID was not found" });
+        res.send(teacher);
     } catch (error) {
-        console.log(error.message)
-        res.status(400).send({ message: 'Invalid teacher ID' })
+        console.log(error.message);
+        res.status(400).send({ message: "Invalid teacher ID" });
     }
 }
 
@@ -372,14 +325,41 @@ async function getStudents(req, res) {
     try {
         const students = await Teacher.findOne({ _id: req.teacher._id })
             .populate({
-                path: 'students.student',
-                select: 'name email imageUrl avatar _id isAccepted',
+                path: "students.student",
+                select: "name email imageUrl avatar _id isAccepted",
             })
-            .select('students')
-        res.send(students)
+            .select("students");
+        res.send(students);
     } catch (error) {
-        res.status(500).send({ message: 'Something went wrong' })
-        console.log(error.message)
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error.message);
+    }
+}
+
+async function assignLab(req, res) {
+    try {
+        const experimentId = req.params.experimentId;
+        const students = await Teacher.findOne({ _id: req.teacher._id });
+
+        const promises = [];
+
+        if (students.length < 1) return res.status(404).send({ message: "No student found" });
+
+        for (let studentData of students) {
+            const studentId = studentData.student;
+
+            const student = await Student.findOne({ _id: studentId });
+
+            student.labs.push({ experimentId });
+
+            promises.push(student.save());
+        }
+
+        await Promise.all(promises);
+        res.send({ message: "experiment successfully assigned" });
+    } catch (error) {
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error.message);
     }
 }
 
@@ -398,4 +378,5 @@ module.exports = {
     sendInviteToStudent,
     updateTeacher,
     sendLabToStudents,
-}
+    assignLab,
+};

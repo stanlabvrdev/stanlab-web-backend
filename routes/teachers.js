@@ -1,13 +1,13 @@
-const express = require('express')
-const multer = require('multer')
-const router = express.Router()
-    // const passport = require("passport");
+const express = require("express");
+const multer = require("multer");
+const router = express.Router();
+// const passport = require("passport");
 
 // const { teacherPassport } = require('../services/initPassport')
 // const passportAuth = require('../middleware/teacherPassportAuth')
 
-const { teacherAuth } = require('../middleware/auth')
-const teachersController = require('../controllers/teachersController')
+const { teacherAuth } = require("../middleware/auth");
+const teachersController = require("../controllers/teachersController");
 
 // const info;
 // login via google oauth
@@ -19,11 +19,11 @@ const teachersController = require('../controllers/teachersController')
 // router.get('/auth/google/callback', passportAuth)
 
 // create a teacher
-router.post('/', teachersController.createTeacher)
+router.post("/", teachersController.createTeacher);
 
 // get teacher students
 
-router.get('/students', teacherAuth, teachersController.getStudents)
+router.get("/students", teacherAuth, teachersController.getStudents);
 
 // delete only teacher student
 /**
@@ -31,60 +31,52 @@ router.get('/students', teacherAuth, teachersController.getStudents)
  * CHANGES THE STATUS OF STUDENT -> TEACHER = REMOVED
  *
  */
-router.delete(
-    '/students/:studentId',
-    teacherAuth,
-    teachersController.deleteStudent,
-)
+router.delete("/students/:studentId", teacherAuth, teachersController.deleteStudent);
 
 // teacher create class
 /*
 body => title, subject, section
 */
-router.post('/create-class', teacherAuth, teachersController.createClass)
+router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // get teacher classes
 
-router.get('/classes', teacherAuth, teachersController.getClass)
+router.get("/classes", teacherAuth, teachersController.getClass);
 
 // post: Teacher avatar
 
 const upload = multer({
-        limits: {
-            fileSize: 1000000,
-        },
-        fileFilter: (req, file, cb) => {
-            if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-                return cb(new Error('Please upload valid image'))
-            }
-            cb(null, true)
-        },
-    })
-    // get published quiz
+    limits: {
+        fileSize: 1000000,
+    },
+    fileFilter: (req, file, cb) => {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error("Please upload valid image"));
+        }
+        cb(null, true);
+    },
+});
+// get published quiz
 
 router.post(
-    '/avatar',
+    "/avatar",
     teacherAuth,
-    upload.single('avatar'),
+    upload.single("avatar"),
     teachersController.createAvatar,
     (error, req, res, next) => {
-        res.status(400).send({ error: error.message })
-    },
-)
+        res.status(400).send({ error: error.message });
+    }
+);
 
 // get teacher avatar
-router.get('/:id/avatar', teachersController.getAvatar)
+router.get("/:id/avatar", teachersController.getAvatar);
 
 // update a teacher via email and name
-router.put('/', teacherAuth, teachersController.updateTeacher)
+router.put("/", teacherAuth, teachersController.updateTeacher);
 
 // teacher add student to class
 // by passing the studentId to the body of the request
-router.post(
-    '/add-student/:classId',
-    teacherAuth,
-    teachersController.addStudentToClass,
-)
+router.post("/add-student/:classId", teacherAuth, teachersController.addStudentToClass);
 
 // Send questions to all students
 /**
@@ -93,17 +85,9 @@ router.post(
  * classId
  * Due date
  */
-router.post(
-    '/send-quiz/:classId',
-    teacherAuth,
-    teachersController.sendQuizToStudents,
-)
+router.post("/send-quiz/:classId", teacherAuth, teachersController.sendQuizToStudents);
 
-router.post(
-    '/send-lab/:classId',
-    teacherAuth,
-    teachersController.sendLabToStudents,
-)
+router.post("/send-lab/:classId", teacherAuth, teachersController.sendLabToStudents);
 
 /*
  */
@@ -111,20 +95,12 @@ router.post(
 // Teacher Invite student to join class using the student  email
 // the request body should contain the email of a student
 
-router.post(
-    '/invite-student',
-    teacherAuth,
-    teachersController.sendInviteToStudent,
-)
+router.post("/invite-student", teacherAuth, teachersController.sendInviteToStudent);
 
 // teacher accept student invitation
-router.post(
-    '/accept-invite/:studentId',
-    teacherAuth,
-    teachersController.acceptStudentInvite,
-)
+router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
 
 // get a teacher
-router.get('/:id', teachersController.getTeacher)
-    // Get: all students
-module.exports = router
+router.get("/:id", teachersController.getTeacher);
+// Get: all students
+module.exports = router;
