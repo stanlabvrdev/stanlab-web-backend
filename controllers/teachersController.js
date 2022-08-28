@@ -8,6 +8,8 @@ const { TeacherClass, validateClass } = require("../models/teacherClass");
 const QuizClasswork = require("../models/quizClasswork");
 const Experiment = require("../models/experiment");
 const { sendInvitation } = require("../services/email");
+const { LabExperiment } = require("../models/labAssignment");
+const SystemExperiment = require("../models/labAssignment");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -336,33 +338,6 @@ async function getStudents(req, res) {
     }
 }
 
-async function assignLab(req, res) {
-    try {
-        const experimentId = req.params.experimentId;
-        const students = await Teacher.findOne({ _id: req.teacher._id });
-
-        const promises = [];
-
-        if (students.length < 1) return res.status(404).send({ message: "No student found" });
-
-        for (let studentData of students) {
-            const studentId = studentData.student;
-
-            const student = await Student.findOne({ _id: studentId });
-
-            student.labs.push({ experimentId });
-
-            promises.push(student.save());
-        }
-
-        await Promise.all(promises);
-        res.send({ message: "experiment successfully assigned" });
-    } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
-    }
-}
-
 module.exports = {
     acceptStudentInvite,
     addStudentToClass,
@@ -378,5 +353,4 @@ module.exports = {
     sendInviteToStudent,
     updateTeacher,
     sendLabToStudents,
-    assignLab,
 };

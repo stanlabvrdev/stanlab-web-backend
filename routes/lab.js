@@ -3,8 +3,8 @@ const express = require("express");
 const router = express.Router();
 
 const { teacherAuth } = require("../middleware/auth");
-const teachersController = require("../controllers/teachersController");
+const labExperimentController = require("../controllers/labExperimentController");
 
-router.post("/assign", teacherAuth, teachersController.assignLab);
+router.post("/:experimentId/assign", teacherAuth, labExperimentController.assignLab);
 
 module.exports = router;
