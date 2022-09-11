@@ -4,15 +4,19 @@ const Joi = require("joi");
 
 const labExperimentSchema = new mongoose.Schema({
     experiment: { type: mongoose.Schema.Types.ObjectId, ref: "SystemExperiment" },
-
+    classId: { type: mongoose.Schema.Types.ObjectId, ref: "TeacherClass" },
     dueDate: { type: Date },
+    instruction: { type: String },
     startDate: { type: Date, default: Date.now },
 });
 
 function validateAssignment(assignnment) {
     const schema = Joi.object({
-        dueDate: Joi.date().required(),
-        startDate: Joi.date(),
+        due_date: Joi.date().required(),
+        start_date: Joi.date(),
+        students: Joi.array(),
+        instruction: Joi.string(),
+        class_id: Joi.string(),
     });
 
     return schema.validate(assignnment);

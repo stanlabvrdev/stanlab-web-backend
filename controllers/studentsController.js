@@ -53,7 +53,9 @@ async function createStudent(req, res) {
     let { name, email, password, studentClass, teacher } = req.body;
     const teacherEmail = await Teacher.findOne({ email });
     if (teacherEmail) return res.status(400).send({ message: "You cannot use same email registered as  teacher" });
+
     let student = await Student.findOne({ email });
+
     if (student) return res.status(400).send("Email already registered");
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);

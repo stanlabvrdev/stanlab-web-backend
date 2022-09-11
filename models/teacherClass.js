@@ -1,110 +1,104 @@
-const mongoose = require('mongoose')
-const Joi = require('joi')
+const mongoose = require("mongoose");
+const Joi = require("joi");
 
 const teacherClassSchema = new mongoose.Schema({
     title: { type: String, minlength: 5, maxlength: 50, required: true },
-    subject: { type: String, required: true },
+    subject: { type: String },
     section: { type: String },
     classwork: {
         lab: [{
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'LabSetup',
+            ref: "LabSetup",
         }, ],
         quiz: [{
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Question',
+            ref: "Question",
         }, ],
     },
 
     students: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Student',
+        ref: "Student",
     }, ],
 
     studentsByEmail: [],
-    teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
-    sentQuiz: [{ type: mongoose.Schema.Types.ObjectId, ref: 'QuizClasswork' }],
-    sentLab: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Experiment' }],
+    teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
+    sentQuiz: [{ type: mongoose.Schema.Types.ObjectId, ref: "QuizClasswork" }],
+    sentLab: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experiment" }],
     isPublished: { type: Boolean, default: false },
-})
+});
 
 teacherClassSchema.methods.publishClass = function() {
-    this.isPublished = true
-    return this
-}
+    this.isPublished = true;
+    return this;
+};
 
 teacherClassSchema.methods.addSentQuiz = function(quizClassworkId) {
-    let scw = this.sentQuiz.find(
-        (s) => s.toString() === quizClassworkId.toString(),
-    )
+    let scw = this.sentQuiz.find((s) => s.toString() === quizClassworkId.toString());
 
     if (scw) {
-        return this
+        return this;
     }
 
-    this.sentQuiz.push(quizClassworkId)
-    return this
-}
+    this.sentQuiz.push(quizClassworkId);
+    return this;
+};
 teacherClassSchema.methods.addSentLab = function(experimentId) {
-    let scl = this.sentLab.find((l) => l.toString() === experimentId.toString())
+    let scl = this.sentLab.find((l) => l.toString() === experimentId.toString());
 
     if (scl) {
-        return this
+        return this;
     }
 
-    this.sentLab.push(experimentId)
-    return this
-}
+    this.sentLab.push(experimentId);
+    return this;
+};
 
 teacherClassSchema.methods.checkStudentById = function(studentId) {
     if (this.students.find((s) => s.toString() === studentId.toString())) {
-        return true
+        return true;
     }
-    return false
-}
+    return false;
+};
 
 teacherClassSchema.methods.addStudentToClass = function(studentId) {
     if (this.students.find((s) => s.toString() === studentId.toString())) {
-        return this
+        return this;
     }
 
-    this.students.push(studentId)
+    this.students.push(studentId);
 
-    return this
-}
+    return this;
+};
 teacherClassSchema.methods.removeStudentFromClass = function(studentId) {
-    const index = this.students.findIndex(
-        (s) => s.toString() === studentId.toString(),
-    )
+    const index = this.students.findIndex((s) => s.toString() === studentId.toString());
     if (index < 0) {
-        return null
+        return null;
     }
 
-    this.students.splice(index, 1)
+    this.students.splice(index, 1);
 
-    return this
-}
+    return this;
+};
 teacherClassSchema.methods.deleteLabById = function(labId) {
-    const index = this.classwork.lab.findIndex(
-        (l) => l.toString() === labId.toString(),
-    )
-    if (index < 0) return null
+    const index = this.classwork.lab.findIndex((l) => l.toString() === labId.toString());
+    if (index < 0) return null;
 
-    this.classwork.lab.splice(index, 1)
-    return this
-}
+    this.classwork.lab.splice(index, 1);
+    return this;
+};
 
 function validateClass(classObj) {
     const schema = Joi.object({
         title: Joi.string().min(5).max(50).required(),
-        subject: Joi.string().required(),
+        subject: Joi.string(),
         section: Joi.string(),
         classwork: Joi.object(),
         students: Joi.array(),
-    })
-    return schema.validate(classObj)
+    });
+    return schema.validate(classObj);
 }
 
-const TeacherClass = mongoose.model('TeacherClass', teacherClassSchema)
+const TeacherClass = mongoose.model("TeacherClass", teacherClassSchema);
 
-module.exports = { TeacherClass, validateClass }
+module.exports = { TeacherClass, validateClass };

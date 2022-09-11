@@ -7,6 +7,7 @@ const cors = require("cors");
 Joi.objectId = require("joi-objectid")(Joi);
 const questionsRoute = require("./routes/questions");
 const teachersRoute = require("./routes/teachers");
+const teachersV2Route = require("./routes/V2/teachers");
 const studentRoute = require("./routes/students");
 const loginRoute = require("./routes/login");
 const studentBillingRoute = require("./routes/studentBilling");
@@ -42,6 +43,9 @@ app.use("/api/classes", teacherClassRoute);
 app.use("/api/questions", questionsRoute);
 app.use("/api/system-experiments", systemExperimentRoute);
 app.use("/api/system-experiments/lab", labExperimentRoute);
+
+// V2
+app.use("/api/v2/teachers", teachersV2Route);
 
 if (!config.get("jwtKey")) {
     console.log("FETAL ERROR: jwtKey is not set");

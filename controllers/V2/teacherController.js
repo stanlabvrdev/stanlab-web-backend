@@ -3,14 +3,14 @@ const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 const generator = require("generate-password");
 
-const { Teacher, validateTeacher, validateUpdateTeacher } = require("../models/teacher");
-const { Student } = require("../models/student");
-const { TeacherClass, validateClass } = require("../models/teacherClass");
-const QuizClasswork = require("../models/quizClasswork");
-const Experiment = require("../models/experiment");
-const { sendInvitation, doSendInvitationEmail } = require("../services/email");
-const { LabExperiment } = require("../models/labAssignment");
-const SystemExperiment = require("../models/labAssignment");
+const { Teacher, validateTeacher, validateUpdateTeacher } = require("../../models/teacher");
+const { Student } = require("../../models/student");
+const { TeacherClass, validateClass } = require("../../models/teacherClass");
+const QuizClasswork = require("../../models/quizClasswork");
+const Experiment = require("../../models/experiment");
+const { sendInvitation, doSendInvitationEmail } = require("../../services/email");
+const { LabExperiment } = require("../../models/labAssignment");
+const SystemExperiment = require("../../models/labAssignment");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -42,8 +42,8 @@ async function createClass(req, res) {
         const teacher = await Teacher.findOne({ _id: req.teacher._id });
         let teacherClass = new TeacherClass({
             title,
-            subject,
-            section,
+            subject: subject || null,
+            section: subject || null,
             teacher: req.teacher._id,
         });
 
@@ -61,7 +61,17 @@ async function getClass(req, res) {
     try {
         const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
 
-        res.send(teacherClasses);
+        let picked = teacherClasses.classes;
+        if (picked.length > 0)
+            picked = picked.map((cl) => ({
+                _id: cl._id,
+                isPublished: cl.isPublished,
+                title: cl.title,
+                subject: cl.subject,
+                section: cl.section,
+            }));
+
+        res.send({ message: "classes fetched successfully", data: picked });
     } catch (error) {
         res.status(500).send({ message: "Something went wrong" });
         console.log(error.message);
@@ -347,13 +357,22 @@ async function getTeacher(req, res) {
 
 async function getStudents(req, res) {
     try {
-        const students = await Teacher.findOne({ _id: req.teacher._id })
+        const teacher = await Teacher.findOne({ _id: req.teacher._id })
             .populate({
                 path: "students.student",
-                select: "name email imageUrl avatar _id isAccepted",
+                select: "name email",
             })
             .select("students");
-        res.send(students);
+
+        let students = teacher.students;
+
+        if (students.length > 0) {
+            students = students.map((data) => data.student);
+        }
+        res.send({
+            message: "students successfully fetched",
+            data: students,
+        });
     } catch (error) {
         res.status(500).send({ message: "Something went wrong" });
         console.log(error.message);
