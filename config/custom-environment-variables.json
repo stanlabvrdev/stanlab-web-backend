@@ -6,7 +6,7 @@
     "teacher_google_CLIENT_SECRET": "teacher_google_client_secret",
     "student_google_CLIENT_ID": "1087787957509-nv7oqahrn21kmabcdtruke53lkqajv5k.apps.googleusercontent.com",
     "student_google_CLIENT_SECRET": "student_google_client_secret_key",
-
+    "mongodb_URI": "MongoDB_URI_prod",
     "stripe_Publishable_Key": "stripe_publishable_key",
     "stripe_Secret_Key": "stripe_secret_key",
     "cloudinary_api_key": "cloudinary_api_key",
