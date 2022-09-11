@@ -7,7 +7,10 @@ const cors = require("cors");
 Joi.objectId = require("joi-objectid")(Joi);
 const questionsRoute = require("./routes/questions");
 const teachersRoute = require("./routes/teachers");
+
 const teachersV2Route = require("./routes/V2/teachers");
+const studentsV2Route = require("./routes/V2/students");
+
 const studentRoute = require("./routes/students");
 const loginRoute = require("./routes/login");
 const studentBillingRoute = require("./routes/studentBilling");
@@ -46,6 +49,7 @@ app.use("/api/system-experiments/lab", labExperimentRoute);
 
 // V2
 app.use("/api/v2/teachers", teachersV2Route);
+app.use("/api/v2/students", studentsV2Route);
 
 if (!config.get("jwtKey")) {
     console.log("FETAL ERROR: jwtKey is not set");
@@ -57,4 +61,8 @@ mongoDB
     .then((res) => console.log("Connected to MongoDB..."))
     .catch((err) => console.log("Could not connect to Database ", err));
 const port = process.env.PORT || 8000;
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.listen(port, () => {
+    console.log("============================");
+    console.log(`Listening on port ${port}`);
+    console.log("============================");
+});
