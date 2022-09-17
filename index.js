@@ -10,6 +10,7 @@ const teachersRoute = require("./routes/teachers");
 
 const teachersV2Route = require("./routes/V2/teachers");
 const studentsV2Route = require("./routes/V2/students");
+const teacherClassV2Route = require("./routes/V2/teacherClass");
 
 const studentRoute = require("./routes/students");
 const loginRoute = require("./routes/login");
@@ -50,6 +51,7 @@ app.use("/api/system-experiments/lab", labExperimentRoute);
 // V2
 app.use("/api/v2/teachers", teachersV2Route);
 app.use("/api/v2/students", studentsV2Route);
+app.use("/api/v2/teachers/classes", teacherClassV2Route);
 
 if (!config.get("jwtKey")) {
     console.log("FETAL ERROR: jwtKey is not set");

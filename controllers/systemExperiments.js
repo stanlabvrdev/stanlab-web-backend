@@ -11,6 +11,20 @@ async function getSystemExperiments(req, res) {
     }
 }
 
+async function getExperiment(req, res) {
+    try {
+        const experimentId = req.params.experimentId;
+
+        const experiment = await SystemExperiment.findOne({ _id: experimentId });
+
+        if (!experiment) return res.status(404).send({ message: "experiment not found" });
+        res.send({ message: "experiment successfully fetched", data: experiment });
+    } catch (error) {
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error.message);
+    }
+}
+
 async function createSystemExperiments(req, res) {
     try {
         const experiment = new SystemExperiment(req.body);
@@ -26,4 +40,5 @@ async function createSystemExperiments(req, res) {
 module.exports = {
     getSystemExperiments,
     createSystemExperiments,
+    getExperiment,
 };

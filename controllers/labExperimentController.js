@@ -6,7 +6,7 @@ const SystemExperiment = require("../models/systemExperiments");
 
 async function assignLab(req, res) {
     try {
-        let { students, class_id, instruction, start_date, due_date } = req.body;
+        let { class_id, instruction, start_date, due_date } = req.body;
 
         const { error } = validateAssignment(req.body);
         if (error) return res.status(400).send({ message: error.details[0].message });
@@ -19,32 +19,19 @@ async function assignLab(req, res) {
         if (!experiment) return res.status(404).send({ message: "experiment not found" });
 
         //  check class
-        let teacherClass;
-        if (class_id) {
-            teacherClass = await TeacherClass.findOne({ _id: class_id });
-        }
-
-        if (!class_id) {
-            teacherClass = new TeacherClass({
-                title: "default",
-                teacher: req.teacher._id,
-            });
-            await teacherClass.save();
-        }
+        let teacherClass = await TeacherClass.findOne({ _id: class_id, teacher: teacher._id });
 
         if (!teacherClass) return res.status(404).send({ message: "class not found" });
 
-        const teacherstudents = teacher.students;
+        const teacherstudents = teacherClass.students;
 
         if (teacherstudents.length < 1) return res.status(404).send({ message: "No student found" });
 
-        students = teacherstudents.filter((s) => students.includes(s.student.toString()));
+        const students = teacherstudents;
 
         const promises = [];
 
-        for (let studentData of students) {
-            const studentId = studentData.student;
-
+        for (const studentId of students) {
             const student = await Student.findOne({ _id: studentId });
 
             let lab = new LabExperiment({
@@ -56,6 +43,7 @@ async function assignLab(req, res) {
             });
 
             lab = await lab.save();
+
             student.labs.push(lab._id);
 
             promises.push(student.save());
@@ -65,7 +53,7 @@ async function assignLab(req, res) {
         res.send({ message: "experiment successfully assigned" });
     } catch (error) {
         res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        console.log(error);
     }
 }
 

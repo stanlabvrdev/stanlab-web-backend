@@ -14,9 +14,8 @@ function validateAssignment(assignnment) {
     const schema = Joi.object({
         due_date: Joi.date().required(),
         start_date: Joi.date(),
-        students: Joi.array(),
-        instruction: Joi.string(),
-        class_id: Joi.string(),
+        instruction: Joi.string().required(),
+        class_id: Joi.string().required(),
     });
 
     return schema.validate(assignnment);
