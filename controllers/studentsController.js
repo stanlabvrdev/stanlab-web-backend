@@ -81,9 +81,13 @@ async function getStudent(req, res) {
     try {
         const student = await Student.findOne({ _id: studentId }).select("-password -__v -avatar");
 
+        if (!student) return res.status(404).send({ message: "Student not found" });
+        if (student._id.toString() !== studentId) return res.status(403).send({ message: "Not authorize" });
+
         res.send(student);
     } catch (error) {
         res.status(500).send({ message: "something went wrong" });
+        console.log(error);
     }
 }
 

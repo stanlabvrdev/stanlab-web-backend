@@ -2,9 +2,11 @@ const express = require("express");
 
 const router = express.Router();
 
-const { teacherAuth } = require("../middleware/auth");
+const { teacherAuth, studentAuth } = require("../middleware/auth");
 const labExperimentController = require("../controllers/labExperimentController");
+const studentTrialPeriodChecker = require("../middleware/studentTrialPeriodChecker");
 
 router.post("/:experimentId/assign", teacherAuth, labExperimentController.assignLab);
+router.get("/student-labs", [studentAuth, studentTrialPeriodChecker], labExperimentController.getStudentLabs);
 
 module.exports = router;

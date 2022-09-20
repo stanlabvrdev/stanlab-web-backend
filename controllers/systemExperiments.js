@@ -24,6 +24,18 @@ async function getExperiment(req, res) {
         console.log(error.message);
     }
 }
+async function deleteExperiment(req, res) {
+    try {
+        const experimentId = req.params.experimentId;
+
+        const experiment = await SystemExperiment.deleteOne({ _id: experimentId });
+
+        res.send({ message: "experiment successfully deleted", data: experiment });
+    } catch (error) {
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error);
+    }
+}
 
 async function createSystemExperiments(req, res) {
     try {
@@ -41,4 +53,5 @@ module.exports = {
     getSystemExperiments,
     createSystemExperiments,
     getExperiment,
+    deleteExperiment,
 };

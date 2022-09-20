@@ -57,6 +57,24 @@ async function assignLab(req, res) {
     }
 }
 
+async function getStudentLabs(req, res) {
+    try {
+        const student = await Student.findOne({ _id: req.student._id });
+
+        const labs = student.labs;
+
+        let gottenLabs = await LabExperiment.find({
+            _id: { $in: labs },
+        }).populate({ path: "experiment", select: ["_id", "class", "subject", "instruction"] });
+
+        res.send({ message: "labs successfully fetched", lab: gottenLabs });
+    } catch (error) {
+        res.status(500).send({ message: "Something went wrong" });
+        console.log(error);
+    }
+}
+
 module.exports = {
     assignLab,
+    getStudentLabs,
 };
