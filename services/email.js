@@ -10,17 +10,20 @@ const mailgunAPIKey = config.get("mailgun_API_KEY");
 const mailgun = require("mailgun-js");
 // const DOMAIN = "https://www.stanlabvr.com";
 
-const DOMAIN = "sandbox1960574e45db4ae1b3ffc32a267cf6c1.mailgun.org";
+const DOMAIN = "stanlabvr.com";
 const mg = mailgun({ apiKey: mailgunAPIKey, domain: DOMAIN });
 
-function doSendInvitationEmail(student, teacher) {
+function doSendInvitationEmail(student, teacher, password) {
     const data = {
         from: "StanLab <stanlabvr.com>",
         from: stanLabMail,
         to: student.email,
         subject: "Invitation",
         template: "invitation",
-        "h:X-Mailgun-Variables": { student_email: student.email, student_password: student.password, email: teacher.email },
+        "h:X-Mailgun-Variables": JSON.stringify({
+            email: student.email,
+            password: password,
+        }),
     };
     mg.messages().send(data, function(error, body) {
         if (error) {

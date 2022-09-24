@@ -294,13 +294,9 @@ async function sendInviteToStudent(req, res) {
 
             await createdStudent.save();
 
-            console.log("======================");
-            console.log(createdStudent);
-            console.log("password: ", generatedPassword);
-            console.log("======================");
             // create student
 
-            doSendInvitationEmail(createdStudent, teacher);
+            doSendInvitationEmail(createdStudent, teacher, generatedPassword);
 
             student = createdStudent;
         }
