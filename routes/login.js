@@ -1,21 +1,22 @@
-const express = require('express')
-const loginController = require('../controllers/loginController')
-const router = express.Router()
+const express = require("express");
+const loginController = require("../controllers/loginController");
+const router = express.Router();
 
 // login and signup with googleOAUTH for teacher
 
-router.post('/teachers/auth/google', loginController.teacherGoogleAuth)
+router.post("/teachers/auth/google", loginController.teacherGoogleAuth);
 
-router.post('/teachers', loginController.teacherLogin)
+router.post("/teachers", loginController.teacherLogin);
 
 router.post(
-    '/students/auth/google',
+    "/students/auth/google",
 
-    loginController.studentGoogleAuth,
-)
+    loginController.studentGoogleAuth
+);
 
-router.post('/students', loginController.studentLogin)
+router.post("/students", loginController.studentLogin);
+router.post("/school-admin", loginController.schoolAdminLogin);
 
-router.post('/lab/students', loginController.studentLabLogin)
+router.post("/lab/students", loginController.studentLabLogin);
 
-module.exports = router
+module.exports = router;

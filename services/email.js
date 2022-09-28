@@ -13,6 +13,74 @@ const mailgun = require("mailgun-js");
 const DOMAIN = "stanlabvr.com";
 const mg = mailgun({ apiKey: mailgunAPIKey, domain: DOMAIN });
 
+function sendStudentInviteEmail(student, password) {
+    const data = {
+        from: "StanLab <stanlabvr.com>",
+        from: stanLabMail,
+        to: student.email,
+        subject: "School invitation",
+        template: "student-invitation",
+        "h:X-Mailgun-Variables": JSON.stringify({
+            email: student.email,
+            password: password,
+            name: student.name,
+        }),
+    };
+    mg.messages().send(data, function(error, body) {
+        if (error) {
+            console.log("========================");
+            console.log(error);
+            console.log("========================");
+        }
+        console.log(body);
+    });
+}
+
+function sendTeacherInviteEmail(teacher, password) {
+    const data = {
+        from: "StanLab <stanlabvr.com>",
+        from: stanLabMail,
+        to: teacher.email,
+        subject: "School invitation",
+        template: "teacher-invitation",
+        "h:X-Mailgun-Variables": JSON.stringify({
+            email: teacher.email,
+            password: password,
+            name: teacher.name,
+        }),
+    };
+    mg.messages().send(data, function(error, body) {
+        if (error) {
+            console.log("========================");
+            console.log(error);
+            console.log("========================");
+        }
+        console.log(body);
+    });
+}
+
+function sendEmailToSchoolAdmin(admin) {
+    const data = {
+        from: "StanLab <stanlabvr.com>",
+        from: stanLabMail,
+        to: admin.email,
+        subject: "Welcome to StanLab",
+        template: "welcome-school-admin",
+        "h:X-Mailgun-Variables": JSON.stringify({
+            email: admin.email,
+            name: admin.name,
+        }),
+    };
+    mg.messages().send(data, function(error, body) {
+        if (error) {
+            console.log("========================");
+            console.log(error);
+            console.log("========================");
+        }
+        console.log(body);
+    });
+}
+
 function doSendInvitationEmail(student, teacher, password) {
     const data = {
         from: "StanLab <stanlabvr.com>",
@@ -142,4 +210,11 @@ function sendLoginDetails(email, name, password, schoolName, isNew = false) {
     .catch((err) => console.log(err.message));
 }
 
-module.exports = { sendInvitation, sendLoginDetails, doSendInvitationEmail };
+module.exports = {
+  sendInvitation,
+  sendLoginDetails,
+  doSendInvitationEmail,
+  sendEmailToSchoolAdmin,
+  sendTeacherInviteEmail,
+  sendStudentInviteEmail,
+};
