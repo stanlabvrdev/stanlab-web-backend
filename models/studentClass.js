@@ -1,23 +1,23 @@
-const mongoose = require('mongoose')
-const Joi = require('joi')
+const mongoose = require("mongoose");
+const Joi = require("joi");
 
 const studentClassSchema = new mongoose.Schema({
     title: { type: String, minlength: 5, maxlength: 50, required: true },
     subject: { type: String, required: true },
     section: { type: String },
     classwork: {
-        lab: [{ type: mongoose.Schema.Types.ObjectId, ref: 'LabSetup' }],
+        lab: [{ type: mongoose.Schema.Types.ObjectId, ref: "LabSetup" }],
         quiz: [{
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Question',
+            ref: "Question",
         }, ],
     },
-    students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+    students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher',
+        ref: "Teacher",
     },
-})
+});
 
 function validateClass(classObj) {
     const schema = Joi.object({
@@ -25,10 +25,10 @@ function validateClass(classObj) {
         subject: Joi.string().required(),
         section: Joi.string(),
         classwork: Joi.object(),
-    })
-    return schema.validate(classObj)
+    });
+    return schema.validate(classObj);
 }
 
-const TeacherClass = mongoose.model('StudentClass', studentClassSchema)
+const StudentClass = mongoose.model("StudentClass", studentClassSchema);
 
-module.exports = { TeacherClass, validateClass }
+module.exports = { StudentClass, validateClass };

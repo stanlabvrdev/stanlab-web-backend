@@ -9,6 +9,8 @@ const studentsController = require("../../controllers/V2/studentController");
 
 const router = express.Router();
 
-router.get("/labs", studentAuth, studentsController.getClasses);
+router.get("/labs", studentAuth, studentsController.getLabs);
+router.get("/classes", studentAuth, studentsController.getClasses);
+router.get("/classes/:classId/scores", studentAuth, studentsController.getScores);
 
 module.exports = router;

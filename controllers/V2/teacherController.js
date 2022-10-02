@@ -61,6 +61,8 @@ async function getClass(req, res) {
     try {
         const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
 
+        if (!teacherClasses) return res.status(404).send({ message: "teacher class not found" });
+
         let picked = teacherClasses.classes;
         if (picked.length > 0)
             picked = picked.map((cl) => ({
@@ -74,7 +76,7 @@ async function getClass(req, res) {
         res.send({ message: "classes fetched successfully", data: picked });
     } catch (error) {
         res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        console.log(error);
     }
 }
 

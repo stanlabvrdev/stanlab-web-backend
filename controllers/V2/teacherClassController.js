@@ -110,8 +110,11 @@ async function addStudentToClass(req, res) {
 }
 
 async function inviteStudentToClass(req, res) {
-    const { studentEmail } = req.body;
+    const { studentEmails } = req.body;
     try {
+        if (!studentEmails || studentEmails.length < 1)
+            return res.status(400).send({ message: "studentEmails is require and must be atleast 1" });
+
         let teacherClass = await TeacherClass.findOne({
             _id: req.params.classId,
         });
@@ -121,24 +124,36 @@ async function inviteStudentToClass(req, res) {
         if (teacherClass.teacher.toString() !== req.teacher._id.toString())
             return res.status(401).send({ message: "Not autorized!" });
 
-        let student = await Student.findOne({ email: studentEmail });
-        if (!student) {
-            const data = await doInviteStudent(req, res);
+        for (const studentEmail of studentEmails) {
+            let student = await Student.findOne({ email: studentEmail });
 
-            student = data.student;
+            if (!student) {
+                req.body.studentEmail = studentEmail;
+                req.body.classId = teacherClass._id;
+                const data = await doInviteStudent(req, res);
+
+                student = data.student;
+            }
+
+            if (student) {
+                const exist = student.classes.find((id) => id && id.toString() == teacherClass._id.toString());
+                if (!exist) {
+                    student.classes.push(teacherClass._id);
+                }
+                await student.save();
+            }
+
+            const isStudent = teacherClass.checkStudentById(student._id);
+            if (isStudent) return res.status(200).send({ message: "Student added to class", data: teacherClass.students });
+
+            teacherClass = teacherClass.addStudentToClass(student._id);
+            await teacherClass.save();
         }
-
-        const isStudent = teacherClass.checkStudentById(student._id);
-        if (isStudent) return res.status(200).send({ message: "Student added to class", data: teacherClass.students });
-
-        teacherClass = teacherClass.addStudentToClass(student._id);
-        await teacherClass.save();
-
         res.send({ message: "Student added to class", data: teacherClass.students });
     } catch (error) {
         res.status(500).send({ message: "something went wrong" });
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
-        console.log(error.message);
+        console.log(error);
     }
 }
 

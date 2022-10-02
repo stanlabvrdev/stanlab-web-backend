@@ -4,10 +4,12 @@ const _ = require("lodash");
 const { sendInvitation } = require("../../services/email");
 const { Student, validateStudent } = require("../../models/student");
 const { Teacher } = require("../../models/teacher");
+const { TeacherClass } = require("../../models/teacherClass");
 const constants = require("../../utils/constants");
 const { LabExperiment } = require("../../models/labAssignment");
+const { StudentScore } = require("../../models/studentScore");
 
-async function getClasses(req, res) {
+async function getLabs(req, res) {
     const studentId = req.student._id;
     try {
         const student = await Student.findOne({ _id: studentId });
@@ -16,17 +18,66 @@ async function getClasses(req, res) {
 
         const results = [];
         if (labs.length > 0) {
-            labs.forEach((lab) => {
-                results.push(
-                    LabExperiment.findOne({ _id: lab._id })
+            for (const lab of labs) {
+                const experiment = await LabExperiment.findOne({ _id: lab._id })
                     .populate({ path: "experiment", select: ["name", "_id", "subject"] })
-                    .populate({ path: "classId", select: ["title", "subject", "section", "_id"], as: "class" })
-                );
-            });
+                    .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" })
+                    .lean();
+
+                const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
+                    path: "teacher",
+                    select: ["name", "email", "_id"],
+                });
+                experiment.teacher = teacherClass.teacher;
+                experiment.class = experiment.classId;
+                delete experiment.classId;
+                // experiment.set("teacher", teacherClass.teacher);
+                console.log(teacherClass);
+                results.push(experiment);
+            }
         }
 
-        const promisified = await Promise.all(results);
-        res.send({ messages: "lab successfully fetched", data: promisified });
+        // const promisified = await Promise.all(results);
+        res.send({ messages: "lab successfully fetched", data: results });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "something went wrong" });
+    }
+}
+
+async function getClasses(req, res) {
+    const studentId = req.student._id;
+    try {
+        const student = await Student.findOne({ _id: studentId })
+            .populate({
+                path: "classes",
+                select: ["_id", "title", "subject", "section", "teacher"],
+            })
+            .lean();
+
+        const classes = student.classes;
+
+        for (const clas of classes) {
+            const teacher = await Teacher.findOne({ _id: clas.teacher }).lean();
+
+            clas.teacher = _.pick(teacher, ["name", "email", "_id"]);
+        }
+
+        // const promisified = await Promise.all(results);
+        res.send({ messages: "classes successfully fetched", data: classes });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "something went wrong" });
+    }
+}
+
+async function getScores(req, res) {
+    const studentId = req.student._id;
+    const { classId } = req.params;
+    try {
+        const scores = await StudentScore.find({ studentId: studentId, classId: classId });
+
+        res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
         console.log(error);
         res.status(500).send({ message: "something went wrong" });
@@ -34,5 +85,7 @@ async function getClasses(req, res) {
 }
 
 module.exports = {
+    getLabs,
     getClasses,
+    getScores,
 };
