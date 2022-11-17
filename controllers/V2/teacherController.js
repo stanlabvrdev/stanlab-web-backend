@@ -11,6 +11,7 @@ const Experiment = require("../../models/experiment");
 const { sendInvitation, doSendInvitationEmail } = require("../../services/email");
 const { LabExperiment } = require("../../models/labAssignment");
 const SystemExperiment = require("../../models/labAssignment");
+const { StudentScore } = require("../../models/studentScore");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -377,6 +378,21 @@ async function getStudents(req, res) {
     }
 }
 
+async function getStudentScores(req, res) {
+    const teacherId = req.teacher._id;
+
+    try {
+        const scores = await StudentScore.find({ teacherId: teacherId })
+            .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
+            .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
+
+        res.send({ messages: "scores successfully fetched", data: scores });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "something went wrong" });
+    }
+}
+
 module.exports = {
     acceptStudentInvite,
     addStudentToClass,
@@ -392,4 +408,5 @@ module.exports = {
     sendInviteToStudent,
     updateTeacher,
     sendLabToStudents,
+    getStudentScores,
 };

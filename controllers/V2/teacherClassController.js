@@ -4,6 +4,7 @@ const { Teacher } = require("../../models/teacher");
 const { Student } = require("../../models/student");
 const { TeacherClass } = require("../../models/teacherClass");
 const { doInviteStudent } = require("../../services/teacherService");
+const { StudentScore } = require("../../models/studentScore");
 
 async function inviteStudent(req, res) {
     const { student_email } = req.body;
@@ -300,6 +301,33 @@ async function getPublishedClassData(req, res) {
         res.status(500).send({ message: "Something went wrong" });
     }
 }
+
+async function getScores(req, res) {
+    const teacherId = req.teacher._id;
+    const classId = req.params.classId;
+    const studentId = req.params.studentId;
+
+    try {
+        const scores = await StudentScore.find({ teacherId, classId, studentId })
+            .populate({
+                path: "lab",
+                select: ["experiment", "_id"],
+                model: "LabExperiment",
+                populate: {
+                    path: "experiment",
+                    model: "SystemExperiment",
+                    select: ["testYourKnowlege", "bigQuestion", "subject"],
+                },
+            })
+            .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
+        // .select("-teacherId -studentId -experimentId -classId");
+
+        res.send({ messages: "scores successfully fetched", data: scores });
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "something went wrong" });
+    }
+}
 module.exports = {
     addStudentToClass,
     deleteLab,
@@ -312,4 +340,5 @@ module.exports = {
     getClass,
     getStudents,
     inviteStudentToClass,
+    getScores,
 };

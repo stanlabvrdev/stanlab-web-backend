@@ -25,6 +25,8 @@ router.post("/", teachersController.createTeacher);
 
 router.get("/students", teacherAuth, teachersController.getStudents);
 
+router.get("/students/score", teacherAuth, teachersController.getStudentScores);
+
 // delete only teacher student
 /**
  * THIS DOES NOT DELETE CLASS STUDENT -> because no reference to a specific class is goning to be given

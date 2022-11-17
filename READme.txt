@@ -44,3 +44,6 @@ const client = new net.Socket()
     client.on('close', function() {
         console.log('connection closed')
     })
+
+
+     sudo mongod --dbpath /System/Volumes/Data/data/db 

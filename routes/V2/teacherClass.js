@@ -30,6 +30,7 @@ router.delete("/:classId", teacherAuth, teachersClassController.deleteUnpublishe
 
 // get a class by id => a bug needs to be fix
 router.get("/:classId", teachersClassController.getClass);
+router.get("/:classId/students/:studentId/scores", teacherAuth, teachersClassController.getScores);
 
 // remove a student from a class
 router.delete("/:classId/:studentId", teacherAuth, teachersClassController.deleteStudentFromClass);

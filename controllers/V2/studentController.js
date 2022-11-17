@@ -75,8 +75,11 @@ async function getScores(req, res) {
     const studentId = req.student._id;
     const { classId } = req.params;
     try {
-        const scores = await StudentScore.find({ studentId: studentId, classId: classId });
+        const scores = await StudentScore.find({ studentId: studentId, classId: classId })
+            .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
+            .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
 
+        console.log(scores);
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
         console.log(error);
