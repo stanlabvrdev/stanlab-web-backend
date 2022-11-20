@@ -380,9 +380,13 @@ async function getStudents(req, res) {
 
 async function getStudentScores(req, res) {
     const teacherId = req.teacher._id;
+    const classId = req.query.classId;
 
     try {
-        const scores = await StudentScore.find({ teacherId: teacherId })
+        const where = { teacherId: teacherId };
+
+        if (classId) where.classId = classId;
+        const scores = await StudentScore.find(where)
             .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
             .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
 
