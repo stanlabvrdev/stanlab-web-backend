@@ -17,6 +17,7 @@ router.post("/create-lab/:classId", teacherAuth, labSetupController.postCreateLa
 router.get("/student/active-experiment/:experimentId", studentAuth, labSetupController.getActiveExperiment);
 
 router.get("/student/active-experiments", studentAuth, labSetupController.getActiveExperiments);
+router.post("/student/score", studentAuth, labSetupController.postScore);
 
 router.post("/experiments", labSetupController.getExperiments);
 

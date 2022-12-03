@@ -5,6 +5,7 @@ const LabSetup = require("../models/labSetup");
 const Experiment = require("../models/experiment");
 const { TeacherClass } = require("../models/teacherClass");
 const { Student } = require("../models/student");
+const { StudentScore } = require("../models/studentScore");
 
 async function postCreateLab(req, res) {
     const { classId } = req.params;
@@ -105,10 +106,28 @@ async function postLabResult(req, res) {
         res.send({ message: "Something went wrong" });
     }
 }
+
+async function postScore(req, res) {
+    const studentId = req.student._id;
+    const experimentId = req.body.experimentId;
+    try {
+        const score = await StudentScore.findOne({ experimentId, studentId });
+
+        if (score) {
+            score.score = req.body.score;
+        }
+        await score.save();
+        res.send(true);
+    } catch (error) {
+        console.log(error);
+        res.send({ message: "Something went wrong" });
+    }
+}
 module.exports = {
     postCreateLab,
     getActiveExperiment,
     postLabResult,
     getExperiments,
     getActiveExperiments,
+    postScore,
 };

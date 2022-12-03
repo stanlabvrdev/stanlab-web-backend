@@ -3,6 +3,7 @@ const { Student } = require("../models/student");
 const { TeacherClass } = require("../models/teacherClass");
 const { LabExperiment, validateAssignment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/systemExperiments");
+const { StudentScore } = require("../models/studentScore");
 
 async function assignLab(req, res) {
     try {
@@ -43,6 +44,15 @@ async function assignLab(req, res) {
             });
 
             lab = await lab.save();
+            let score = new StudentScore({
+                classId: teacherClass._id,
+                experimentId: lab._id,
+                studentId: student._id,
+                teacherId: teacher._id,
+                score: 0,
+            });
+
+            await score.save();
 
             student.labs.push(lab._id);
 
