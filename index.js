@@ -21,13 +21,15 @@ const schoolAdminRoute = require("./routes/schoolAdmins");
 const systemExperimentRoute = require("./routes/systemExperiment");
 const labExperimentRoute = require("./routes/lab");
 
+const app = express();
+app.use(cors());
+
 const { teacherPassport } = require("./services/initPassport");
 const { studentPassport } = require("./services/initPassport");
 
 //passport  strategies
 require("./services/teacherPassport")(teacherPassport);
 require("./services/studentPassport")(studentPassport);
-const app = express();
 
 //initialize passports
 app.use(teacherPassport.initialize({ userProperty: "user" }));
@@ -35,7 +37,6 @@ app.use(studentPassport.initialize({ userProperty: "user" }));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
-app.use(cors());
 
 app.use("/api/lab", labsetupRoute);
 app.use("/api/login", loginRoute);
