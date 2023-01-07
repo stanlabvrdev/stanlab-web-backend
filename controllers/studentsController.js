@@ -67,7 +67,7 @@ async function createStudent(req, res) {
         teacher,
     });
 
-    student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
+    // student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
     await student.save();
     const token = student.generateAuthToken();
     res

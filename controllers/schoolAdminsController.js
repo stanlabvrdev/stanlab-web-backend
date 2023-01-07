@@ -107,7 +107,7 @@ async function createStudent(req, res) {
 
         student = new Student({ name, email, password: hashedPassword });
         student.school = req.school._id;
-        student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
+        // student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
         school = school.addStudent(student._id);
 
         sendStudentInviteEmail(student, password);
