@@ -210,6 +210,29 @@ function sendLoginDetails(email, name, password, schoolName, isNew = false) {
     .catch((err) => console.log(err.message));
 }
 
+async function sendResetPassword(student, token) {
+  const data = {
+    from: stanLabMail,
+    to: student.email,
+    subject: "Reset Password",
+    template: "forgetpassword",
+    "h:X-Mailgun-Variables": JSON.stringify({
+      email: student.email,
+
+      name: student.name || student.email,
+      url: `https://app.stanlab.co/students/reset-password/${student._id}/${token}`,
+    }),
+  };
+  mg.messages().send(data, function (error, body) {
+    if (error) {
+      console.log("========================");
+      console.log(error);
+      console.log("========================");
+    }
+    console.log(body);
+  });
+}
+
 module.exports = {
   sendInvitation,
   sendLoginDetails,
@@ -217,4 +240,5 @@ module.exports = {
   sendEmailToSchoolAdmin,
   sendTeacherInviteEmail,
   sendStudentInviteEmail,
+  sendResetPassword,
 };

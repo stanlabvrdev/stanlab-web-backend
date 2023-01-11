@@ -20,6 +20,7 @@ const labsetupRoute = require("./routes/lapSetup");
 const schoolAdminRoute = require("./routes/schoolAdmins");
 const systemExperimentRoute = require("./routes/systemExperiment");
 const labExperimentRoute = require("./routes/lab");
+const authRoutes = require("./routes/auth");
 
 const { teacherPassport } = require("./services/initPassport");
 const { studentPassport } = require("./services/initPassport");
@@ -39,6 +40,7 @@ app.use(cors());
 
 app.use("/api/lab", labsetupRoute);
 app.use("/api/login", loginRoute);
+app.use("/api/auth", authRoutes);
 app.use("/api/schools", schoolAdminRoute);
 app.use("/api/students/billing", studentBillingRoute);
 app.use("/api/students", studentRoute);
