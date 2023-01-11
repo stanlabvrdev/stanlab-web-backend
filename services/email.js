@@ -210,7 +210,7 @@ function sendLoginDetails(email, name, password, schoolName, isNew = false) {
     .catch((err) => console.log(err.message));
 }
 
-async function sendResetPassword(student, token) {
+async function sendResetPassword(student, token, isStudent = true) {
   const data = {
     from: stanLabMail,
     to: student.email,
@@ -220,7 +220,7 @@ async function sendResetPassword(student, token) {
       email: student.email,
 
       name: student.name || student.email,
-      url: `https://app.stanlab.co/students/reset-password/${token}`,
+      url: `https://app.stanlab.co/${isStudent ? "students" : "teachers"}/reset-password/${token}`,
     }),
   };
   mg.messages().send(data, function (error, body) {

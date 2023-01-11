@@ -8,7 +8,7 @@ const { EmailToken } = require("../models/emailToken");
 const crypto = require("crypto");
 const { Teacher } = require("../models/teacher");
 
-async function resetPassword(entity, data) {
+async function resetPassword(entity, data, isStudent) {
     const token = crypto.randomBytes(40).toString("hex");
     const expiry = moment().add(2, "hours");
 
@@ -22,7 +22,7 @@ async function resetPassword(entity, data) {
 
     // send email notification
 
-    return sendResetPassword(data, token);
+    return sendResetPassword(data, token, isStudent);
 }
 
 async function resetStudentPassword(req, res) {
@@ -34,7 +34,7 @@ async function resetStudentPassword(req, res) {
         const student = await Student.findOne({ email });
         if (!student) return res.status(404).send({ message: "student not found" });
 
-        await resetPassword("student", student);
+        await resetPassword("student", student, true);
 
         res.send({ message: "reset password link sent successfully" });
     } catch (error) {
@@ -52,7 +52,7 @@ async function resetTeacherPassword(req, res) {
         const teacher = await Teacher.findOne({ email });
         if (!teacher) return res.status(404).send({ message: "teacher not found" });
 
-        await resetPassword("teacher", teacher);
+        await resetPassword("teacher", teacher, false);
 
         res.send({ message: "reset password link sent successfully" });
     } catch (error) {
