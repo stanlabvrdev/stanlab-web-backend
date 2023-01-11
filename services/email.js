@@ -220,7 +220,7 @@ async function sendResetPassword(student, token) {
       email: student.email,
 
       name: student.name || student.email,
-      url: `https://app.stanlab.co/students/reset-password/${student._id}/${token}`,
+      url: `https://app.stanlab.co/students/reset-password/${token}`,
     }),
   };
   mg.messages().send(data, function (error, body) {
