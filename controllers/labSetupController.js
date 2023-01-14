@@ -9,6 +9,7 @@ const { StudentScore } = require("../models/studentScore");
 const { LabExperiment } = require("../models/labAssignment");
 const NotFoundError = require("../services/exceptions/not-found");
 const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
+const { submittedScoreNotification } = require("../services/student/notification");
 
 async function postCreateLab(req, res) {
     const { classId } = req.params;
@@ -116,6 +117,8 @@ async function postScore(req, res) {
         experiment.grade = req.body.score;
 
         await experiment.save();
+
+        await submittedScoreNotification(studentId, experiment._id);
         ServerResponse(req, res, 200, true, "scored sent successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);

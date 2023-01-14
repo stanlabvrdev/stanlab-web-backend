@@ -11,7 +11,18 @@ async function createAssignedLabNotification(studentId, assignmentId, teacherNam
     });
     return notification.save();
 }
+async function submittedScoreNotification(studentId, assignmentId) {
+    const notification = new Notification({
+        title: "Submit Assignment",
+        message: `You  submitted your lab assignment`,
+        type: NOTIFICATION_TYPES.submittedPractical,
+        recipient: studentId,
+        entity: assignmentId,
+    });
+    return notification.save();
+}
 
 module.exports = {
     createAssignedLabNotification,
+    submittedScoreNotification,
 };
