@@ -28,6 +28,7 @@ router.post("/invite-teacher", [studentAuth, isFreelanceStudent, paymentAuth], s
 // Post: Register a new Student
 
 router.post("/", studentsController.createStudent);
+router.post("/password/reset", studentsController.createStudent);
 
 // get login  student
 

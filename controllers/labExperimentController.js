@@ -4,6 +4,8 @@ const { TeacherClass } = require("../models/teacherClass");
 const { LabExperiment, validateAssignment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/systemExperiments");
 const { StudentScore } = require("../models/studentScore");
+const { createAssignedLabNotification } = require("../services/student/notification");
+const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function assignLab(req, res) {
     try {
@@ -57,13 +59,15 @@ async function assignLab(req, res) {
             student.labs.push(lab._id);
 
             promises.push(student.save());
+
+            promises.push(createAssignedLabNotification(student._id, lab.id, teacher.name || teacher.email));
         }
 
         await Promise.all(promises);
-        res.send({ message: "experiment successfully assigned" });
+
+        ServerResponse(req, res, 201, null, "experiment successfully assigned");
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
