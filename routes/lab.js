@@ -9,5 +9,6 @@ const studentTrialPeriodChecker = require("../middleware/studentTrialPeriodCheck
 router.post("/:experimentId/assign", teacherAuth, labExperimentController.assignLab);
 // router.get("/student-labs", [studentAuth, studentTrialPeriodChecker], labExperimentController.getStudentLabs);
 router.get("/student-labs", [studentAuth], labExperimentController.getStudentLabs);
+router.get("/teacher-labs", [teacherAuth], labExperimentController.getTeacherAssignedLabs);
 
 module.exports = router;

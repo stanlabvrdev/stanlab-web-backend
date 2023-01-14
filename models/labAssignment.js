@@ -8,6 +8,26 @@ const labExperimentSchema = new mongoose.Schema({
     dueDate: { type: Date },
     instruction: { type: String },
     startDate: { type: Date, default: Date.now },
+    isCompleted: { type: Boolean, default: false },
+    student: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Student",
+    },
+    teacher: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Teacher",
+    },
+
+    submissionDate: {
+        type: Date,
+    },
+
+    grade: {
+        type: Number,
+    },
+    comments: {
+        type: String,
+    },
 });
 
 function validateAssignment(assignnment) {
@@ -21,6 +41,14 @@ function validateAssignment(assignnment) {
     return schema.validate(assignnment);
 }
 
+function validateGetQuery(data) {
+    const schema = Joi.object({
+        is_completed: Joi.boolean(),
+    });
+
+    return schema.validate(data);
+}
+
 const LabExperiment = mongoose.model("LabExperiment", labExperimentSchema);
 
-module.exports = { LabExperiment, validateAssignment };
+module.exports = { LabExperiment, validateAssignment, validateGetQuery };

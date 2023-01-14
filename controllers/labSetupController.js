@@ -6,6 +6,9 @@ const Experiment = require("../models/experiment");
 const { TeacherClass } = require("../models/teacherClass");
 const { Student } = require("../models/student");
 const { StudentScore } = require("../models/studentScore");
+const { LabExperiment } = require("../models/labAssignment");
+const NotFoundError = require("../services/exceptions/not-found");
+const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function postCreateLab(req, res) {
     const { classId } = req.params;
@@ -32,7 +35,6 @@ async function postCreateLab(req, res) {
         await teacherClass.save();
         res.send(labsetup);
     } catch (error) {
-        console.log(error.meddage);
         res.status(500).send({ message: "something went wrong" });
     }
 }
@@ -49,8 +51,7 @@ async function getActiveExperiment(req, res) {
         if (!experiment) return res.status(404).send({ message: "Not Found" });
         res.send(experiment);
     } catch (error) {
-        console.log(error);
-        res.send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -73,8 +74,7 @@ async function getActiveExperiments(req, res) {
         if (!experiments) return res.status(404).send({ message: "Not Found" });
         res.send(experiments);
     } catch (error) {
-        console.log(error);
-        res.send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 async function getExperiments(req, res) {
@@ -87,8 +87,7 @@ async function getExperiments(req, res) {
 
         res.send(lab);
     } catch (error) {
-        console.log(error);
-        res.send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -102,8 +101,7 @@ async function postLabResult(req, res) {
         await student.save();
         res.send(true);
     } catch (error) {
-        console.log(error);
-        res.send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -111,16 +109,16 @@ async function postScore(req, res) {
     const studentId = req.student._id;
     const experimentId = req.body.experimentId;
     try {
-        const score = await StudentScore.findOne({ experimentId, studentId });
+        const experiment = await LabExperiment.findOne({ experiment: experimentId, student: studentId });
 
-        if (score) {
-            score.score = req.body.score;
-        }
-        await score.save();
-        res.send(true);
+        if (!experiment) throw new NotFoundError("experiment not found");
+
+        experiment.grade = req.body.score;
+
+        await experiment.save();
+        ServerResponse(req, res, 200, true, "scored sent successfully");
     } catch (error) {
-        console.log(error);
-        res.send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 module.exports = {

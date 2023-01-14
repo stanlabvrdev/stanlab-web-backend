@@ -1,11 +1,12 @@
 const { Teacher, validateTeacher, validateUpdateTeacher } = require("../models/teacher");
 const { Student } = require("../models/student");
 const { TeacherClass } = require("../models/teacherClass");
-const { LabExperiment, validateAssignment } = require("../models/labAssignment");
+const { LabExperiment, validateAssignment, validateGetQuery } = require("../models/labAssignment");
 const SystemExperiment = require("../models/systemExperiments");
 const { StudentScore } = require("../models/studentScore");
 const { createAssignedLabNotification } = require("../services/student/notification");
 const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
+const BadRequestError = require("../services/exceptions/bad-request");
 
 async function assignLab(req, res) {
     try {
@@ -43,6 +44,8 @@ async function assignLab(req, res) {
                 startDate: start_date,
                 classId: teacherClass._id,
                 instruction,
+                student: student._id,
+                teacher: teacher._id,
             });
 
             lab = await lab.save();
@@ -88,7 +91,35 @@ async function getStudentLabs(req, res) {
     }
 }
 
+async function getTeacherAssignedLabs(req, res) {
+    try {
+        const { error } = validateGetQuery(req.query);
+        if (error) {
+            throw new BadRequestError(error.details[0].message);
+        }
+        const filter = {
+            teacher: req.teacher._id,
+        };
+
+        const is_completed = req.query.is_completed;
+
+        if (is_completed) {
+            filter.isCompleted = is_completed == "true" ? true : false;
+        }
+
+        let labs = await LabExperiment.find(filter).populate({
+            path: "experiment",
+            select: ["_id", "class", "subject", "instruction"],
+        });
+
+        ServerResponse(req, res, 200, labs, "labs successfully fetched");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
 module.exports = {
     assignLab,
     getStudentLabs,
+    getTeacherAssignedLabs,
 };
