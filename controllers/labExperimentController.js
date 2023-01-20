@@ -128,14 +128,14 @@ async function getLabStudents(req, res) {
             filter.experiment = experiment_id;
         }
 
-        let labs = await LabExperiment.find(filter)
+        let students = await LabExperiment.find(filter)
             .populate({
                 path: "student",
                 select: ["_id", "email", "name"],
             })
             .select("-instruction -classId -teacher -startDate -dueDate");
 
-        ServerResponse(req, res, 200, labs, "students successfully fetched");
+        ServerResponse(req, res, 200, students, "students successfully fetched");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
