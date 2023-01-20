@@ -117,9 +117,33 @@ async function getTeacherAssignedLabs(req, res) {
         ServerErrorHandler(req, res, error);
     }
 }
+async function getLabStudents(req, res) {
+    try {
+        const { experiment_id } = req.query;
+        const filter = {
+            teacher: req.teacher._id,
+        };
+
+        if (experiment_id) {
+            filter.experiment = experiment_id;
+        }
+
+        let labs = await LabExperiment.find(filter)
+            .populate({
+                path: "student",
+                select: ["_id", "email", "name"],
+            })
+            .select("-instruction -classId -teacher -startDate -dueDate");
+
+        ServerResponse(req, res, 200, labs, "labs successfully fetched");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 
 module.exports = {
     assignLab,
     getStudentLabs,
     getTeacherAssignedLabs,
+    getLabStudents,
 };

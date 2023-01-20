@@ -10,5 +10,6 @@ router.post("/:experimentId/assign", teacherAuth, labExperimentController.assign
 // router.get("/student-labs", [studentAuth, studentTrialPeriodChecker], labExperimentController.getStudentLabs);
 router.get("/student-labs", [studentAuth], labExperimentController.getStudentLabs);
 router.get("/teacher-labs", [teacherAuth], labExperimentController.getTeacherAssignedLabs);
+router.get("/teacher-labs/students", [teacherAuth], labExperimentController.getLabStudents);
 
 module.exports = router;
