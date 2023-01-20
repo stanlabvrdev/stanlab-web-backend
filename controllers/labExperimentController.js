@@ -135,7 +135,7 @@ async function getLabStudents(req, res) {
             })
             .select("-instruction -classId -teacher -startDate -dueDate");
 
-        ServerResponse(req, res, 200, labs, "labs successfully fetched");
+        ServerResponse(req, res, 200, labs, "students successfully fetched");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
