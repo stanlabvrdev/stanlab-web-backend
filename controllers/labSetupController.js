@@ -68,10 +68,12 @@ async function getActiveExperiments(req, res) {
         // const experiments = await LabSetup.find({ _id: { $in: experimentIds } })
         //     .select("-students -__v")
         //     .populate({ path: "teacher", select: ["name", "_id", "email"] });
-        const experiments = await LabExperiment.find({ student: req.student._id, isCompleted: false }).populate({
-            path: "experiment",
-            select: ["name", "_id", "subject"],
-        });
+        const experiments = await LabExperiment.find({ student: req.student._id, isCompleted: false })
+            .populate({
+                path: "experiment",
+                select: ["name", "_id", "subject"],
+            })
+            .populate({ path: "teacher", select: ["name", "_id", "email"] });
 
         res.send(experiments);
     } catch (error) {
