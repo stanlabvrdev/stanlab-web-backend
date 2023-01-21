@@ -65,9 +65,14 @@ async function getActiveExperiments(req, res) {
             experimentIds = experimentIds.concat(data.experiments);
         });
 
-        const experiments = await LabSetup.find({ _id: { $in: experimentIds } })
-            .select("-students -__v")
-            .populate({ path: "teacher", select: ["name", "_id", "email"] });
+        // const experiments = await LabSetup.find({ _id: { $in: experimentIds } })
+        //     .select("-students -__v")
+        //     .populate({ path: "teacher", select: ["name", "_id", "email"] });
+        const experiments = await LabExperiment.find({ student: req.student._id }).populate({
+            path: "experiment",
+            select: ["name", "_id", "subject"],
+        });
+
         const student = await Student.findOne({ _id: req.student._id });
 
         if (!student) return res.status(403).send({ message: "Access Denied" });

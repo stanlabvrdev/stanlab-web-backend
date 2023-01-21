@@ -12,6 +12,8 @@ const { sendInvitation, doSendInvitationEmail } = require("../../services/email"
 const { LabExperiment } = require("../../models/labAssignment");
 const SystemExperiment = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
+const { ServerResponse, ServerErrorHandler } = require("../../services/response/serverResponse");
+const NotFoundError = require("../../services/exceptions/not-found");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -62,7 +64,9 @@ async function getClass(req, res) {
     try {
         const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
 
-        if (!teacherClasses) return res.status(404).send({ message: "teacher class not found" });
+        if (!teacherClasses) {
+            throw new NotFoundError("class not found");
+        }
 
         let picked = teacherClasses.classes;
         if (picked.length > 0)
@@ -74,10 +78,9 @@ async function getClass(req, res) {
                 section: cl.section,
             }));
 
-        res.send({ message: "classes fetched successfully", data: picked });
+        ServerResponse(req, res, 200, picked);
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
