@@ -82,7 +82,7 @@ async function getStudentLabs(req, res) {
 
         let gottenLabs = await LabExperiment.find({
             _id: { $in: labs },
-        }).populate({ path: "experiment", select: ["_id", "class", "subject", "instruction"] });
+        }).populate({ path: "experiment", select: ["_id", "class", "subject", "instruction", "name"] });
 
         res.send({ message: "labs successfully fetched", lab: gottenLabs });
     } catch (error) {
@@ -109,7 +109,7 @@ async function getTeacherAssignedLabs(req, res) {
 
         let labs = await LabExperiment.find(filter).populate({
             path: "experiment",
-            select: ["_id", "class", "subject", "instruction"],
+            select: ["_id", "class", "subject", "instruction", "name"],
         });
 
         ServerResponse(req, res, 200, labs, "labs successfully fetched");
