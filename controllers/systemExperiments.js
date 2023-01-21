@@ -1,4 +1,6 @@
 const SystemExperiment = require("../models/systemExperiments");
+const NotFoundError = require("../services/exceptions/not-found");
+const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function getSystemExperiments(req, res) {
     try {
@@ -49,9 +51,35 @@ async function createSystemExperiments(req, res) {
         res.status(500).send({ message: "Something went wrong" });
     }
 }
+
+async function updateSystemExperiments(req, res) {
+    try {
+        const id = req.params.id;
+        const { name, objectives, demoVideoUrl, bigQuestion, testYourKnowlege, teacherNote, subject, icon } = req.body;
+
+        const experiment = await SystemExperiment.findOne({ _id: id });
+        if (!experiment) throw new NotFoundError("experiment not found");
+
+        if (name) experiment.name = name;
+        if (objectives) experiment.objectives = objectives;
+        if (demoVideoUrl) experiment.demoVideoUrl = demoVideoUrl;
+        if (bigQuestion) experiment.bigQuestion = bigQuestion;
+        if (testYourKnowlege) experiment.testYourKnowlege = testYourKnowlege;
+        if (teacherNote) experiment.teacherNote = teacherNote;
+        if (subject) experiment.subject = subject;
+        if (icon) experiment.icon = icon;
+
+        await experiment.save();
+
+        ServerResponse(req, res, 200, experiment, "updated successfully");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 module.exports = {
     getSystemExperiments,
     createSystemExperiments,
     getExperiment,
     deleteExperiment,
+    updateSystemExperiments,
 };
