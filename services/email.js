@@ -87,10 +87,12 @@ function doSendInvitationEmail(student, teacher, password) {
         from: stanLabMail,
         to: student.email,
         subject: "Invitation",
-        template: "invitation",
+        template: "student-invitation",
         "h:X-Mailgun-Variables": JSON.stringify({
             email: student.email,
             password: password,
+            student_name: student.name || "Student",
+            teacher_name: teacher.name || teacher.email,
         }),
     };
     mg.messages().send(data, function(error, body) {
