@@ -1,4 +1,4 @@
-const { Teacher, validateTeacher, validateUpdateTeacher } = require("../models/teacher");
+const { Teacher } = require("../models/teacher");
 const { Student } = require("../models/student");
 const { TeacherClass } = require("../models/teacherClass");
 const { LabExperiment, validateAssignment, validateGetQuery } = require("../models/labAssignment");
