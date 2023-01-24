@@ -15,8 +15,7 @@ const mg = mailgun({ apiKey: mailgunAPIKey, domain: DOMAIN });
 
 function sendStudentInviteEmail(student, password) {
     const data = {
-        from: "StanLab <stanlabvr.com>",
-        from: stanLabMail,
+        from: "StanLab <info@stanlab.com>",
         to: student.email,
         subject: "School invitation",
         template: "student-invitation",
@@ -38,8 +37,7 @@ function sendStudentInviteEmail(student, password) {
 
 function sendTeacherInviteEmail(teacher, password) {
     const data = {
-        from: "StanLab <stanlabvr.com>",
-        from: stanLabMail,
+        from: "StanLab <info@stanlab.com>",
         to: teacher.email,
         subject: "School invitation",
         template: "teacher-invitation",
@@ -61,8 +59,7 @@ function sendTeacherInviteEmail(teacher, password) {
 
 function sendEmailToSchoolAdmin(admin) {
     const data = {
-        from: "StanLab <stanlabvr.com>",
-        from: stanLabMail,
+        from: "StanLab <info@stanlab.com>",
         to: admin.email,
         subject: "Welcome to StanLab",
         template: "welcome-school-admin",
@@ -83,8 +80,7 @@ function sendEmailToSchoolAdmin(admin) {
 
 function doSendInvitationEmail(student, teacher, password) {
     const data = {
-        from: "StanLab <stanlabvr.com>",
-        from: stanLabMail,
+        from: "StanLab <info@stanlab.com>",
         to: student.email,
         subject: "Invitation",
         template: "student-invitation",
@@ -214,7 +210,7 @@ function sendLoginDetails(email, name, password, schoolName, isNew = false) {
 
 async function sendResetPassword(student, token, isStudent = true) {
   const data = {
-    from: stanLabMail,
+    from: "StanLab <info@stanlab.com>",
     to: student.email,
     subject: "Reset Password",
     template: "forgetpassword",
@@ -225,6 +221,8 @@ async function sendResetPassword(student, token, isStudent = true) {
       url: `https://app.stanlab.co/${isStudent ? "students" : "teachers"}/reset-password/${token}`,
     }),
   };
+
+  console.log(data);
   mg.messages().send(data, function (error, body) {
     if (error) {
       console.log("========================");
