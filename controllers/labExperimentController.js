@@ -7,6 +7,7 @@ const { StudentScore } = require("../models/studentScore");
 const { createAssignedLabNotification } = require("../services/student/notification");
 const { ServerResponse, ServerErrorHandler } = require("../services/response/serverResponse");
 const BadRequestError = require("../services/exceptions/bad-request");
+const NotFoundError = require("../services/exceptions/not-found");
 
 async function assignLab(req, res) {
     try {
@@ -25,11 +26,15 @@ async function assignLab(req, res) {
         //  check class
         let teacherClass = await TeacherClass.findOne({ _id: class_id, teacher: teacher._id });
 
-        if (!teacherClass) return res.status(404).send({ message: "class not found" });
+        if (!teacherClass) {
+            throw new NotFoundError("class not found");
+        }
 
         const teacherstudents = teacherClass.students;
 
-        if (teacherstudents.length < 1) return res.status(404).send({ message: "No student found" });
+        if (teacherstudents.length < 1) {
+            throw new NotFoundError("No student found");
+        }
 
         const students = teacherstudents;
 

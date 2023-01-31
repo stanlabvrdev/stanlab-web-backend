@@ -8,6 +8,7 @@ const systemExperimentSchema = new mongoose.Schema({
     demoVideoUrl: { type: String },
     bigQuestion: { type: String },
     testYourKnowlege: { type: String },
+    testKnowlege: { type: Array },
     teacherNote: { type: Object },
     subject: { type: String },
     practicalName: { type: String },
