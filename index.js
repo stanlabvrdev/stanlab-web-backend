@@ -31,6 +31,13 @@ require("./services/teacherPassport")(teacherPassport);
 require("./services/studentPassport")(studentPassport);
 const app = express();
 
+// Swagger files
+const swaggerUi = require("swagger-ui-express");
+const swaggerFile = require("./swagger-output.json");
+
+// Swagger for API documentation
+app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
 //initialize passports
 app.use(teacherPassport.initialize({ userProperty: "user" }));
 app.use(studentPassport.initialize({ userProperty: "user" }));
@@ -58,17 +65,17 @@ app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
 
 if (!config.get("jwtKey")) {
-    console.log("FETAL ERROR: jwtKey is not set");
+  console.log("FETAL ERROR: jwtKey is not set");
 }
 if (!config.get("sendGrid_API_KEY")) {
-    console.log("FETAL ERROR: SendGrid API Key is not set");
+  console.log("FETAL ERROR: SendGrid API Key is not set");
 }
 mongoDB
-    .then((res) => console.log("Connected to MongoDB..."))
-    .catch((err) => console.log("Could not connect to Database ", err));
-const port = process.env.PORT || 8000;
+  .then((res) => console.log("Connected to MongoDB..."))
+  .catch((err) => console.log("Could not connect to Database ", err));
+const port = process.env.PORT || 9000;
 app.listen(port, () => {
-    console.log("============================");
-    console.log(`Listening on port ${port}!!`);
-    console.log("============================");
+  console.log("============================");
+  console.log(`Listening on port ${port}!!`);
+  console.log("============================");
 });
