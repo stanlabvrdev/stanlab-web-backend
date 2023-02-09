@@ -73,7 +73,7 @@ if (!config.get("sendGrid_API_KEY")) {
 mongoDB
   .then((res) => console.log("Connected to MongoDB..."))
   .catch((err) => console.log("Could not connect to Database ", err));
-const port = process.env.PORT || 9000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => {
   console.log("============================");
   console.log(`Listening on port ${port}!!`);
