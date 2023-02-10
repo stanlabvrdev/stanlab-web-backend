@@ -244,13 +244,13 @@
         }
       }
     },
-    "/teachers/send-quiz/{id}": {
+    "/teachers/send-quiz/{classId}": {
       "post": {
         "tags": ["teacher"],
         "description": "Teacher send quiz to class student",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -268,13 +268,13 @@
         }
       }
     },
-    "/teachers/add-student/{id}": {
+    "/teachers/add-student/{classId}": {
       "post": {
         "tags": ["teacher"],
         "description": "Teacher add student to class",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -347,13 +347,13 @@
         }
       }
     },
-    "/teachers/students/{id}": {
+    "/teachers/students/{studentId}": {
       "delete": {
         "tags": ["teacher"],
         "description": "Teacher delete a student",
         "parameters": [
           {
-            "name": "id",
+            "name": "studentId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -440,13 +440,13 @@
         }
       }
     },
-    "/teachers/send-lab/{id}": {
+    "/teachers/send-lab/{classId}": {
       "post": {
         "tags": ["teacher"],
         "description": "Send lab to students",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -621,7 +621,14 @@
       "get": {
         "tags": ["student"],
         "description": "Get student avatar",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -660,11 +667,18 @@
         }
       }
     },
-    "/students/accept-invite/{id}": {
+    "/students/accept-invite/{teacherId}": {
       "post": {
         "tags": ["student"],
         "description": "Student accept teacher invitation",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -677,11 +691,18 @@
         }
       }
     },
-    "/students/decline-invite/{id}": {
+    "/students/decline-invite/{teacherId}": {
       "post": {
         "tags": ["student"],
         "description": "Student decline teacher invitation",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -724,7 +745,14 @@
       "get": {
         "tags": ["student"],
         "description": "Get student class work",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -737,11 +765,17 @@
         }
       }
     },
-    "/students/teachers/{id}": {
+    "/students/teachers/{teacherId}": {
       "delete": {
         "tags": ["student"],
         "description": "Student delete teacher",
         "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "in": "body",
             "name": "obj",
@@ -780,11 +814,18 @@
         }
       }
     },
-    "/students/classwork/completed-quiz/{id}": {
+    "/students/classwork/completed-quiz/{quizId}": {
       "post": {
         "tags": ["student"],
         "description": "Get completed quiz",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -797,13 +838,13 @@
         }
       }
     },
-    "/questions/quiz/{id}": {
+    "/questions/quiz/{classId}": {
       "post": {
         "tags": ["question"],
         "description": "Create quiz",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -827,11 +868,20 @@
             "description": "Resource Created Successfully"
           }
         }
-      },
+      }
+    },
+    "/questions/quiz/{quizId}": {
       "delete": {
         "tags": ["question"],
         "description": "Delete quiz",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -844,13 +894,13 @@
         }
       }
     },
-    "/lab/create-lab/{id}": {
+    "/lab/create-lab/{classId}": {
       "post": {
         "tags": ["lab"],
         "description": "Create lab",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -914,11 +964,18 @@
         }
       }
     },
-    "/lab/student/active-experiment/{id}": {
+    "/lab/student/active-experiment/{experimentId}": {
       "get": {
         "tags": ["lab"],
         "description": "Get sent active experiment",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "experimentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -974,13 +1031,13 @@
         }
       }
     },
-    "/classes/{id}": {
+    "/classes/{classId}": {
       "get": {
         "tags": ["teacher class"],
         "description": "Get class id",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1006,13 +1063,13 @@
         }
       }
     },
-    "/classes/{id}/students": {
+    "/classes/{classId}/students": {
       "get": {
         "tags": ["teacher class"],
         "description": "Get class students",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1038,19 +1095,19 @@
         }
       }
     },
-    "/classes/{id}/{id}": {
+    "/classes/{classId}/{studentId}": {
       "delete": {
         "tags": ["teacher class"],
         "description": "Delete class students",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "id",
+            "name": "studentId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1076,13 +1133,13 @@
         }
       }
     },
-    "/classes/{id}/added-quiz": {
+    "/classes/{classId}/added-quiz": {
       "get": {
         "tags": ["teacher class"],
         "description": "Get class quiz",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1108,13 +1165,13 @@
         }
       }
     },
-    "/classes/{id}/added-lab": {
+    "/classes/{classId}/added-lab": {
       "get": {
         "tags": ["teacher class"],
         "description": "Get class lab",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1357,13 +1414,13 @@
         }
       }
     },
-    "/v2/teachers/classes/{id}/invite-student": {
+    "/v2/teachers/classes/{classId}/invite-student": {
       "post": {
         "tags": ["teacher v2 class"],
         "description": "Add student to class",
         "parameters": [
           {
-            "name": "id",
+            "name": "classId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1738,7 +1795,7 @@
         "email": {
           "type": "string",
           "format": "name@host.com",
-          "example": "tech@technify.com"
+          "example": "teacher@gmail.com"
         },
         "password": {
           "type": "string",
