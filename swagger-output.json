@@ -1,0 +1,2491 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "StanLab Backend",
+    "version": "1.0.0",
+    "title": "API Documentation for StanLab"
+  },
+  "basePath": "/api",
+  "tags": [
+    {
+      "name": "teacher",
+      "description": "Teacher Endpoint"
+    },
+    {
+      "name": "student",
+      "description": "Student Endpoint"
+    },
+    {
+      "name": "question",
+      "description": "Question Endpoint"
+    },
+    {
+      "name": "lab",
+      "description": "Lab Endpoint"
+    },
+    {
+      "name": "teacher class",
+      "description": "Teacher Class Endpoint"
+    },
+    {
+      "name": "school admin",
+      "description": "School Admin Endpoint"
+    },
+    {
+      "name": "lab v2",
+      "description": "Lab V2 Endpoint"
+    },
+    {
+      "name": "teacher v2",
+      "description": "Teacher V2 Endpoint"
+    },
+    {
+      "name": "teacher v2 class",
+      "description": "Teacher V2 Class Endpoint"
+    },
+    {
+      "name": "student v2",
+      "description": "Student V2 Endpoint"
+    },
+    {
+      "name": "student v2 class",
+      "description": "Student V2 Class Endpoint"
+    },
+    {
+      "name": "student v2 notification",
+      "description": "Student V2 Notification Endpoint"
+    },
+    {
+      "name": "stanLab v2",
+      "description": "StanLab V2 Endpoint"
+    }
+  ],
+  "consumes": [
+    "application/json",
+    "multipart/form-data",
+    "application/x-www/form/urlencoded"
+  ],
+  "produces": ["application/json"],
+  "paths": {
+    "/teachers": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Endpoint to create a teacher",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TeacherRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Registration Successful"
+          }
+        }
+      },
+      "put": {
+        "tags": ["teacher"],
+        "description": "Endpoint to update teacher",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateTeacher"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Updated Successfully"
+          }
+        }
+      }
+    },
+    "/login/teachers/auth/google": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Endpoint to create teacher via Google",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TeacherRegistrationViaGoogle"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "LOgin Successful"
+          }
+        }
+      }
+    },
+    "/login/teachers": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher login",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TeacherLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login Successful"
+          }
+        }
+      }
+    },
+    "/teachers/avatar": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher upload avatar",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "avatar",
+            "in": "formData",
+            "type": "file",
+            "description": "Upload Avatar"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Uploaded Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/{id}": {
+      "get": {
+        "tags": ["teacher"],
+        "description": "Endpoint to get a teacher",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/{id}/avatar": {
+      "get": {
+        "tags": ["teacher"],
+        "description": "Get a teacher's avatar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/students": {
+      "get": {
+        "tags": ["teacher"],
+        "description": "Endpoint to get teacher's students",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/send-quiz/{classId}": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher send quiz to class student",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/add-student/{classId}": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher add student to class",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddStudentToClass"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Added Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/questions": {
+      "get": {
+        "tags": ["teacher"],
+        "description": "Get all questions of a teacher",
+        "parameters": [
+          {
+            "name": "subject",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/questions/{id}": {
+      "delete": {
+        "tags": ["teacher"],
+        "description": "Delete question by question id ",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/students/{studentId}": {
+      "delete": {
+        "tags": ["teacher"],
+        "description": "Teacher delete a student",
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/invite-student": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher sent invitation to student",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TeacherInviteStudent"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/create-class": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Teacher create class",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TeacherCreateClass"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/classes": {
+      "get": {
+        "tags": ["teacher"],
+        "description": "Get teacher classes",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/teachers/send-lab/{classId}": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Send lab to students",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SendLabToSTudents"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent Successfully"
+          }
+        }
+      }
+    },
+    "/auth/teachers/reset-password": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Send password reset link",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PasswordResetLink"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent Successfully"
+          }
+        }
+      }
+    },
+    "/auth/students/reset-password/confirm": {
+      "post": {
+        "tags": ["teacher"],
+        "description": "Confirm password reset",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ConfirmPasswordReset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Updated Successfully"
+          }
+        }
+      }
+    },
+    "/auth/students/reset-password": {
+      "post": {
+        "tags": ["student"],
+        "description": "Send password reset link",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SendPasswordResetLink"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent Successfully"
+          }
+        }
+      }
+    },
+    "/students": {
+      "post": {
+        "tags": ["student"],
+        "description": "Create student",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Registration Successful"
+          }
+        }
+      }
+    },
+    "/login/students/auth/google": {
+      "post": {
+        "tags": ["student"],
+        "description": "Create student via google",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentRegistrationViaGoogle"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Registration Successful"
+          }
+        }
+      }
+    },
+    "/login/students": {
+      "post": {
+        "tags": ["student"],
+        "description": "Student Login",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login Successful"
+          }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "tags": ["student"],
+        "description": "Get logged in student",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/students/{id}/avatar": {
+      "get": {
+        "tags": ["student"],
+        "description": "Get student avatar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/students/teachers": {
+      "get": {
+        "tags": ["student"],
+        "description": "Get all teachers",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetAllTeachers"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/students/accept-invite/{teacherId}": {
+      "post": {
+        "tags": ["student"],
+        "description": "Student accept teacher invitation",
+        "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted Successful"
+          }
+        }
+      }
+    },
+    "/students/decline-invite/{teacherId}": {
+      "post": {
+        "tags": ["student"],
+        "description": "Student decline teacher invitation",
+        "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Declined Successful"
+          }
+        }
+      }
+    },
+    "/students/invite-teacher": {
+      "post": {
+        "tags": ["student"],
+        "description": "Student send invite to teacher",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentInviteTeacher"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent Successfully"
+          }
+        }
+      }
+    },
+    "/students/classwork/{id}": {
+      "get": {
+        "tags": ["student"],
+        "description": "Get student class work",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/students/teachers/{teacherId}": {
+      "delete": {
+        "tags": ["student"],
+        "description": "Student delete teacher",
+        "parameters": [
+          {
+            "name": "teacherId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentDeleteTeacher"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    },
+    "/students/classworks/quiz": {
+      "get": {
+        "tags": ["student"],
+        "description": "Get sent quiz",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/students/classwork/completed-quiz/{quizId}": {
+      "post": {
+        "tags": ["student"],
+        "description": "Get completed quiz",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/questions/quiz/{classId}": {
+      "post": {
+        "tags": ["question"],
+        "description": "Create quiz",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateQuiz"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/questions/quiz/{quizId}": {
+      "delete": {
+        "tags": ["question"],
+        "description": "Delete quiz",
+        "parameters": [
+          {
+            "name": "quizId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    },
+    "/lab/create-lab/{classId}": {
+      "post": {
+        "tags": ["lab"],
+        "description": "Create lab",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateLab"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/lab/{id}/{id}": {
+      "get": {
+        "tags": ["lab"],
+        "description": "Student get lab",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudentGetLab"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/lab/student/active-experiment/{experimentId}": {
+      "get": {
+        "tags": ["lab"],
+        "description": "Get sent active experiment",
+        "parameters": [
+          {
+            "name": "experimentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/lab/experiments": {
+      "post": {
+        "tags": ["lab"],
+        "description": "Get experiments",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetExperiments"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/lab/student/active-experiments": {
+      "get": {
+        "tags": ["lab"],
+        "description": "Get active experiments",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{classId}": {
+      "get": {
+        "tags": ["teacher class"],
+        "description": "Get class id",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetClassId"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{classId}/students": {
+      "get": {
+        "tags": ["teacher class"],
+        "description": "Get class students",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetClassStudents"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{classId}/{studentId}": {
+      "delete": {
+        "tags": ["teacher class"],
+        "description": "Delete class students",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteClassStudents"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{classId}/added-quiz": {
+      "get": {
+        "tags": ["teacher class"],
+        "description": "Get class quiz",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetClassQuiz"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{classId}/added-lab": {
+      "get": {
+        "tags": ["teacher class"],
+        "description": "Get class lab",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetClassLab"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/classes/{id}/published-quiz": {
+      "get": {
+        "tags": ["teacher class"],
+        "description": "Get class published lab",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetClassPublishedLab"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/schools": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Create school admin",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateSchoolAdmin"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/teachers": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Create school teacher",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateSchoolTeacher"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/students": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Create school student",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateSchoolStudent"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/{id}": {
+      "get": {
+        "tags": ["school admin"],
+        "description": "Get school admin",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetSchoolAdmin"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/login/school-admin": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "School admin login",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SchoolAdminLogin"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login Successful"
+          }
+        }
+      }
+    },
+    "/system-experiments/lab/{id}/assign": {
+      "post": {
+        "tags": ["lab v2"],
+        "description": "Assign lab experiment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AssignLabExperiment"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Assigned Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments/lab/student-labs": {
+      "get": {
+        "tags": ["lab v2"],
+        "description": "Get student labs",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/teachers/classes/{classId}/invite-student": {
+      "post": {
+        "tags": ["teacher v2 class"],
+        "description": "Add student to class",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddStudentToClassV2"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Added Successfully"
+          }
+        }
+      }
+    },
+    "/v2/teachers/classes": {
+      "get": {
+        "tags": ["teacher v2 class"],
+        "description": "Get teacher classes",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/teachers/classes/{classId}/students/{studentId}/scores": {
+      "get": {
+        "tags": ["teacher v2 class"],
+        "description": "Get student score",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "studentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/teachers/students": {
+      "get": {
+        "tags": ["teacher v2"],
+        "description": "Get teacher students",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/teachers/students/score": {
+      "get": {
+        "tags": ["teacher v2"],
+        "description": "Get teacher students score",
+        "parameters": [
+          {
+            "name": "classId",
+            "in": "query",
+            "type": "string",
+            "example": "633948536c06bd764b6ade45"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments/lab/teacher-labs": {
+      "get": {
+        "tags": ["teacher v2"],
+        "description": "Get assigned labs",
+        "parameters": [
+          {
+            "name": "is_completed",
+            "in": "query",
+            "type": "boolean",
+            "example": true
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetAssignedLabs"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments/lab/teacher-labs/students": {
+      "get": {
+        "tags": ["teacher v2"],
+        "description": "Get experiment students",
+        "parameters": [
+          {
+            "name": "experiment_id",
+            "in": "query",
+            "type": "string",
+            "example": "63394c35bbd67e772f43fb5d"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GetExperimentStudents"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/notifications/students": {
+      "get": {
+        "tags": ["student v2 notification"],
+        "description": "Get notifications",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/notifications/{id}/students": {
+      "patch": {
+        "tags": ["student v2 notification"],
+        "description": "Read notifications",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/v2/students/labs": {
+      "get": {
+        "tags": ["student v2"],
+        "description": "Get students lab assinment",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments": {
+      "get": {
+        "tags": ["stanLab v2"],
+        "description": "Get lab experiment",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      },
+      "post": {
+        "tags": ["stanLab v2"],
+        "description": "Create lab experiment",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateLabExperiment"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments/{exxperimentId}": {
+      "get": {
+        "tags": ["stanLab v2"],
+        "description": "Get lab experiment by ID",
+        "parameters": [
+          {
+            "name": "exxperimentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      },
+      "put": {
+        "tags": ["stanLab v2"],
+        "description": "Delete lab experiment by ID",
+        "parameters": [
+          {
+            "name": "exxperimentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteLabExperimentById"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Updated Successfully"
+          }
+        }
+      }
+    },
+    "/system-experiments/{experimentId}": {
+      "delete": {
+        "tags": ["stanLab v2"],
+        "description": "Delete lab experiment",
+        "parameters": [
+          {
+            "name": "experimentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Deleted Successfully"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "x-auth-token",
+      "in": "header"
+    }
+  },
+  "definitions": {
+    "TeacherRegistration": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Jane Doe"
+        },
+        "email": {
+          "type": "string",
+          "format": "name@host.com",
+          "example": "teacher@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "format": "password",
+          "example": "12345"
+        }
+      }
+    },
+    "TeacherRegistrationViaGoogle": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Jane Doe"
+        },
+        "email": {
+          "type": "string",
+          "format": "name@host.com",
+          "example": "tech@technify.com"
+        }
+      }
+    },
+    "UpdateTeacher": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Jane Doe"
+        },
+        "email": {
+          "type": "string",
+          "format": "name@host.com",
+          "example": "tech@technify.com"
+        }
+      }
+    },
+    "TeacherLogin": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "name@host.com",
+          "example": "bb@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "AddStudentToClass": {
+      "type": "object",
+      "required": ["studentId"],
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "example": "5fe3c43243b59d412cbc4dbb"
+        }
+      }
+    },
+    "TeacherInviteStudent": {
+      "type": "object",
+      "required": ["studentEmail"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "name@host.com",
+          "example": "bb@example.com"
+        }
+      }
+    },
+    "TeacherCreateClass": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "CHM102"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Chemistry"
+        },
+        "section": {
+          "type": "string",
+          "example": "Rain"
+        }
+      }
+    },
+    "SendLabToSTudents": {
+      "type": "object",
+      "required": ["dueDate", "students", "experiments", "startDate"],
+      "properties": {
+        "dueDate": {
+          "type": "string",
+          "example": "2021/03/04"
+        },
+        "students": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "6036436925d1fb0004c7b1be",
+            "6036425d25d1fb0004c7b1bb",
+            "603642e125d1fb0004c7b1bd"
+          ]
+        },
+        "experiments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "60369cc48c888100048af4d1"
+          }
+        },
+        "startDate": {
+          "type": "string",
+          "example": "2021/02/26"
+        }
+      }
+    },
+    "PasswordResetLink": {
+      "type": "object",
+      "required": ["email"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "mary_cena@mail.com"
+        }
+      }
+    },
+    "ConfirmPasswordReset": {
+      "type": "object",
+      "required": ["token", "new_password"],
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "a433855d4d46e2104ac5b0c64799282c6427a34dafd2129a2f216d6"
+        },
+        "new_password": {
+          "type": "string",
+          "example": "password"
+        }
+      }
+    },
+    "SendPasswordResetLink": {
+      "type": "object",
+      "required": ["email"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "mary_cena@mail.com"
+        }
+      }
+    },
+    "StudentRegistration": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "mary_cena@mail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "StudentLogin": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "mary_cena@mail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "GetAllTeachers": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "mary_cena@mail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "StudentInviteTeacher": {
+      "type": "object",
+      "required": ["teacherEmail"],
+      "properties": {
+        "teacherEmail": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        }
+      }
+    },
+    "StudentDeleteTeacher": {
+      "type": "object",
+      "required": ["teacherID"],
+      "properties": {
+        "teacherID": {
+          "type": "string",
+          "example": "5fcc91bceeea9228e408b84e"
+        }
+      }
+    },
+    "CreateQuiz": {
+      "type": "object",
+      "required": ["questionText", "options", "points"],
+      "properties": {
+        "questionText": {
+          "type": "string",
+          "example": "What is chemistry"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "example": "a"
+              },
+              "text": {
+                "type": "string",
+                "example": "Anything that has mass and occupy a space"
+              }
+            }
+          }
+        },
+        "points": {
+          "type": "number",
+          "example": 10
+        }
+      }
+    },
+    "CreateLab": {
+      "type": "object",
+      "required": [
+        "experiment",
+        "subject",
+        "acidName",
+        "baseName",
+        "indicatorName",
+        "baseVolume",
+        "acidVolume",
+        "points"
+      ],
+      "properties": {
+        "experiment": {
+          "type": "string",
+          "example": "titration"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Chemistry"
+        },
+        "acidName": {
+          "type": "string",
+          "example": "HCL"
+        },
+        "baseName": {
+          "type": "string",
+          "example": "NaOH"
+        },
+        "indicatorName": {
+          "type": "string",
+          "example": "methyl orange"
+        },
+        "baseVolume": {
+          "type": "number",
+          "example": 25
+        },
+        "acidVolume": {
+          "type": "number",
+          "example": 22.3
+        },
+        "points": {
+          "type": "number",
+          "example": 50
+        }
+      }
+    },
+    "StudentGetLab": {
+      "type": "object",
+      "required": [
+        "acidName",
+        "acidName",
+        "indicatorName",
+        "baseVolume",
+        "acidVolume",
+        "dueDate",
+        "points",
+        "students"
+      ],
+      "properties": {
+        "acidName": {
+          "type": "string",
+          "example": "HCL"
+        },
+        "baseName": {
+          "type": "string",
+          "example": "NaOH"
+        },
+        "indicatorName": {
+          "type": "string",
+          "example": "methyl orange"
+        },
+        "baseVolume": {
+          "type": "number",
+          "example": 25
+        },
+        "acidVolume": {
+          "type": "number",
+          "example": 22.3
+        },
+        "dueDate": {
+          "type": "string",
+          "example": "2020/12/23"
+        },
+        "points": {
+          "type": "number",
+          "example": 50
+        },
+        "students": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "5fe3c43243b59d412cbc4dbb"
+          }
+        }
+      }
+    },
+    "GetExperiments": {
+      "type": "object",
+      "required": ["experiments"],
+      "properties": {
+        "experiments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "6042b51de95d653ecc895a6a"
+          }
+        }
+      }
+    },
+    "GetClassId": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "GetClassStudents": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "DeleteClassStudents": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "GetClassQuiz": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "GetClassLab": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "GetClassPublishedLab": {
+      "type": "object",
+      "required": ["name", "email", "password"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "John Cena"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "CreateSchoolAdmin": {
+      "type": "object",
+      "required": [
+        "school_name",
+        "school_email",
+        "admin_email",
+        "admin_name",
+        "password"
+      ],
+      "properties": {
+        "school_name": {
+          "type": "string",
+          "example": "kits and kitten school"
+        },
+        "school_email": {
+          "type": "string",
+          "example": "k&k@mail.com"
+        },
+        "admin_email": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        },
+        "admin_name": {
+          "type": "string",
+          "example": "pqsquarelsv@gmail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "CreateSchoolTeacher": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Kit teacher 1"
+        },
+        "email": {
+          "type": "string",
+          "example": "kit_teacher@mail.com"
+        }
+      }
+    },
+    "CreateSchoolStudent": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Victor Leye"
+        },
+        "email": {
+          "type": "string",
+          "example": "oluwaleye93@mail.com"
+        }
+      }
+    },
+    "GetSchoolAdmin": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Dayo keth"
+        },
+        "email": {
+          "type": "string",
+          "example": "keth@mail.com"
+        }
+      }
+    },
+    "SchoolAdminLogin": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "admin@mail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "AssignLabExperiment": {
+      "type": "object",
+      "required": ["due_date", "start_date", "instruction", "class_id"],
+      "properties": {
+        "due_date": {
+          "type": "string",
+          "example": "2022-11-25T23:00:00.000+00:00"
+        },
+        "start_date": {
+          "type": "string",
+          "example": "2022-01-25T23:00:00.000+00:00"
+        },
+        "instruction": {
+          "type": "string",
+          "example": "Assinment must be submitted before noon"
+        },
+        "class_id": {
+          "type": "string",
+          "example": "631dc7c31c2295d83b881666"
+        }
+      }
+    },
+    "AddStudentToClassV2": {
+      "type": "object",
+      "required": ["studentEmails"],
+      "properties": {
+        "studentEmails": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "oluwasquarelsv@gmail.com"
+          }
+        }
+      }
+    },
+    "GetAssignedLabs": {
+      "type": "object",
+      "required": ["teacherEmail"],
+      "properties": {
+        "teacherEmail": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        }
+      }
+    },
+    "GetExperimentStudents": {
+      "type": "object",
+      "required": ["teacherEmail"],
+      "properties": {
+        "teacherEmail": {
+          "type": "string",
+          "example": "oluwasquarelsv@gmail.com"
+        }
+      }
+    },
+    "CreateLabExperiment": {
+      "type": "object",
+      "required": [
+        "name",
+        "class",
+        "subject",
+        "objectives",
+        "demoVideoUrl",
+        "bigQuestion",
+        "testYourKnowlege",
+        "teacherNote"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Making A Soluble Salt"
+        },
+        "class": {
+          "type": "string",
+          "example": "KS3-KS4, SSS, Grade 8 - 11"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Chemistry"
+        },
+        "objectives": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "example": "Students should be able to react sulfuric acid with insoluble copper (II) oxide to prepare an aqueous solution of the salt"
+          }
+        },
+        "demoVideoUrl": {
+          "type": "string",
+          "example": "https://www.youtube.com/watch?v=HVjvFydMOc8"
+        },
+        "bigQuestion": {
+          "type": "string",
+          "example": "If the world runs out of salt, how do we make salts in the lab?"
+        },
+        "testYourKnowlege": {
+          "type": "string",
+          "example": "Sample Questions"
+        },
+        "teacherNote": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string",
+              "example": "The purpose of this experiment is to teach students the separation technique of liquid-liquid homogeneous mixture using the fractional distillation method. This practical module has three tasks to be completed by the students"
+            },
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "example": "The Big Question Section: Students are challenged with a problem that illustrates real-life practical applications of the making soluble salts experiment."
+              }
+            },
+            "instruction": {
+              "type": "string",
+              "example": "To be completed as at when due"
+            }
+          }
+        }
+      }
+    },
+    "DeleteLabExperimentById": {
+      "type": "object",
+      "required": ["demoVideoUrl"],
+      "properties": {
+        "demoVideoUrl": {
+          "type": "string",
+          "example": "https://www.youtube.com/embed/ONfWUdccaxQ"
+        }
+      }
+    }
+  }
+}
