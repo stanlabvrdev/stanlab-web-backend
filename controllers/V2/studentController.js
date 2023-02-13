@@ -22,9 +22,9 @@ async function getLabs(req, res) {
             for (const lab of labs) {
                 const experiment = await LabExperiment.findOne({ _id: lab._id })
                     .populate({ path: "experiment", select: ["name", "_id", "subject"] })
-                    .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" })
-                    .lean();
+                    .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
 
+                console.log(experiment);
                 const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
                     path: "teacher",
                     select: ["name", "email", "_id"],
@@ -33,7 +33,7 @@ async function getLabs(req, res) {
                 experiment.class = experiment.classId;
                 delete experiment.classId;
                 // experiment.set("teacher", teacherClass.teacher);
-                console.log(teacherClass);
+
                 results.push(experiment);
             }
         }
