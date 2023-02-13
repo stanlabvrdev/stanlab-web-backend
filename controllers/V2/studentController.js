@@ -8,6 +8,7 @@ const { TeacherClass } = require("../../models/teacherClass");
 const constants = require("../../utils/constants");
 const { LabExperiment } = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
+const { ServerErrorHandler } = require("../../services/response/serverResponse");
 
 async function getLabs(req, res) {
     const studentId = req.student._id;
@@ -40,8 +41,7 @@ async function getLabs(req, res) {
         // const promisified = await Promise.all(results);
         res.send({ messages: "lab successfully fetched", data: results });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -66,8 +66,7 @@ async function getClasses(req, res) {
         // const promisified = await Promise.all(results);
         res.send({ messages: "classes successfully fetched", data: classes });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -82,8 +81,7 @@ async function getScores(req, res) {
         console.log(scores);
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 

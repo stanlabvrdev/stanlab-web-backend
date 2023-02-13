@@ -7,6 +7,7 @@ const { Student } = require("../models/student");
 const { EmailToken } = require("../models/emailToken");
 const crypto = require("crypto");
 const { Teacher } = require("../models/teacher");
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function resetPassword(entity, data, isStudent) {
     const token = crypto.randomBytes(40).toString("hex");
@@ -38,8 +39,7 @@ async function resetStudentPassword(req, res) {
 
         res.send({ message: "reset password link sent successfully" });
     } catch (error) {
-        res.status(500).send({ message: error.message });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -56,8 +56,7 @@ async function resetTeacherPassword(req, res) {
 
         res.send({ message: "reset password link sent successfully" });
     } catch (error) {
-        res.status(500).send({ message: error.message });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -88,8 +87,7 @@ async function confirmStudentResetPassword(req, res) {
 
         res.send({ message: "password  reset  successfully" });
     } catch (error) {
-        res.status(500).send({ message: error.message });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -119,8 +117,7 @@ async function confirmTeacherResetPassword(req, res) {
 
         res.send({ message: "password  reset  successfully" });
     } catch (error) {
-        res.status(500).send({ message: error.message });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 

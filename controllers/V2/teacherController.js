@@ -215,8 +215,7 @@ async function sendQuizToStudents(req, res) {
         await teacher.save();
         res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 async function sendLabToStudents(req, res) {
@@ -260,8 +259,7 @@ async function sendLabToStudents(req, res) {
         await teacher.save();
         res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -324,8 +322,7 @@ async function sendInviteToStudent(req, res) {
         await student.save();
         return res.send({ data: { id: student._id, email: student.email }, message: "Invitation sent!" });
     } catch (ex) {
-        console.log(ex);
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, ex);
     }
 }
 
@@ -341,8 +338,7 @@ async function acceptStudentInvite(req, res) {
         await teacher.save();
         res.send({ message: "Invite accepted" });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -376,8 +372,7 @@ async function getStudents(req, res) {
             data: students,
         });
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -395,8 +390,7 @@ async function getStudentScores(req, res) {
 
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 

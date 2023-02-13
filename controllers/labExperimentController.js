@@ -91,8 +91,7 @@ async function getStudentLabs(req, res) {
 
         res.send({ message: "labs successfully fetched", lab: gottenLabs });
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 

@@ -5,6 +5,7 @@ const { Student } = require("../../models/student");
 const { TeacherClass } = require("../../models/teacherClass");
 const { doInviteStudent } = require("../../services/teacherService");
 const { StudentScore } = require("../../models/studentScore");
+const { ServerErrorHandler } = require("../../services/response/serverResponse");
 
 async function inviteStudent(req, res) {
     const { student_email } = req.body;
@@ -38,8 +39,7 @@ async function inviteStudent(req, res) {
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class Not found" });
 
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -56,8 +56,7 @@ async function deleteUnpublishedClass(req, res) {
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class Not found" });
 
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -79,8 +78,7 @@ async function getStudents(req, res) {
 
         res.send(classData);
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -104,9 +102,8 @@ async function addStudentToClass(req, res) {
 
         res.send(true);
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -152,9 +149,8 @@ async function inviteStudentToClass(req, res) {
         }
         res.send({ message: "Student added to class", data: teacherClass.students });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -171,8 +167,7 @@ async function getAllQuiz(req, res) {
 
         res.send(teacherClass);
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 async function getAllLab(req, res) {
@@ -188,8 +183,7 @@ async function getAllLab(req, res) {
 
         res.send(teacherClass.classwork.lab);
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -215,8 +209,7 @@ async function deleteQuiz(req, res) {
 
         res.status(204).send(true);
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 async function deleteLab(req, res) {
@@ -239,8 +232,7 @@ async function deleteLab(req, res) {
 
         res.status(204).send(true);
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -257,8 +249,7 @@ async function getClass(req, res) {
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class Not found" });
 
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -280,9 +271,8 @@ async function deleteStudentFromClass(req, res) {
         await teacherClass.save();
         res.status(204).send(true);
     } catch (error) {
-        console.log(error.message);
         if (error.kind === "ObjectId") return res.status(400).send({ message: "Invalid class Id" });
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -297,8 +287,7 @@ async function getPublishedClassData(req, res) {
         });
         res.send(quizs);
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -324,8 +313,7 @@ async function getScores(req, res) {
 
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 module.exports = {
