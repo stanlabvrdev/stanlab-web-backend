@@ -7,6 +7,7 @@ const paymentAuth = require("../middleware/paymentAuth");
 const { isFreelanceStudent } = require("../middleware/isFreelance");
 const studentsController = require("../controllers/studentsController");
 const studentTrialPeriodChecker = require("../middleware/studentTrialPeriodChecker");
+const { uploadFile } = require("../middleware/fileUpload");
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.post("/invite-teacher", [studentAuth, isFreelanceStudent, paymentAuth], s
 // Post: Register a new Student
 
 router.post("/", studentsController.createStudent);
+router.post("/bulk", uploadFile, studentsController.bulkCreate);
 router.post("/password/reset", studentsController.createStudent);
 
 // get login  student
