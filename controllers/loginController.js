@@ -9,6 +9,7 @@ const generateRandomString = require("../utils/randomStr");
 const constants = require("../utils/constants");
 const moment = require("moment");
 const { SchoolAdmin } = require("../models/schoolAdmin");
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 function validateAuth(auth) {
     const schema = Joi.object({
@@ -58,8 +59,7 @@ async function teacherGoogleAuth(req, res) {
             }
         }
     } catch (error) {
-        res.status(400).send({ message: "Invalid google token ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -117,8 +117,7 @@ async function studentGoogleAuth(req, res) {
             }
         }
     } catch (error) {
-        res.status(400).send({ message: "Invalid google token ID" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -151,7 +150,7 @@ async function schoolAdminLogin(req, res) {
 }
 
 async function studentLabLogin(req, res) {
-    console.log(req.body);
+
     const { email, password } = req.body;
 
     try {
@@ -169,8 +168,7 @@ async function studentLabLogin(req, res) {
         };
         res.send(studentCredentials);
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 module.exports = {

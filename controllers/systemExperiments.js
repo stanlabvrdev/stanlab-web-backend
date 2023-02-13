@@ -8,8 +8,7 @@ async function getSystemExperiments(req, res) {
 
         res.send({ message: "experiments successfully fetched", data: experiments });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -22,8 +21,7 @@ async function getExperiment(req, res) {
         if (!experiment) return res.status(404).send({ message: "experiment not found" });
         res.send({ message: "experiment successfully fetched", data: experiment });
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 async function deleteExperiment(req, res) {
@@ -34,8 +32,7 @@ async function deleteExperiment(req, res) {
 
         res.send({ message: "experiment successfully deleted", data: experiment });
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -47,8 +44,7 @@ async function createSystemExperiments(req, res) {
 
         res.send({ message: "experiments successfully created", data: experiment });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
