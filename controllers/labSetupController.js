@@ -112,16 +112,17 @@ async function postScore(req, res) {
     const studentId = req.student._id;
     const experimentId = req.body.experimentId;
     try {
-        const experiment = await LabExperiment.findOne({ experiment: experimentId, student: studentId });
+        const experiment = await LabExperiment.findOne({ _id: experimentId, student: studentId });
 
         if (!experiment) throw new NotFoundError("experiment not found");
 
         experiment.grade = req.body.score;
+        experiment.isCompleted = true;
 
         await experiment.save();
 
         await submittedScoreNotification(studentId, experiment._id);
-        ServerResponse(req, res, 200, true, "scored sent successfully");
+        ServerResponse(req, res, 200, experiment, "scored sent successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }

@@ -5,7 +5,10 @@ const { sendInvitation } = require("../services/email");
 const { Student, validateStudent } = require("../models/student");
 const { Teacher } = require("../models/teacher");
 const constants = require("../utils/constants");
-const { ServerErrorHandler } = require("../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../services/response/serverResponse");
+const { excelParserService } = require("../services/excelParserService");
+const { passwordService } = require("../services/passwordService");
+const BadRequestError = require("../services/exceptions/bad-request");
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body;
@@ -58,8 +61,9 @@ async function createStudent(req, res) {
     let student = await Student.findOne({ email });
 
     if (student) return res.status(400).send("Email already registered");
-    const salt = await bcrypt.genSalt(10);
-    password = await bcrypt.hash(password, salt);
+
+    password = await passwordService.hash(password);
+
     student = new Student({
         name,
         email,
@@ -86,6 +90,30 @@ async function getStudent(req, res) {
         if (student._id.toString() !== studentId) return res.status(403).send({ message: "Not authorize" });
 
         res.send(student);
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+async function bulkCreate(req, res) {
+    try {
+        const data = await excelParserService.convertToJSON(req);
+        const promises = [];
+        for (let item of data) {
+            const studentExist = await Student.findOne({ email: item.Email });
+
+            if (studentExist) throw new BadRequestError(`student ${item.Email} already exist`);
+
+            const student = new Student({
+                name: `${item["First Name"]} ${item["Last Name"]}`,
+                email: item.Email,
+                password: await passwordService.hash(item.Password),
+            });
+
+            promises.push(student.save());
+        }
+        const response = await Promise.all(promises);
+
+        ServerResponse(req, res, 201, null, "successfully uploaded students");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -262,4 +290,5 @@ module.exports = {
     inviteTeacher,
     postFinishedQuiz,
     getFinishedQuiz,
+    bulkCreate,
 };
