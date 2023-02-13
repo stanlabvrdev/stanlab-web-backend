@@ -460,6 +460,11 @@
             }
           }
         ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Sent Successfully"
@@ -1365,13 +1370,13 @@
         }
       }
     },
-    "/system-experiments/lab/{id}/assign": {
+    "/system-experiments/lab/{experimentId}/assign": {
       "post": {
         "tags": ["lab v2"],
         "description": "Assign lab experiment",
         "parameters": [
           {
-            "name": "id",
+            "name": "experimentId",
             "in": "path",
             "required": true,
             "type": "string"
