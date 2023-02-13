@@ -11,6 +11,7 @@ const Experiment = require("../models/experiment");
 const { sendInvitation, doSendInvitationEmail } = require("../services/email");
 const { LabExperiment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/labAssignment");
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -28,8 +29,7 @@ async function deleteStudent(req, res) {
         await student.save();
         res.status(204).send(true);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -52,8 +52,7 @@ async function createClass(req, res) {
         await teacher.save();
         res.send(teacherClass);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "error creating" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -75,7 +74,7 @@ async function createAvatar(req, res) {
         await teacher.save();
         res.send({ message: "successful" });
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -85,7 +84,7 @@ async function getAvatar(req, res) {
         if (!teacher || !teacher.avatar) return res.status(404).send({ message: "Not Found" });
         res.set("Content-Type", "image/png").send(teacher.avatar);
     } catch (error) {
-        res.status(400).send({ message: "Invalid ID" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -127,8 +126,7 @@ async function updateTeacher(req, res) {
         await teacher.save();
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send("Something went wrong");
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -151,8 +149,7 @@ async function addStudentToClass(req, res) {
         await teacherClass.save();
         res.send(teacherClass);
     } catch (error) {
-        res.status(400).send({ message: "Invalid class or student id" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -199,8 +196,7 @@ async function sendQuizToStudents(req, res) {
         await teacher.save();
         res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 async function sendLabToStudents(req, res) {
@@ -244,8 +240,7 @@ async function sendLabToStudents(req, res) {
         await teacher.save();
         res.send({ message: "Sent!" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -308,8 +303,7 @@ async function sendInviteToStudent(req, res) {
         await student.save();
         return res.send({ data: { id: student._id, email: student.email }, message: "Invitation sent!" });
     } catch (ex) {
-        console.log(ex);
-        res.status(500).send({ message: "Something went wrong" });
+        ServerErrorHandler(req, res, ex);
     }
 }
 
@@ -325,8 +319,7 @@ async function acceptStudentInvite(req, res) {
         await teacher.save();
         res.send({ message: "Invite accepted" });
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -336,8 +329,7 @@ async function getTeacher(req, res) {
         if (!teacher) return res.status(404).send({ message: "Teacher with this ID was not found" });
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(400).send({ message: "Invalid teacher ID" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -351,8 +343,7 @@ async function getStudents(req, res) {
             .select("students");
         res.send(students);
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 

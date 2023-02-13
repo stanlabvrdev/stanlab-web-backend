@@ -10,8 +10,8 @@ const {
     sendTeacherInviteEmail,
     sendStudentInviteEmail,
 } = require("../services/email");
-const constants = require("../utils/constants");
-const moment = require("moment");
+
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function createSchoolAdmin(req, res) {
     const { error } = validateSchoolAdmin(req.body);
@@ -46,8 +46,7 @@ async function createSchoolAdmin(req, res) {
             .header("access-control-expose-headers", "x-auth-token")
             .send(_.pick(admin, ["adminName", "email", "schoolEmail", "schoolName", "teachers", "students", "_id"]));
     } catch (error) {
-        console.log(error);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -83,8 +82,7 @@ async function createTeacher(req, res) {
         await school.save();
         res.send({ message: "invitation sent sucessfully" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -115,8 +113,7 @@ async function createStudent(req, res) {
         await school.save();
         res.send({ message: "invitation sent sucessfully" });
     } catch (error) {
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -132,9 +129,7 @@ async function getTeachers(req, res) {
             .select("teachers");
         res.send(schoolTeachers);
     } catch (error) {
-        console.log(error);
-
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 async function getSchoolAdmin(req, res) {
@@ -146,9 +141,7 @@ async function getSchoolAdmin(req, res) {
         if (!school) return res.status(404).send({ message: "admin not found" });
         res.send({ data: school, message: "school admin successfull fetched" });
     } catch (error) {
-        console.log(error);
-
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
