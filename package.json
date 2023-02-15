@@ -30,10 +30,12 @@
         "node-fetch": "^2.6.1",
         "passport": "^0.4.1",
         "passport-google-oauth20": "^2.0.0",
+        "pdfjs": "^2.4.7",
         "sharp": "^0.26.3",
         "stripe": "^8.129.0",
-        "xlsx": "^0.18.5",
-        "swagger-ui-express": "^4.6.0"
+        "swagger-ui-express": "^4.6.0",
+        "textract": "^2.5.0",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "nodemon": "^2.0.20"
