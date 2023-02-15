@@ -33,7 +33,26 @@ async function parsePDF(buffer) {
 }
 
 
+async function parseDocx(fileType, buffer) {
+    return new Promise((resolve, reject) => {
+        textract.fromBufferWithMime(fileType, buffer, (error, content) => {
+            if (error) {
+                reject(error);
+            } else {
+                const totalWords = content.split(/\s+/).length;
+                content = [content];
+                const data = {
+                    totalWords,
+                    content,
+                };
+                resolve(data);
+            }
+        });
+    });
+}
+
 
 module.exports = {
-    parsePDF
+    parsePDF,
+    parseDocx
 }
