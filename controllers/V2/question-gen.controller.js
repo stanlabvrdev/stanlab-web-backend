@@ -2,24 +2,27 @@ const {
     genQuestions,
     formatQuestions
 } = require('../../services/questionGeneration')
+const {
+    GeneratedQuestions,
+    QuestionGroup
+} = require('../../models/generated-questions')
 const axios = require('axios')
+const CustomError = require('../services/exceptions/custom')
+const {
+    ServerErrorHandler,
+    ServerResponse
+} = require('../../services/response/serverResponse')
 
 async function genFromFile(req, res) {
     try {
         //In the route there should be a multer check for file type and file size limits and if there is a file
         const questions = await genQuestions(req.file.mimetype, req.file.buffer)
         if (questions && questions.length !== 0) {
-            const finalQuestions = await formatQuestions(questions)
-            return res.status(200).send({
-                message: 'Questions Generated Successfully',
-                noOfQuestions: finalQuestions.length,
-                data: finalQuestions,
-            })
-        } else {
-            //Question generation did not work
-        }
+            const finalQuestions = formatQuestions(questions)
+            return ServerResponse(req, res, 200, finalQuestions, 'Questions generated successfully')
+        } else throw CustomError(500, 'Question Generation unsuccessful')
     } catch (err) {
-        console.log(err) //Send appropriate error message
+        ServerErrorHandler(req, res, err)
     }
 }
 
@@ -30,30 +33,41 @@ async function genFromText(req, res) {
             option_set: "Wordnet" //Can be other or Wordnet
         })).data
         if (questions && questions.length !== 0) {
-            const finalQuestions = await formatQuestions([questions])
-            return res.status(200).send({
-                message: 'Questions Generated Successfully',
-                noOfQuestions: finalQuestions.length,
-                data: finalQuestions,
-            })
-        }
+            const finalQuestions = formatQuestions([questions])
+            return ServerResponse(req, res, 200, finalQuestions, 'Questions generated successfully')
+        } else throw CustomError(500, 'Question Generation unsuccessful')
     } catch (err) {
-        console.log(err)
+        ServerErrorHandler(req, res, err)
     }
 }
 
 
-async function saveQuestions() {
-    // Expect and array of questions --  [array of objects]
-    const {
-        data
-    } = req.body
-
+async function saveQuestions(req, res) {
+    try {
+        const {
+            subject,
+            topic,
+            questions
+        } = req.body
+        const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each))
+        const savedQuests = (await Promise.allSettled(questionSavePromises)).filter(each => each.status === 'fulfilled').map(each => each.value.id)
+        const questGroup = await QuestionGroup.create({
+            teacher: '63efddacf391b01ba4aadf89',
+            subject,
+            topic,
+            questions: savedQuests
+        })
+        return ServerResponse(req, res, 200, questGroup, 'Saved')
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
 }
 
 
-// async function getAl
+
+
 module.exports = {
     genFromFile,
-    genFromText
+    genFromText,
+    saveQuestions
 }
