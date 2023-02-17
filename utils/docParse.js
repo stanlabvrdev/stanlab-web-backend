@@ -32,7 +32,6 @@ async function parsePDF(buffer) {
     };
 }
 
-
 async function parseDocx(fileType, buffer) {
     return new Promise((resolve, reject) => {
         textract.fromBufferWithMime(fileType, buffer, (error, content) => {
@@ -51,6 +50,7 @@ async function parseDocx(fileType, buffer) {
     });
 }
 
+//Splits large data into an array 500 word elements.
 const splitTo500 = (text) => {
     //Split incoming text into an array
     const wordArr = text.split(' ')
@@ -69,5 +69,6 @@ const splitTo500 = (text) => {
 
 module.exports = {
     parsePDF,
-    parseDocx
+    parseDocx,
+    splitTo500
 }
