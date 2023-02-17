@@ -8,7 +8,7 @@ const {
 //Parse pdf or text and make call to ML model
 async function genQuestions(fileType, buffer) {
     try {
-        let data, formattedData
+        let data
         if (fileType === 'application/pdf') {
             data = await parsePDF(buffer);
         } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
@@ -16,18 +16,55 @@ async function genQuestions(fileType, buffer) {
         } else {
             console.log('File Type not supported')
             //Throw an error that file type is not supported
-            //should return here
         }
-        formattedData = splitTo500(data.content[0])
+        const formattedData = splitTo500(data.content[0])
+        console.log(formattedData)
 
-        const callsToModel = formattedData.map((each) => axios.post('https://questiongen2-tqzv2kz3qq-uc.a.run.app/', {
+        const callsToModel = formattedData.map((each) => axios.post('https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion', {
             context: each,
-            option_set: "other"
+            option_set: "Wordnet" //Can be other or Wordnet
         }))
-
-        const questions = Promise.all(callsToModel)
+        //Resolve promises and extract questions
+        console.log(callsToModel)
+        const questions = (await Promise.allSettled(callsToModel)).filter(each => each.status === 'fulfilled').map(each => each.value.data)
+        console.log(questions.length)
         return questions
     } catch (err) {
         console.log(err) //Proper error handling will be carried out
     }
+}
+
+
+async function formatQuestions(arrOfQuestions) {
+    //Typescript would be helpful here, lol
+    let finalQuestions = []
+    arrOfQuestions.forEach((each) => {
+        // console.log(each)
+        for (let [question, options] of Object.entries(each)) {
+            options = options.map((each) => {
+                if (each.startsWith("Ans:")) {
+                    return {
+                        answer: each.split(": ")[1],
+                        isCorrect: true
+                    }
+                } else {
+                    return {
+                        answer: each,
+                        isCorrect: false
+                    }
+                }
+            })
+            finalQuestions.push({
+                question,
+                options
+            })
+        }
+    })
+    console.log(finalQuestions)
+    return finalQuestions
+}
+
+module.exports = {
+    genQuestions,
+    formatQuestions
 }
