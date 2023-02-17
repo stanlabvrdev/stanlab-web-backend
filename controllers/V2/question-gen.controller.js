@@ -25,12 +25,12 @@ async function genFromFile(req, res) {
 
 async function genFromText(req, res) {
     try {
-        const questions = await axios.post('https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion', {
+        const questions = (await axios.post('https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion', {
             context: req.body.text,
             option_set: "Wordnet" //Can be other or Wordnet
-        })
-        if (questions) {
-            const finalQuestions = await formatQuestions(questions)
+        })).data
+        if (questions && questions.length !== 0) {
+            const finalQuestions = await formatQuestions([questions])
             return res.status(200).send({
                 message: 'Questions Generated Successfully',
                 noOfQuestions: finalQuestions.length,
@@ -43,13 +43,13 @@ async function genFromText(req, res) {
 }
 
 
-// async function saveQuestions() {
-//Expect and array of questions --  [array of objects]
-//     const {
-//         data
-//     } = req.body
+async function saveQuestions() {
+    // Expect and array of questions --  [array of objects]
+    const {
+        data
+    } = req.body
 
-// }
+}
 
 
 // async function getAl
