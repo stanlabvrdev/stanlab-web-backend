@@ -2,18 +2,13 @@
 const mongoose = require('mongoose')
 
 const questionSchema = mongoose.Schema({
-    teacher: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher',
-        required: true,
-    },
     question: {
         type: String,
         required: true
     },
     options: {
         type: [{
-            text: String,
+            answer: String,
             isCorrect: {
                 type: Boolean,
                 default: false
@@ -24,15 +19,34 @@ const questionSchema = mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now()
+    }
+})
+
+const GeneratedQuestions = mongoose.model("GeneratedQuestion", questionSchema);
+
+const questionGroupSchema = mongoose.Schema({
+    teacher: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Teacher',
+        required: true,
     },
     subject: {
         type: String,
         required: true,
     },
     topic: {
-        type: string,
+        type: String,
         required: true
-    }
+    },
+    questions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'GeneratedQuestion'
+    }]
 })
 
-const Questions = mongoose.model("Questions", questionSchema);
+const QuestionGroup = mongoose.model('QuestionGroup', questionGroupSchema)
+
+module.exports = {
+    QuestionGroup,
+    GeneratedQuestions
+}
