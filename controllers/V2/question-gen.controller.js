@@ -63,7 +63,16 @@ async function saveQuestions(req, res) {
     }
 }
 
-
+async function getQuestions(req, res) {
+    try {
+        const questions = await QuestionGroup.find({
+            teacher: 'teacherid'
+        }).populate('questions')
+        ServerResponse(req, res, 200, questions)
+    } catch (err) {
+        ServerErrorHandler(req, res, err, 'successful')
+    }
+}
 
 
 module.exports = {
