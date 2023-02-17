@@ -1,5 +1,4 @@
 //This model is for questions generated through the question gen endpoint
-
 const mongoose = require('mongoose')
 
 const questionSchema = mongoose.Schema({
@@ -26,11 +25,14 @@ const questionSchema = mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-    is_archived: Boolean,
-    subject: { //The plan is that this field should serve as a classifier of some sorts
+    subject: {
         type: String,
         required: true,
+    },
+    topic: {
+        type: string,
+        required: true
     }
 })
 
-const Question = mongoose.model("Questions", questionSchema);
+const Questions = mongoose.model("Questions", questionSchema);
