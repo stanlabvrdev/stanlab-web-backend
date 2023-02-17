@@ -12,6 +12,9 @@ const {
     ServerErrorHandler,
     ServerResponse
 } = require('../../services/response/serverResponse')
+const {
+    findByIdAndDelete
+} = require('mongoose/lib/model')
 
 async function genFromFile(req, res) {
     try {
@@ -68,15 +71,29 @@ async function getQuestions(req, res) {
         const questions = await QuestionGroup.find({
             teacher: 'teacherid'
         }).populate('questions')
-        ServerResponse(req, res, 200, questions)
+        ServerResponse(req, res, 200, questions, 'Successful')
     } catch (err) {
-        ServerErrorHandler(req, res, err, 'successful')
+        ServerErrorHandler(req, res, err)
     }
 }
 
+async function deleteQuestionGroup(req, res) {
+    try {
+        const {
+            id
+        } = req.params
+        const deletedGroup = await findByIdAndDelete(id)
+        if (deletedGroup) return ServerResponse(req, res, 200, undefined, 'Deleted Successfully')
+        else return ServerResponse(req, res, 404, undefined, 'Resource not found')
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
 
 module.exports = {
     genFromFile,
     genFromText,
-    saveQuestions
+    saveQuestions,
+    getQuestions,
+    deleteQuestionGroup
 }
