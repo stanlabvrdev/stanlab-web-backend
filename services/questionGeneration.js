@@ -15,7 +15,7 @@ async function genQuestions(fileType, buffer) {
         } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
             data = await parseDocx(fileType, buffer)
         } else throw CustomError(400, 'File format not supported')
-
+        if (data.totalWords > 2000) throw new CustomError(400, 'Word limit exceeded, file should not contain more than 2000 words')
         const formattedData = splitTo500(data.content[0])
 
         const callsToModel = formattedData.map((each) => axios.post('https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion', {
