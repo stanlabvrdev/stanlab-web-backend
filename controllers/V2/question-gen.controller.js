@@ -28,6 +28,7 @@ async function genFromFile(req, res) {
 
 async function genFromText(req, res) {
     try {
+        if (!req.body.text) throw new CustomError(400, 'Upload text to generate questions')
         const questions = (await axios.post('https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion', {
             context: req.body.text,
             option_set: "Wordnet" //Can be other or Wordnet
