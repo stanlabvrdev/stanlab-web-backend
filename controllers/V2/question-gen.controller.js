@@ -86,10 +86,26 @@ async function deleteQuestionGroup(req, res) {
     }
 }
 
+async function getAQuestionGroup(req, res) {
+    try {
+        const {
+            id
+        } = req.params
+        const questionGroup = await QuestionGroup.findOne({
+            id
+        })
+        if (questionGroup) return ServerResponse(req, res, 200, questionGroup, 'Successful')
+        else return ServerResponse(req, res, 404, undefined, 'Not found')
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
+
 module.exports = {
     genFromFile,
     genFromText,
     saveQuestions,
     getQuestions,
-    deleteQuestionGroup
+    deleteQuestionGroup,
+    getAQuestionGroup
 }

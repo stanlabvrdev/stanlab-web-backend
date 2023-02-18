@@ -6,7 +6,8 @@ const {
     genFromText,
     saveQuestions,
     getQuestions,
-    deleteQuestionGroup
+    deleteQuestionGroup,
+    getAQuestionGroup
 } = require('../../controllers/V2/question-gen.controller')
 
 const {
@@ -30,6 +31,7 @@ router.use(teacherAuth)
 
 router.post('/filegenerate', upload.single('pdfFile'), genFromFile)
 router.post('/textgenerate', genFromText)
-router.route('/').post(saveQuestions).delete(deleteQuestionGroup).get(getQuestions)
+router.route('/').post(saveQuestions).get(getQuestions)
+router.route('/:id').delete(deleteQuestionGroup).get(getAQuestionGroup)
 
 module.exports = router
