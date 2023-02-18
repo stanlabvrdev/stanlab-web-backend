@@ -7,7 +7,7 @@ const {
     QuestionGroup
 } = require('../../models/generated-questions')
 const axios = require('axios')
-const CustomError = require('../services/exceptions/custom')
+const CustomError = require('../../services/exceptions/custom')
 const {
     ServerErrorHandler,
     ServerResponse
