@@ -77,7 +77,7 @@ app.use("/api/v2/teachers", teachersV2Route);
 app.use("/api/v2/students", studentsV2Route);
 app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
-app.use("api/v2/ai", generatedQuestions)
+app.use("api/v2/ai/questions", generatedQuestions)
 
 if (!config.get("jwtKey")) {
   console.log("FETAL ERROR: jwtKey is not set");
