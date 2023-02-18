@@ -12,13 +12,9 @@ const {
     ServerErrorHandler,
     ServerResponse
 } = require('../../services/response/serverResponse')
-const {
-    findByIdAndDelete
-} = require('mongoose/lib/model')
 
 async function genFromFile(req, res) {
     try {
-        //In the route there should be a multer check for file type and file size limits and if there is a file
         const questions = await genQuestions(req.file.mimetype, req.file.buffer)
         if (questions && questions.length !== 0) {
             const finalQuestions = formatQuestions(questions)
@@ -55,7 +51,7 @@ async function saveQuestions(req, res) {
         const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each))
         const savedQuests = (await Promise.allSettled(questionSavePromises)).filter(each => each.status === 'fulfilled').map(each => each.value.id)
         const questGroup = await QuestionGroup.create({
-            teacher: '63efddacf391b01ba4aadf89',
+            teacher: req.teacher.id,
             subject,
             topic,
             questions: savedQuests
@@ -69,7 +65,7 @@ async function saveQuestions(req, res) {
 async function getQuestions(req, res) {
     try {
         const questions = await QuestionGroup.find({
-            teacher: 'teacherid'
+            teacher: req.teacher.id
         }).populate('questions')
         ServerResponse(req, res, 200, questions, 'Successful')
     } catch (err) {
@@ -82,7 +78,7 @@ async function deleteQuestionGroup(req, res) {
         const {
             id
         } = req.params
-        const deletedGroup = await findByIdAndDelete(id)
+        const deletedGroup = await QuestionGroup.findByIdAndDelete(id)
         if (deletedGroup) return ServerResponse(req, res, 200, undefined, 'Deleted Successfully')
         else return ServerResponse(req, res, 404, undefined, 'Resource not found')
     } catch (err) {
