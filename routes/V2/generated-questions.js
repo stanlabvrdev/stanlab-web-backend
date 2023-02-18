@@ -14,17 +14,17 @@ const {
     teacherAuth
 } = require("../../middleware/auth");
 
+//File filter to check for file type
+function fileFilter(req, file, cb) {
+    const allowedMimeTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+        console.log(file)
+        return cb(new Error("Please upload a PDF or docx file."));
+    }
+    cb(null, true);
+}
 const upload = multer({
-    fileFilter: (req, file, cb) => {
-        if (!file) {
-            return cb(new Error('No file uploaded'));
-        }
-        const allowedMimeTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-            return cb(new Error("Please upload a PDF or docx file."));
-        }
-        cb(null, true);
-    },
+    fileFilter: fileFilter
 });
 
 router.use(teacherAuth)
