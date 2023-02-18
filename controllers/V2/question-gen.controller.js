@@ -53,7 +53,7 @@ async function saveQuestions(req, res) {
         const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each))
         const savedQuests = (await Promise.allSettled(questionSavePromises)).filter(each => each.status === 'fulfilled').map(each => each.value.id)
         const questGroup = await QuestionGroup.create({
-            teacher: req.teacher.id,
+            teacher: req.teacher._id,
             subject,
             topic,
             questions: savedQuests
@@ -67,7 +67,7 @@ async function saveQuestions(req, res) {
 async function getQuestions(req, res) {
     try {
         const questions = await QuestionGroup.find({
-            teacher: req.teacher.id
+            teacher: req.teacher._id
         }).populate('questions')
         ServerResponse(req, res, 200, questions, 'Successful')
     } catch (err) {
@@ -94,8 +94,8 @@ async function getAQuestionGroup(req, res) {
             id
         } = req.params
         const questionGroup = await QuestionGroup.findOne({
-            id
-        })
+            _id: id
+        }).populate('questions')
         if (questionGroup) return ServerResponse(req, res, 200, questionGroup, 'Successful')
         else return ServerResponse(req, res, 404, undefined, 'Not found')
     } catch (err) {
