@@ -15,11 +15,12 @@ const {
 
 async function genFromFile(req, res) {
     try {
+        if (!req.file) throw new CustomError(400, 'No file uploaded')
         const questions = await genQuestions(req.file.mimetype, req.file.buffer)
         if (questions && questions.length !== 0) {
             const finalQuestions = formatQuestions(questions)
             return ServerResponse(req, res, 200, finalQuestions, 'Questions generated successfully')
-        } else throw CustomError(500, 'Question Generation unsuccessful')
+        } else throw new CustomError(500, 'Question Generation unsuccessful')
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
@@ -34,7 +35,7 @@ async function genFromText(req, res) {
         if (questions && questions.length !== 0) {
             const finalQuestions = formatQuestions([questions])
             return ServerResponse(req, res, 200, finalQuestions, 'Questions generated successfully')
-        } else throw CustomError(500, 'Question Generation unsuccessful')
+        } else throw new CustomError(500, 'Question Generation unsuccessful')
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
