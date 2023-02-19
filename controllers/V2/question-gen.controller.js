@@ -13,6 +13,15 @@ const {
     ServerResponse
 } = require('../../services/response/serverResponse')
 
+//For general use in queries here reduce processing time, returns regular js docs instead of mongoose docs
+const populateOptions = {
+    path: 'questions',
+    select: '-__v',
+    options: {
+        lean: true
+    }
+}
+
 async function genFromFile(req, res) {
     try {
         if (!req.file) throw new CustomError(400, 'No file uploaded')
@@ -68,7 +77,7 @@ async function getQuestions(req, res) {
     try {
         const questions = await QuestionGroup.find({
             teacher: req.teacher._id
-        }).populate('questions')
+        }).populate(populateOptions)
         ServerResponse(req, res, 200, questions, 'Successful')
     } catch (err) {
         ServerErrorHandler(req, res, err)
@@ -95,7 +104,7 @@ async function getAQuestionGroup(req, res) {
         } = req.params
         const questionGroup = await QuestionGroup.findOne({
             _id: id
-        }).populate('questions')
+        }).populate(populateOptions)
         if (questionGroup) return ServerResponse(req, res, 200, questionGroup, 'Successful')
         else return ServerResponse(req, res, 404, undefined, 'Not found')
     } catch (err) {
@@ -103,11 +112,32 @@ async function getAQuestionGroup(req, res) {
     }
 }
 
+async function editQuestionGroup(req, res) {
+    try {
+        const id = req.params.id;
+        const questions = req.body.questions
+        const update = {
+            subject: req.body.subject,
+            topic: req.body.topic
+        }
+        const options = {
+            new: true
+        }
+        const updatedQuestions = await Promise.allSettled(questions.map((each) => GeneratedQuestions.findByIdAndUpdate(each._id, each, options)))
+        const updated = await QuestionGroup.findByIdAndUpdate(id, {
+            $set: update
+        }, options).populate(populateOptions)
+        ServerResponse(req, res, 200, updated, 'Update successful')
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
 module.exports = {
     genFromFile,
     genFromText,
     saveQuestions,
     getQuestions,
     deleteQuestionGroup,
-    getAQuestionGroup
+    getAQuestionGroup,
+    editQuestionGroup
 }
