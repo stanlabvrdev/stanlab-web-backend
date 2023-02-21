@@ -16,6 +16,7 @@
         "cloudinary": "^1.23.0",
         "config": "^3.3.2",
         "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
         "express": "^4.17.1",
         "generate-password": "^1.7.0",
         "google-auth-library": "^6.1.4",
@@ -32,8 +33,8 @@
         "passport-google-oauth20": "^2.0.0",
         "sharp": "^0.26.3",
         "stripe": "^8.129.0",
-        "xlsx": "^0.18.5",
-        "swagger-ui-express": "^4.6.0"
+        "swagger-ui-express": "^4.6.0",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "nodemon": "^2.0.20"

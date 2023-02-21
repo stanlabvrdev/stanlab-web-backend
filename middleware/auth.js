@@ -1,5 +1,8 @@
 const jwt = require("jsonwebtoken");
-const config = require("config");
+
+const envConfig = require("../config/env");
+const env = envConfig.getAll();
+
 const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 function teacherAuth(req, res, next) {
@@ -7,7 +10,7 @@ function teacherAuth(req, res, next) {
 
     if (!token) return res.status(401).send("Access Denied!. No token provided");
     try {
-        const decoded = jwt.verify(token, config.get("jwtKey"));
+        const decoded = jwt.verify(token, env.jwtKey);
         // check to see if the role is teacher -> send 403
         if (decoded.role !== "Teacher") return res.status(403).send("Access Denied!.");
         req.teacher = decoded;
@@ -22,7 +25,7 @@ function studentAuth(req, res, next) {
 
     if (!token) return res.status(401).send("Access Denied!. No token provided");
     try {
-        const decoded = jwt.verify(token, config.get("jwtKey"));
+        const decoded = jwt.verify(token, env.jwtKey);
 
         if (decoded.role !== "Student") return res.status(403).send("Access Denied!.");
         req.student = decoded;
@@ -37,7 +40,7 @@ function schoolAuth(req, res, next) {
 
     if (!token) return res.status(401).send("Access Denied!. No token provided");
     try {
-        const decoded = jwt.verify(token, config.get("jwtKey"));
+        const decoded = jwt.verify(token, env.jwtKey);
         if (decoded.role !== "School") return res.status(403).send("Access Denied!.");
         req.school = decoded;
         next();

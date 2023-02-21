@@ -3,6 +3,10 @@ const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 
+const envConfig = require("../config/env");
+
+const env = envConfig.getAll();
+
 // profile:snapshot of the student
 const studentSchema = new mongoose.Schema({
     avatar: { type: Buffer },
@@ -86,7 +90,7 @@ const studentSchema = new mongoose.Schema({
 });
 
 studentSchema.methods.generateAuthToken = function() {
-    const token = jwt.sign({ _id: this._id, role: this.role }, config.get("jwtKey"));
+    const token = jwt.sign({ _id: this._id, role: this.role }, env.jwtKey);
     return token;
 };
 

@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
-const config = require("config");
+
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
+const envConfig = require("../config/env");
+
+const env = envConfig.getAll();
 
 const schoolAdminSchema = new mongoose.Schema({
     adminName: { type: String, required: true, minLength: 3, maxlength: 255 },
@@ -37,7 +40,7 @@ function validateSchoolUser(user) {
 }
 
 schoolAdminSchema.methods.generateAuthToken = function() {
-    const token = jwt.sign({ _id: this._id, role: this.role }, config.get("jwtKey"));
+    const token = jwt.sign({ _id: this._id, role: this.role }, env.jwtKey);
     return token;
 };
 
