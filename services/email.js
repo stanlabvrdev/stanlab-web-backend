@@ -1,11 +1,12 @@
 const sgMail = require("@sendgrid/mail");
-const config = require("config");
 
-sgMail.setApiKey(config.get("sendGrid_API_KEY"));
+const envConfig = require("../config/env");
+const env = envConfig.getAll();
+
+sgMail.setApiKey(env.sendGrid_API_KEY);
 
 const stanLabMail = "info@stanlab.com";
-
-const mailgunAPIKey = config.get("mailgun_API_KEY");
+const mailgunAPIKey = env.mailgun_API_KEY;
 
 const mailgun = require("mailgun-js");
 // const DOMAIN = "https://www.stanlabvr.com";
