@@ -11,6 +11,7 @@ const teachersRoute = require("./routes/teachers");
 const teachersV2Route = require("./routes/V2/teachers");
 const studentsV2Route = require("./routes/V2/students");
 const teacherClassV2Route = require("./routes/V2/teacherClass");
+const generatedQuestions = require('./routes/V2/generated-questions')
 
 const studentRoute = require("./routes/students");
 const loginRoute = require("./routes/login");
@@ -23,8 +24,12 @@ const labExperimentRoute = require("./routes/lab");
 const authRoutes = require("./routes/auth");
 const notificationRoutes = require("./routes/V2/notification");
 
-const { teacherPassport } = require("./services/initPassport");
-const { studentPassport } = require("./services/initPassport");
+const {
+  teacherPassport
+} = require("./services/initPassport");
+const {
+  studentPassport
+} = require("./services/initPassport");
 
 //passport  strategies
 require("./services/teacherPassport")(teacherPassport);
@@ -39,11 +44,20 @@ const swaggerFile = require("./swagger-output.json");
 app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 //initialize passports
-app.use(teacherPassport.initialize({ userProperty: "user" }));
-app.use(studentPassport.initialize({ userProperty: "user" }));
+app.use(teacherPassport.initialize({
+  userProperty: "user"
+}));
+app.use(studentPassport.initialize({
+  userProperty: "user"
+}));
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(express.json({
+  limit: "50mb"
+}));
+app.use(express.urlencoded({
+  limit: "50mb",
+  extended: true
+}));
 app.use(cors());
 
 app.use("/api/lab", labsetupRoute);
@@ -63,6 +77,7 @@ app.use("/api/v2/teachers", teachersV2Route);
 app.use("/api/v2/students", studentsV2Route);
 app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
+app.use("/api/v2/ai/questions", generatedQuestions)
 
 if (!config.get("jwtKey")) {
   console.log("FETAL ERROR: jwtKey is not set");
