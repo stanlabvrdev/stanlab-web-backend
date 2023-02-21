@@ -1,0 +1,307 @@
+[21-Feb-2023 17:32:41:3241] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:33:31:3331] [info]: 	============================
+[21-Feb-2023 17:33:31:3331] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:33:31:3331] [info]: 	============================
+[21-Feb-2023 17:33:31:3331] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:33:45:3345] [info]: 	============================
+[21-Feb-2023 17:33:45:3345] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:33:45:3345] [info]: 	============================
+[21-Feb-2023 17:33:45:3345] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:33:45:3345] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:33:58:3358] [info]: 	============================
+[21-Feb-2023 17:33:58:3358] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:33:58:3358] [info]: 	============================
+[21-Feb-2023 17:33:58:3358] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:33:58:3358] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:34:20:3420] [info]: 	============================
+[21-Feb-2023 17:34:20:3420] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:34:20:3420] [info]: 	============================
+[21-Feb-2023 17:34:21:3421] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:34:21:3421] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:34:47:3447] [info]: 	============================
+[21-Feb-2023 17:34:47:3447] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:34:47:3447] [info]: 	============================
+[21-Feb-2023 17:34:47:3447] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:34:47:3447] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:35:05:355] [info]: 	============================
+[21-Feb-2023 17:35:05:355] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:35:05:355] [info]: 	============================
+[21-Feb-2023 17:35:05:355] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:35:05:355] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:35:18:3518] [info]: 	============================
+[21-Feb-2023 17:35:18:3518] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:35:18:3518] [info]: 	============================
+[21-Feb-2023 17:35:18:3518] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:35:18:3518] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:35:40:3540] [info]: 	============================
+[21-Feb-2023 17:35:40:3540] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:35:40:3540] [info]: 	============================
+[21-Feb-2023 17:35:40:3540] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:35:40:3540] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:36:06:366] [info]: 	============================
+[21-Feb-2023 17:36:06:366] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:36:06:366] [info]: 	============================
+[21-Feb-2023 17:36:06:366] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:36:06:366] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:36:23:3623] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:36:31:3631] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:36:36:3636] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:36:42:3642] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:00:370] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:14:3714] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:22:3722] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:31:3731] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:41:3741] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:45:3745] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:37:51:3751] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:05:385] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:17:3817] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:25:3825] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:34:3834] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:44:3844] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:38:55:3855] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:11:3911] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:23:3923] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:29:3929] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:37:3937] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:45:3945] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:39:49:3949] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:41:36:4136] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:42:33:4233] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:43:24:4324] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:44:12:4412] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:44:16:4416] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:45:02:452] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:45:34:4534] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:45:42:4542] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:46:04:464] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:47:25:4725] [info]: 	============================
+[21-Feb-2023 17:47:25:4725] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:47:25:4725] [info]: 	============================
+[21-Feb-2023 17:47:25:4725] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:47:25:4725] [info]: 	Connected to MongoDB...
+[21-Feb-2023 17:47:47:4747] [info]: 	============================
+[21-Feb-2023 17:47:47:4747] [info]: 	Listening on port 8000!!
+[21-Feb-2023 17:47:47:4747] [info]: 	============================
+[21-Feb-2023 17:47:47:4747] [warn]: 	DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+    at NativeCollection.<computed> [as ensureIndex] (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/drivers/node-mongodb-native/collection.js:180:28)
+    at NativeCollection.create (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/model.js:1657:33)
+    at NativeCollection.Collection.doQueue (/Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:120:17)
+    at /Users/user/Desktop/workspace/stanlab-backend/node_modules/mongoose/lib/collection.js:82:24
+    at processTicksAndRejections (internal/process/task_queues.js:77:11)
+[21-Feb-2023 17:47:47:4747] [info]: 	Connected to MongoDB...
