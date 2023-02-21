@@ -5,6 +5,7 @@ const env = envConfig.getAll();
 const stripe = require("stripe")(env.stripe_Secret_Key);
 
 const { Student } = require("../models/student");
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function postCharge(req, res) {
     try {
@@ -23,8 +24,7 @@ async function postCharge(req, res) {
         student = await student.save();
         res.send(student);
     } catch (error) {
-        res.send({ message: "Something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 

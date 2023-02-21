@@ -62,8 +62,7 @@ async function getClass(req, res) {
 
         res.send(teacherClasses);
     } catch (error) {
-        res.status(500).send({ message: "Something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -178,7 +177,6 @@ async function sendQuizToStudents(req, res) {
         newQuiz = await newQuiz.save();
 
         for (let studentId of students) {
-            // console.log('From send quiz route  student are = ', studentData)
             let student = await Student.findOne({ _id: studentId });
             // classworks.quizClasswork.push(newQuiz._id)
             student = student.addQuiz(newQuiz._id);

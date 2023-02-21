@@ -34,7 +34,8 @@ const app = express();
 // Swagger files
 const swaggerUi = require("swagger-ui-express");
 const swaggerFile = require("./swagger-output.json");
-
+const { morganMiddleware } = require("./middleware/morgan");
+app.use(morganMiddleware);
 // Swagger for API documentation
 app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 

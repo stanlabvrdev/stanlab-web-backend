@@ -24,7 +24,6 @@ async function getLabs(req, res) {
                     .populate({ path: "experiment", select: ["name", "_id", "subject"] })
                     .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
 
-                console.log(experiment);
                 const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
                     path: "teacher",
                     select: ["name", "email", "_id"],
@@ -78,7 +77,6 @@ async function getScores(req, res) {
             .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
             .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
 
-        console.log(scores);
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
         ServerErrorHandler(req, res, error);
