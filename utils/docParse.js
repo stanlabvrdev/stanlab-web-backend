@@ -1,4 +1,4 @@
-const pdfjs = require('pdfjs-dist');
+const pdfjs = require('../node_modules/pdfjs-dist/es5/build/pdf.js');
 const textract = require('textract')
 
 async function parsePDF(buffer) {
