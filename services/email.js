@@ -57,15 +57,15 @@ function sendTeacherInviteEmail(teacher, password) {
     });
 }
 
-function sendEmailToSchoolAdmin(admin) {
+function sendEmailToSchoolAdmin(email, name) {
     const data = {
         from: "StanLab <info@stanlab.com>",
-        to: admin.email,
+        to: email,
         subject: "Welcome to StanLab",
         template: "welcome-school-admin",
         "h:X-Mailgun-Variables": JSON.stringify({
-            email: admin.email,
-            name: admin.name,
+            email,
+            name,
         }),
     };
     mg.messages().send(data, function(error, body) {

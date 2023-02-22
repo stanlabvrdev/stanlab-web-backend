@@ -55,7 +55,9 @@ const studentSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    name: { type: String, minlength: 5, maxlength: 255, required: true },
+    name: { type: String, minlength: 3, maxlength: 255, required: true },
+    surname: { type: String, minlength: 3, maxlength: 255, required: true },
+    userName: { type: String, minlength: 5, maxlength: 255, required: true },
     password: { type: String, minlength: 5, maxlength: 1024, required: true },
     imageUrl: { type: String },
     plan: {

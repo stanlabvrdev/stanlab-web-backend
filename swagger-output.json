@@ -1248,29 +1248,60 @@
             }
           }
         ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      },
+      "get": {
+        "tags": ["school admin"],
+        "description": "Get school admin",
+        "parameters": [],
         "security": [
           {
             "bearerAuth": []
           }
         ],
         "responses": {
-          "201": {
-            "description": "Resource Created Successfully"
+          "200": {
+            "description": "Resource Fetched Successfully"
           }
         }
       }
     },
-    "/schools/teachers": {
+    "/schools/login": {
       "post": {
         "tags": ["school admin"],
-        "description": "Create school teacher",
+        "description": "School admin login",
         "parameters": [
           {
             "in": "body",
             "name": "obj",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/CreateSchoolTeacher"
+              "$ref": "#/definitions/SchoolAdminLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login Successful"
+          }
+        }
+      }
+    },
+    "/schools/addATeacher": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Add a teacher",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateATeacher"
             }
           }
         ],
@@ -1286,18 +1317,17 @@
         }
       }
     },
-    "/schools/students": {
+    "/schools/addBulkTeachers": {
       "post": {
         "tags": ["school admin"],
-        "description": "Create school student",
+        "description": "Add teachers in bulk",
+        "consumes": ["multipart/form-data"],
         "parameters": [
           {
-            "in": "body",
-            "name": "obj",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/CreateSchoolStudent"
-            }
+            "in": "formData",
+            "name": "uploadTeachers",
+            "type": "file",
+            "description": "Upload a list of teachers from a csv file."
           }
         ],
         "security": [
@@ -1308,6 +1338,160 @@
         "responses": {
           "201": {
             "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/getTeachers": {
+      "get": {
+        "tags": ["school admin"],
+        "description": "Get teachers",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/schools/createClass": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Create a class",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateClass"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/assignTeacherToClass": {
+      "patch": {
+        "tags": ["school admin"],
+        "description": "Assign a teacher to a class",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/assignTeacherToClass"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Updated Successfully"
+          }
+        }
+      }
+    },
+    "/schools/getClasses": {
+      "get": {
+        "tags": ["school admin"],
+        "description": "Get classes",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
+          }
+        }
+      }
+    },
+    "/schools/addAStudent": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Add a Student",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateAStudent"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/addBulkStudents": {
+      "post": {
+        "tags": ["school admin"],
+        "description": "Add Students in bulk",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "in": "formData",
+            "name": "uploadStudents",
+            "type": "file",
+            "description": "Upload a list of students from a csv file."
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Resource Created Successfully"
+          }
+        }
+      }
+    },
+    "/schools/getStudents": {
+      "get": {
+        "tags": ["school admin"],
+        "description": "Get students",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Fetched Successfully"
           }
         }
       }
@@ -1340,32 +1524,6 @@
         "responses": {
           "200": {
             "description": "Resource Fetched Successfully"
-          }
-        }
-      }
-    },
-    "/login/school-admin": {
-      "post": {
-        "tags": ["school admin"],
-        "description": "School admin login",
-        "parameters": [
-          {
-            "in": "body",
-            "name": "obj",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/SchoolAdminLogin"
-            }
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Login Successful"
           }
         }
       }
@@ -2276,26 +2434,26 @@
     "CreateSchoolAdmin": {
       "type": "object",
       "required": [
-        "school_name",
-        "school_email",
-        "admin_email",
-        "admin_name",
+        "schoolName",
+        "schoolEmail",
+        "adminName",
+        "adminEmail",
         "password"
       ],
       "properties": {
-        "school_name": {
+        "schoolName": {
           "type": "string",
           "example": "kits and kitten school"
         },
-        "school_email": {
+        "schoolEmail": {
           "type": "string",
           "example": "k&k@mail.com"
         },
-        "admin_email": {
+        "adminName": {
           "type": "string",
-          "example": "oluwasquarelsv@gmail.com"
+          "example": "Anita Banks"
         },
-        "admin_name": {
+        "adminEmail": {
           "type": "string",
           "example": "pqsquarelsv@gmail.com"
         },
@@ -2305,13 +2463,31 @@
         }
       }
     },
-    "CreateSchoolTeacher": {
+    "SchoolAdminLogin": {
       "type": "object",
-      "required": ["name", "email"],
+      "required": ["schoolEmail", "password"],
+      "properties": {
+        "schoolEmail": {
+          "type": "string",
+          "example": "admin@mail.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "12345"
+        }
+      }
+    },
+    "CreateATeacher": {
+      "type": "object",
+      "required": ["name", "surname", "email"],
       "properties": {
         "name": {
           "type": "string",
-          "example": "Kit teacher 1"
+          "example": "Jerry"
+        },
+        "surname": {
+          "type": "string",
+          "example": "Seinfeld"
         },
         "email": {
           "type": "string",
@@ -2319,17 +2495,49 @@
         }
       }
     },
-    "CreateSchoolStudent": {
+    "CreateClass": {
       "type": "object",
-      "required": ["name", "email"],
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Bio 101"
+        },
+        "subject": {
+          "type": "string",
+          "example": "Biology"
+        },
+        "section": {
+          "type": "string",
+          "example": "Reproductive system"
+        }
+      }
+    },
+    "assignTeacherToClass": {
+      "type": "object",
+      "required": ["teacherId, classId"],
+      "properties": {
+        "teacherId": {
+          "type": "string",
+          "example": "63e5f0e660c2721d0a1d233b"
+        },
+        "classId": {
+          "type": "string",
+          "example": "63e5f0e660c2721d0a1d233r"
+        }
+      }
+    },
+    "CreateAStudent": {
+      "type": "object",
+      "required": ["name", "surname"],
       "properties": {
         "name": {
           "type": "string",
-          "example": "Victor Leye"
+          "example": "Victor"
         },
-        "email": {
+        "surname": {
           "type": "string",
-          "example": "oluwaleye93@mail.com"
+          "example": "Leye"
         }
       }
     },
@@ -2344,20 +2552,6 @@
         "email": {
           "type": "string",
           "example": "keth@mail.com"
-        }
-      }
-    },
-    "SchoolAdminLogin": {
-      "type": "object",
-      "required": ["email", "password"],
-      "properties": {
-        "email": {
-          "type": "string",
-          "example": "admin@mail.com"
-        },
-        "password": {
-          "type": "string",
-          "example": "12345"
         }
       }
     },
