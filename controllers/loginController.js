@@ -10,10 +10,15 @@ const constants = require("../utils/constants");
 const moment = require("moment");
 const { SchoolAdmin } = require("../models/schoolAdmin");
 const { ServerErrorHandler } = require("../services/response/serverResponse");
+const envConfig = require("../config/env");
+const { doValidate } = require("../services/exceptions/validator");
+const studentService = require("../services/student/student.service");
+const BadRequestError = require("../services/exceptions/bad-request");
+const env = envConfig.getAll();
 
 function validateAuth(auth) {
     const schema = Joi.object({
-        email: Joi.string().required().email(),
+        email: Joi.string().required(),
         password: Joi.string().required(),
     });
 
@@ -21,7 +26,7 @@ function validateAuth(auth) {
 }
 
 async function teacherGoogleAuth(req, res) {
-    const client = new OAuth2Client(config.get("teacher_google_CLIENT_ID"));
+    const client = new OAuth2Client(env.teacher_google_CLIENT_ID);
     const { tokenId } = req.body;
     if (!tokenId) return res.status(400).send({ message: "token ID Not found" });
 
@@ -30,7 +35,7 @@ async function teacherGoogleAuth(req, res) {
             payload: { email_verified, name, email, picture },
         } = await client.verifyIdToken({
             idToken: tokenId,
-            audience: config.get("teacher_google_CLIENT_ID"),
+            audience: env.teacher_google_CLIENT_ID,
         });
         if (email_verified) {
             // check if this email as registered as a teacher
@@ -78,7 +83,7 @@ async function teacherLogin(req, res) {
 }
 
 async function studentGoogleAuth(req, res) {
-    const client = new OAuth2Client(config.get("student_google_CLIENT_ID"));
+    const client = new OAuth2Client(env.student_google_CLIENT_ID);
     const { tokenId } = req.body;
     if (!tokenId) return res.status(400).send({ message: "token ID Not found" });
 
@@ -87,7 +92,7 @@ async function studentGoogleAuth(req, res) {
             payload: { email_verified, name, email, picture },
         } = await client.verifyIdToken({
             idToken: tokenId,
-            audience: config.get("student_google_CLIENT_ID"),
+            audience: env.student_google_CLIENT_ID,
         });
         if (email_verified) {
             // check if this email as registered as a teacher
@@ -123,16 +128,21 @@ async function studentGoogleAuth(req, res) {
 
 async function studentLogin(req, res) {
     const { email, password } = req.body;
-    const { error } = validateAuth(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-    const student = await Student.findOne({ email });
-    if (!student) return res.status(400).send("Invalid Credentials");
+    try {
+        doValidate(validateAuth(req.body));
 
-    const isValid = await bcrypt.compare(password, student.password);
+        const student = await studentService.findOne({ $or: [{ email }, { userName: email }] });
+        if (!student) throw new BadRequestError("Invalid Credentials");
 
-    if (!isValid) return res.status(400).send("Invalid credentials");
-    const token = student.generateAuthToken();
-    res.send(token);
+        const isValid = await bcrypt.compare(password, student.password);
+
+        if (!isValid) throw new BadRequestError("Invalid credentials");
+        const token = student.generateAuthToken();
+
+        res.send(token);
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
 }
 
 async function schoolAdminLogin(req, res) {
@@ -150,7 +160,6 @@ async function schoolAdminLogin(req, res) {
 }
 
 async function studentLabLogin(req, res) {
-
     const { email, password } = req.body;
 
     try {
