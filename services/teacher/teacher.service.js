@@ -6,7 +6,6 @@ class TeacherService {
         return Teacher.findOne(conditions);
     }
     async getOne(conditions) {
-        // const teacher = await Teacher.findOne({ email: "kit_teacher@mail.com" });
         const teacher = await Teacher.findOne(conditions);
 
         if (!teacher) {

@@ -145,29 +145,6 @@ async function updateTeacher(req, res) {
     }
 }
 
-async function addStudentToClass(req, res) {
-    const { classId } = req.params;
-    const { studentId } = req.body;
-    if (!studentId) return res.status(400).send({ message: "studentId is required" });
-    try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId });
-        const student = await Student.findOne({ _id: studentId });
-        if (!student) return res.status(404).send({ message: "student not found" });
-        const classStudents = teacherClass.students;
-        if (classStudents.find((s) => s.toString() === studentId.toString()))
-            return res.status(400).send({ message: "student already added to this class" });
-        if (student.classes.find((c) => c.toString() === classId.toString()))
-            return res.status(400).send({ message: "student already in this class" });
-        student.classes.push(classId);
-        teacherClass.students.push(student._id);
-        await student.save();
-        await teacherClass.save();
-        res.send(teacherClass);
-    } catch (error) {
-        ServerErrorHandler(req, res, error);
-    }
-}
-
 async function sendQuizToStudents(req, res) {
     const { classId } = req.params;
     let { dueDate, students, questions, startDate } = req.body;
@@ -390,7 +367,6 @@ async function getStudentScores(req, res) {
 
 module.exports = {
     acceptStudentInvite,
-    addStudentToClass,
     createAvatar,
     createClass,
     createTeacher,

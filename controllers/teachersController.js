@@ -11,7 +11,11 @@ const Experiment = require("../models/experiment");
 const { sendInvitation, doSendInvitationEmail } = require("../services/email");
 const { LabExperiment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/labAssignment");
-const { ServerErrorHandler } = require("../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../services/response/serverResponse");
+const studentTeacherService = require("../services/teacherClass/teacher-student");
+const teacherClassService = require("../services/teacherClass/teacherClass.service");
+const { doValidate } = require("../services/exceptions/validator");
+const teacherService = require("../services/teacher/teacher.service");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -35,22 +39,18 @@ async function deleteStudent(req, res) {
 
 async function createClass(req, res) {
     const { title, subject, section } = req.body;
-    const { error } = validateClass(req.body);
-    if (error) return res.status(400).send({ message: error.details[0].message });
+
+    doValidate(validateClass(req.body));
 
     try {
-        const teacher = await Teacher.findOne({ _id: req.teacher._id });
-        let teacherClass = new TeacherClass({
+        const teacherClass = await teacherClassService.create({
             title,
             subject,
             section,
             teacher: req.teacher._id,
         });
 
-        teacherClass = await teacherClass.save();
-        teacher.classes.push(teacherClass._id);
-        await teacher.save();
-        res.send(teacherClass);
+        ServerResponse(req, res, 200, teacherClass, "class created successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -58,9 +58,10 @@ async function createClass(req, res) {
 
 async function getClass(req, res) {
     try {
-        const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
+        // const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
+        const teacherClasses = await teacherClassService.getAll({ teacher: req.teacher._id });
 
-        res.send(teacherClasses);
+        ServerResponse(req, res, 200, teacherClasses, "classes fetched sucessfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -124,29 +125,6 @@ async function updateTeacher(req, res) {
         teacher.email = email;
         await teacher.save();
         res.send(teacher);
-    } catch (error) {
-        ServerErrorHandler(req, res, error);
-    }
-}
-
-async function addStudentToClass(req, res) {
-    const { classId } = req.params;
-    const { studentId } = req.body;
-    if (!studentId) return res.status(400).send({ message: "studentId is required" });
-    try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId });
-        const student = await Student.findOne({ _id: studentId });
-        if (!student) return res.status(404).send({ message: "student not found" });
-        const classStudents = teacherClass.students;
-        if (classStudents.find((s) => s.toString() === studentId.toString()))
-            return res.status(400).send({ message: "student already added to this class" });
-        if (student.classes.find((c) => c.toString() === classId.toString()))
-            return res.status(400).send({ message: "student already in this class" });
-        student.classes.push(classId);
-        teacherClass.students.push(student._id);
-        await student.save();
-        await teacherClass.save();
-        res.send(teacherClass);
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -333,12 +311,9 @@ async function getTeacher(req, res) {
 
 async function getStudents(req, res) {
     try {
-        const students = await Teacher.findOne({ _id: req.teacher._id })
-            .populate({
-                path: "students.student",
-                select: "name email imageUrl avatar _id isAccepted",
-            })
-            .select("students");
+        const students = await studentTeacherService.getTeacherStudents(req.teacher._id);
+
+        ServerResponse(req, res, 200, students, "student fetched successfully");
         res.send(students);
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -347,7 +322,6 @@ async function getStudents(req, res) {
 
 module.exports = {
     acceptStudentInvite,
-    addStudentToClass,
     createAvatar,
     createClass,
     createTeacher,

@@ -6,6 +6,8 @@ const router = express.Router();
 // const { teacherPassport } = require('../services/initPassport')
 // const passportAuth = require('../middleware/teacherPassportAuth')
 
+const teachersClassControllerV2 = require("../../controllers/V2/teacherClassController");
+
 const { teacherAuth } = require("../../middleware/auth");
 const teachersController = require("../../controllers/V2/teacherController");
 
@@ -78,7 +80,7 @@ router.put("/", teacherAuth, teachersController.updateTeacher);
 
 // teacher add student to class
 // by passing the studentId to the body of the request
-router.post("/add-student/:classId", teacherAuth, teachersController.addStudentToClass);
+router.post("/add-student/:classId", teacherAuth, teachersClassControllerV2.addStudentToClass);
 
 // Send questions to all students
 /**
