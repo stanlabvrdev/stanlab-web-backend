@@ -5,7 +5,11 @@ const { Student } = require("../../models/student");
 const { TeacherClass } = require("../../models/teacherClass");
 const { doInviteStudent } = require("../../services/teacherService");
 const { StudentScore } = require("../../models/studentScore");
-const { ServerErrorHandler } = require("../../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
+const teacherClassService = require("../../services/teacherClass/teacherClass.service");
+const NotAuthorizedError = require("../../services/exceptions/not-authorized");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
+const studentTeacherService = require("../../services/teacherClass/teacher-student");
 
 async function inviteStudent(req, res) {
     const { student_email } = req.body;
@@ -85,22 +89,21 @@ async function getStudents(req, res) {
 async function addStudentToClass(req, res) {
     const { studentId } = req.body;
     try {
-        let teacherClass = await TeacherClass.findOne({
+        let teacherClass = await teacherClassService.getOne({
             _id: req.params.classId,
         });
 
-        if (!teacherClass) return res.status(404).send({ message: "Class not found" });
+        const studentTeacher = await studentTeacherService.findOne({ teacher: req.teacher._id, student: studentId });
 
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
+        if (studentTeacher) throw new NotAuthorizedError();
 
-        const isStudent = teacherClass.checkStudentById(studentId);
-        if (isStudent) return res.status(400).send({ message: "Student already added to class" });
+        const added = await studentTeacherClassService.create({
+            teacher: req.teacher._id,
+            student: studentId,
+            class: teacherClass._id,
+        });
 
-        teacherClass = teacherClass.addStudentToClass(studentId);
-        await teacherClass.save();
-
-        res.send(true);
+        ServerResponse(req, res, 201, added, "student added to class successfully");
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
         ServerErrorHandler(req, res, error);

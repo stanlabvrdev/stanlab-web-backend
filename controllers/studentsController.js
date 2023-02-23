@@ -18,6 +18,9 @@ const studentTeacherService = require("../services/teacherClass/teacher-student"
 const studentService = require("../services/student/student.service");
 const teacherService = require("../services/teacher/teacher.service");
 const teacherClassService = require("../services/teacherClass/teacherClass.service");
+const Logger = require("../utils/logger");
+const CustomError = require("../services/exceptions/custom");
+const { doValidate } = require("../services/exceptions/validator");
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body;
@@ -59,43 +62,50 @@ async function inviteTeacher(req, res) {
 }
 
 async function createStudent(req, res) {
-    const { error } = validateStudent(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    doValidate(validateStudent(req.body));
+    try {
+        let { name, email, password, studentClass, teacher } = req.body;
 
-    let { name, email, password, studentClass, teacher } = req.body;
-    const teacherEmail = await Teacher.findOne({ email });
-    if (teacherEmail) return res.status(400).send({ message: "You cannot use same email registered as  teacher" });
+        const teacherEmail = await teacherService.findOne({ email });
 
-    let student = await Student.findOne({ email });
+        if (teacherEmail) {
+            throw new BadRequestError("You cannot use same email registered as  teacher");
+        }
 
-    if (student) return res.status(400).send("Email already registered");
+        let student = await studentService.findOne({ email });
 
-    password = await passwordService.hash(password);
+        if (student) {
+            throw new BadRequestError("Email already registered");
+        }
 
-    student = new Student({
-        name,
-        email,
-        password,
-        studentClass,
-        teacher,
-    });
+        password = await passwordService.hash(password);
 
-    // student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
-    await student.save();
-    const token = student.generateAuthToken();
-    res
-        .header("x-auth-token", token)
-        .header("access-control-expose-headers", "x-auth-token")
-        .send(_.pick(student, ["name", "email", "studentClass", "teacher", "_id"]));
+        student = await studentService.create({
+            name,
+            email,
+            password,
+            studentClass,
+            teacher,
+        });
+
+        const token = student.generateAuthToken();
+        res
+            .header("x-auth-token", token)
+            .header("access-control-expose-headers", "x-auth-token")
+            .send(_.pick(student, ["name", "email", "studentClass", "teacher", "_id"]));
+    } catch (err) {
+        ServerErrorHandler(req, res, err);
+    }
 }
 
 async function getStudent(req, res) {
     const { studentId } = req.params;
     try {
-        const student = await Student.findOne({ _id: studentId }).select("-password -__v -avatar");
+        const student = await studentService.getOneAndFilter({ _id: studentId });
 
-        if (!student) return res.status(404).send({ message: "Student not found" });
-        if (student._id.toString() !== studentId) return res.status(403).send({ message: "Not authorize" });
+        if (student._id.toString() !== studentId) {
+            throw new CustomError(403, "Not authorize");
+        }
 
         res.send(student);
     } catch (error) {
@@ -147,8 +157,8 @@ async function bulkSignup(req, res) {
             stud.user_name = await generateUserName(stud.first_name, stud.last_name);
         }
         for (let teacherData of onlyTeachers) {
-            // const teacher = await Teacher.findOne({ email: teacherData.email });
-            const teacher = await teacherService.getOne({ email: teacherData.email });
+            // const teacher = await teacherService.getOne({ email: teacherData.email });
+            const teacher = await teacherService.getOne({ email: "test@mail.com" });
 
             let teacherClass = await TeacherClass.findOne({ subject: teacherData.subject });
 
@@ -170,6 +180,8 @@ async function bulkSignup(req, res) {
                 });
 
                 await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+
+                Logger.info(`Created student ${JSON.stringify(student)}`);
             }
         }
 
@@ -182,15 +194,18 @@ async function bulkSignup(req, res) {
 async function acceptTeacher(req, res) {
     const teacherId = req.params.teacherId;
     try {
-        let student = await Student.findOne({ _id: req.student._id });
-        let teacher = await Teacher.findOne({ _id: teacherId });
+        let student = await studentService.getOne({ _id: req.student._id });
+        let teacher = await teacherService.getOne({ _id: teacherId });
 
         teacher = teacher.acceptStudent(student._id);
         student = student.acceptTeacher(teacherId);
 
         await teacher.save();
         await student.save();
-        res.send({ message: "Invite accepted" });
+
+        await studentTeacherService.create(teacher._id, student._id);
+
+        ServerResponse(req, res, 200, null, "Invite accepted");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -199,19 +214,18 @@ async function acceptTeacher(req, res) {
 async function deleteTeacher(req, res) {
     const { teacherId } = req.params;
     try {
-        let teacher = await Teacher.findOne({ _id: teacherId });
-        let student = await Student.findOne({ _id: req.student._id });
+        let teacher = await teacherService.getOne({ _id: teacherId });
+        let student = await studentService.getOne({ _id: req.student._id });
         let updatedStudent = student.removeTeacher(teacherId);
         if (!updatedStudent) return res.status(404).send({ message: "Teacher not found" });
 
         await updatedStudent.save();
-        if (!teacher) return res.status(400).send({ message: "Something is wrong" });
 
         teacher = teacher.markStudentAsRemoved(student._id);
         await teacher.save();
-        res.status(204).send(true);
+
+        ServerResponse(req, res, 200, null, "deleted successfully");
     } catch (error) {
-        if (error.kind === "ObjectId") return res.status(404).send({ message: "Teacher not found" });
         ServerErrorHandler(req, res, error);
     }
 }
@@ -275,7 +289,9 @@ async function getClasswork(req, res) {
 async function getAvatar(req, res) {
     try {
         const student = await Student.findById(req.params.id);
-        if (!student || !student.avatar) return res.status(404).send({ message: "Not Found" });
+        if (!student) {
+            throw new NotFoundError("Teacher not found");
+        }
         res.set("Content-Type", "image/png").send(student.avatar);
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -284,13 +300,10 @@ async function getAvatar(req, res) {
 
 async function getTeachers(req, res) {
     try {
-        const teachers = await Student.findOne({ _id: req.student._id })
-            .populate({
-                path: "teachers.teacher",
-                select: "name email imageUrl avatar _id isAccepted",
-            })
-            .select("teachers");
-        res.send(teachers);
+        studentTeacherService.getTeachersByStudentId(req.student._id);
+        const teachers = await studentTeacherService.getTeachersByStudentId(req.student._id);
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }

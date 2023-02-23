@@ -9,6 +9,7 @@ const router = express.Router();
 const { teacherAuth } = require("../middleware/auth");
 const teachersController = require("../controllers/teachersController");
 
+const teachersClassControllerV2 = require("../controllers/V2/teacherClassController");
 // const info;
 // login via google oauth
 
@@ -76,7 +77,7 @@ router.put("/", teacherAuth, teachersController.updateTeacher);
 
 // teacher add student to class
 // by passing the studentId to the body of the request
-router.post("/add-student/:classId", teacherAuth, teachersController.addStudentToClass);
+router.post("/add-student/:classId", teacherAuth, teachersClassControllerV2.addStudentToClass);
 
 // Send questions to all students
 /**

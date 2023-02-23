@@ -56,8 +56,6 @@ const studentSchema = new mongoose.Schema({
         type: String,
         minlength: 5,
         maxlength: 255,
-        required: true,
-        unique: true,
     },
     name: { type: String, minlength: 5, maxlength: 255, required: true },
     userName: { type: String },
