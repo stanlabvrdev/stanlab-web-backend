@@ -1,5 +1,5 @@
 const { OAuth2Client } = require("google-auth-library");
-const config = require("config");
+
 const _ = require("lodash");
 const bcrypt = require("bcryptjs");
 const Joi = require("joi");
