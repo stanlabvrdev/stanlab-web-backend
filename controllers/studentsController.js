@@ -157,8 +157,7 @@ async function bulkSignup(req, res) {
             stud.user_name = await generateUserName(stud.first_name, stud.last_name);
         }
         for (let teacherData of onlyTeachers) {
-            // const teacher = await teacherService.getOne({ email: teacherData.email });
-            const teacher = await teacherService.getOne({ email: "test@mail.com" });
+            const teacher = await teacherService.getOne({ email: teacherData.email });
 
             let teacherClass = await TeacherClass.findOne({ subject: teacherData.subject });
 
