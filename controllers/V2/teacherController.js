@@ -31,8 +31,7 @@ async function deleteStudent(req, res) {
         await student.save();
         res.status(204).send(true);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -55,8 +54,7 @@ async function createClass(req, res) {
         await teacher.save();
         res.send(teacherClass);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "error creating" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -143,32 +141,7 @@ async function updateTeacher(req, res) {
         await teacher.save();
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send("Something went wrong");
-    }
-}
-
-async function addStudentToClass(req, res) {
-    const { classId } = req.params;
-    const { studentId } = req.body;
-    if (!studentId) return res.status(400).send({ message: "studentId is required" });
-    try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId });
-        const student = await Student.findOne({ _id: studentId });
-        if (!student) return res.status(404).send({ message: "student not found" });
-        const classStudents = teacherClass.students;
-        if (classStudents.find((s) => s.toString() === studentId.toString()))
-            return res.status(400).send({ message: "student already added to this class" });
-        if (student.classes.find((c) => c.toString() === classId.toString()))
-            return res.status(400).send({ message: "student already in this class" });
-        student.classes.push(classId);
-        teacherClass.students.push(student._id);
-        await student.save();
-        await teacherClass.save();
-        res.send(teacherClass);
-    } catch (error) {
-        res.status(400).send({ message: "Invalid class or student id" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -197,7 +170,6 @@ async function sendQuizToStudents(req, res) {
         newQuiz = await newQuiz.save();
 
         for (let studentId of students) {
-            // console.log('From send quiz route  student are = ', studentData)
             let student = await Student.findOne({ _id: studentId });
             // classworks.quizClasswork.push(newQuiz._id)
             student = student.addQuiz(newQuiz._id);
@@ -348,8 +320,7 @@ async function getTeacher(req, res) {
         if (!teacher) return res.status(404).send({ message: "Teacher with this ID was not found" });
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(400).send({ message: "Invalid teacher ID" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -396,7 +367,6 @@ async function getStudentScores(req, res) {
 
 module.exports = {
     acceptStudentInvite,
-    addStudentToClass,
     createAvatar,
     createClass,
     createTeacher,
