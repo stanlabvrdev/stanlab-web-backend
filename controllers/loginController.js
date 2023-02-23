@@ -11,11 +11,14 @@ const moment = require("moment");
 const { SchoolAdmin } = require("../models/schoolAdmin");
 const { ServerErrorHandler } = require("../services/response/serverResponse");
 const envConfig = require("../config/env");
+const { doValidate } = require("../services/exceptions/validator");
+const studentService = require("../services/student/student.service");
+const BadRequestError = require("../services/exceptions/bad-request");
 const env = envConfig.getAll();
 
 function validateAuth(auth) {
     const schema = Joi.object({
-        email: Joi.string().required().email(),
+        email: Joi.string().required(),
         password: Joi.string().required(),
     });
 
@@ -125,16 +128,21 @@ async function studentGoogleAuth(req, res) {
 
 async function studentLogin(req, res) {
     const { email, password } = req.body;
-    const { error } = validateAuth(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-    const student = await Student.findOne({ email });
-    if (!student) return res.status(400).send("Invalid Credentials");
+    try {
+        doValidate(validateAuth(req.body));
 
-    const isValid = await bcrypt.compare(password, student.password);
+        const student = await studentService.findOne({ $or: [{ email }, { userName: email }] });
+        if (!student) throw new BadRequestError("Invalid Credentials");
 
-    if (!isValid) return res.status(400).send("Invalid credentials");
-    const token = student.generateAuthToken();
-    res.send(token);
+        const isValid = await bcrypt.compare(password, student.password);
+
+        if (!isValid) throw new BadRequestError("Invalid credentials");
+        const token = student.generateAuthToken();
+
+        res.send(token);
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
 }
 
 async function schoolAdminLogin(req, res) {
