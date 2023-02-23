@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoDB = require("./utils/db");
-const config = require("config");
+
 // const passport = require("passport");
 const Joi = require("joi");
 const cors = require("cors");

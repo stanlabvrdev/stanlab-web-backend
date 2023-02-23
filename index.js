@@ -1,5 +1,5 @@
 const mongoDB = require("./utils/db");
-const config = require("config");
+
 // const passport = require("passport");
 
 const app = require("./app");
