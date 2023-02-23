@@ -1,8 +1,19 @@
 const { StudentTeacher } = require("../../models/teacherStudent");
 const { StudentTeacherClass } = require("../../models/teacherStudentClass");
+const NotFoundError = require("../exceptions/not-found");
 
 class StudentTeacherService {
     async create(teacherId, studentId, classId) {
+        const exist = await StudentTeacher.findOne({ student: studentId, teacher: teacherId });
+
+        if (exist) {
+            // approve
+
+            exist.studentApproved = true;
+
+            return exist;
+        }
+
         if (classId) {
             const studentClass = new StudentTeacherClass({
                 teacher: teacherId,
@@ -19,9 +30,20 @@ class StudentTeacherService {
 
         return newStudentTeacher.save();
     }
+    async declineRequest(teacherId, studentId) {
+        const exist = await StudentTeacher.findOne({ student: studentId, teacher: teacherId });
+
+        if (!exist) throw new NotFoundError("invite not found");
+
+        // approve
+
+        exist.studentApproved = false;
+
+        return exist;
+    }
 
     async getTeachersByStudentId(studentId) {
-        const teachers = await StudentTeacher.findOne({ student: studentId }).populate({
+        const teachers = await StudentTeacher.find({ student: studentId }).populate({
             path: "teacher",
             select: "name email imageUrl avatar _id",
         });

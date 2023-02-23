@@ -4,6 +4,9 @@ const NotFoundError = require("../exceptions/not-found");
 const BadRequestError = require("../exceptions/bad-request");
 
 class StudentTeacherClassService {
+    async getAll(conditions) {
+        return StudentTeacherClass.find(conditions).populate({ path: "class", select: "title subject _id" });
+    }
     async getTeacherStudent(teacherId, studentId) {
         const student = await StudentTeacherClass.findOne({ teacher: teacherId, student: studentId });
 
@@ -22,8 +25,8 @@ class StudentTeacherClassService {
         if (exist) {
             throw new BadRequestError("student already exist in class");
         }
-        console.log(data);
-        const newRecord = new StudentTeacherClass.create(data);
+
+        const newRecord = new StudentTeacherClass(data);
         await newRecord.save();
         return newRecord;
     }

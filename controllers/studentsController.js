@@ -203,9 +203,9 @@ async function acceptTeacher(req, res) {
         await teacher.save();
         await student.save();
 
-        await studentTeacherService.create(teacher._id, student._id);
+        const approved = await studentTeacherService.create(teacher._id, student._id);
 
-        ServerResponse(req, res, 200, null, "Invite accepted");
+        ServerResponse(req, res, 200, approved, "Invite accepted");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -232,24 +232,12 @@ async function deleteTeacher(req, res) {
 
 async function declineInvite(req, res) {
     try {
-        const teacher = await Teacher.findOne({ _id: req.params.teacherId });
-        const student = await Student.findOne({ _id: req.student._id });
-        if (!teacher) return res.status(404).send({ message: "Teacher does not exist" });
+        const teacher = await teacherService.getOne({ _id: req.params.teacherId });
+        const student = await studentService.getOne({ _id: req.student._id });
 
-        let teacherIndex = student.teachers.findIndex((t) => {
-            return t._id.toString() === req.params.teacherId.toString();
-        });
+        const declined = await studentTeacherService.declineRequest(teacher._id, student._id);
 
-        if (teacherIndex < 0) return res.status(404).send({ message: "Teacher does not exist!" });
-
-        const teacherStudent = teacher.students.find((s) => {
-            return s._id.toString() === req.student._id.toString();
-        });
-        teacherStudent.status = "declined";
-        student.teachers.splice(teacherIndex, 1);
-        await student.save();
-        await teacher.save();
-        res.send({ message: " declined" });
+        ServerResponse(req, res, 200, declined, "Invite declined");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }

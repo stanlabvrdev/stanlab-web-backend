@@ -1,5 +1,5 @@
-const mongoose = require('mongoose')
-const Joi = require('joi')
+const mongoose = require("mongoose");
+const Joi = require("joi");
 
 const questionSchema = new mongoose.Schema({
     created: { type: String, default: Date.now },
@@ -16,16 +16,16 @@ const questionSchema = new mongoose.Schema({
     },
     teacherClass: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'TeacherClass',
+        ref: "TeacherClass",
         required: true,
     },
     teacher: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Teacher',
+        ref: "Teacher",
         required: true,
     },
     subject: { type: String },
-})
+});
 
 function validateQuestion(question) {
     const schema = Joi.object({
@@ -34,11 +34,11 @@ function validateQuestion(question) {
         points: Joi.number().required(),
         // dueDate: Joi.date().required(),
         image: Joi.string(),
-    })
+    });
 
-    return schema.validate(question)
+    return schema.validate(question);
 }
 
-const Question = mongoose.model('Question', questionSchema)
+const Question = mongoose.model("Question", questionSchema);
 
-module.exports = { Question, validateQuestion }
+module.exports = { Question, validateQuestion };

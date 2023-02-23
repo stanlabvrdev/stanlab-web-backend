@@ -8,7 +8,8 @@ const { TeacherClass } = require("../../models/teacherClass");
 const constants = require("../../utils/constants");
 const { LabExperiment } = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
-const { ServerErrorHandler } = require("../../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
 
 async function getLabs(req, res) {
     const studentId = req.student._id;
@@ -47,23 +48,24 @@ async function getLabs(req, res) {
 async function getClasses(req, res) {
     const studentId = req.student._id;
     try {
-        const student = await Student.findOne({ _id: studentId })
-            .populate({
-                path: "classes",
-                select: ["_id", "title", "subject", "section", "teacher"],
-            })
-            .lean();
+        // const student = await Student.findOne({ _id: studentId })
+        //     .populate({
+        //         path: "classes",
+        //         select: ["_id", "title", "subject", "section", "teacher"],
+        //     })
+        //     .lean();
 
-        const classes = student.classes;
+        // const classes = student.classes;
 
-        for (const clas of classes) {
-            const teacher = await Teacher.findOne({ _id: clas.teacher }).lean();
+        // for (const clas of classes) {
+        //     const teacher = await Teacher.findOne({ _id: clas.teacher }).lean();
 
-            clas.teacher = _.pick(teacher, ["name", "email", "_id"]);
-        }
+        //     clas.teacher = _.pick(teacher, ["name", "email", "_id"]);
+        // }
 
+        const classes = await studentTeacherClassService.getAll({ student: studentId });
         // const promisified = await Promise.all(results);
-        res.send({ messages: "classes successfully fetched", data: classes });
+        ServerResponse(req, res, 200, classes, "classes successfully fetched");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
