@@ -1,6 +1,5 @@
 const googleStrategy = require("../services/googleStrategy");
 const { Teacher } = require("../models/teacher");
-const config = require("config");
 
 const envConfig = require("../config/env");
 
