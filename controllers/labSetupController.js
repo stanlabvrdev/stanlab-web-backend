@@ -1,4 +1,3 @@
-const config = require("config");
 const fetch = require("node-fetch");
 
 const LabSetup = require("../models/labSetup");
