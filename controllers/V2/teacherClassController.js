@@ -66,21 +66,29 @@ async function deleteUnpublishedClass(req, res) {
 
 async function getStudents(req, res) {
     try {
-        const classData = await TeacherClass.findOne({
-                _id: req.params.classId,
-            })
-            .populate({
-                path: "students",
-                select: "name email imageUrl avatar _id isAccepted",
-            })
-            .select("students, teacher");
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+        });
 
-        if (!classData) return res.status(404).send({ message: "Class not found" });
+        ServerResponse(req, res, 200, classData, "teachers fetched successfully");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 
-        if (classData.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
+async function getTeachers(req, res) {
+    try {
+        const teachers = [];
+        const classData = await studentTeacherClassService.getAll({
+            _id: req.params.classId,
+            teacher: req.teacher._id,
+        });
 
-        res.send(classData);
+        for (let data of classData) {
+            teachers.push(data.teacher);
+        }
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -332,4 +340,5 @@ module.exports = {
     getStudents,
     inviteStudentToClass,
     getScores,
+    getTeachers,
 };
