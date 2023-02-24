@@ -3,6 +3,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const generateRandomString = require("../utils/randomStr");
 const { Teacher } = require("../models/teacher");
 const { Student } = require("../models/student");
+const Logger = require("../utils/logger");
 
 module.exports = function(Model, configSettings, callbackUri, role) {
     return new GoogleStrategy({
@@ -18,8 +19,6 @@ module.exports = function(Model, configSettings, callbackUri, role) {
             });
 
             if (modelRes) {
-                // console.log("login teacher from passportjs");
-
                 return done(null, modelRes);
             }
             if (
@@ -58,7 +57,7 @@ module.exports = function(Model, configSettings, callbackUri, role) {
                     await modelRes.save();
                     done(null, modelRes);
                 } catch (error) {
-                    console.log(error.message);
+                    Logger.error(`ERROR: ${JSON.stringify(error)}`);
                 }
             }
         }

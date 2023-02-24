@@ -1,15 +1,22 @@
-const sgMail = require("@sendgrid/mail");
-const config = require("config");
+const dotenv = require("dotenv");
 
-sgMail.setApiKey(config.get("sendGrid_API_KEY"));
+dotenv.config();
+
+const sgMail = require("@sendgrid/mail");
+
+const envConfig = require("../config/env");
+const env = envConfig.getAll();
+
+sgMail.setApiKey(env.sendGrid_API_KEY);
 
 const stanLabMail = "info@stanlab.com";
-
-const mailgunAPIKey = config.get("mailgun_API_KEY");
+const mailgunAPIKey = env.mailgun_API_KEY;
 
 const mailgun = require("mailgun-js");
+const Logger = require("../utils/logger");
 // const DOMAIN = "https://www.stanlabvr.com";
 
+Logger.info(`===Connecting to Mailgun: ${mailgunAPIKey}=====`);
 const DOMAIN = "stanlabvr.com";
 const mg = mailgun({ apiKey: mailgunAPIKey, domain: DOMAIN });
 
@@ -27,11 +34,8 @@ function sendStudentInviteEmail(student, password) {
     };
     mg.messages().send(data, function(error, body) {
         if (error) {
-            console.log("========================");
-            console.log(error);
-            console.log("========================");
+            Logger.error(`error occured ${JSON.stringify(error)}`);
         }
-        console.log(body);
     });
 }
 
@@ -49,11 +53,8 @@ function sendTeacherInviteEmail(teacher, password) {
     };
     mg.messages().send(data, function(error, body) {
         if (error) {
-            console.log("========================");
-            console.log(error);
-            console.log("========================");
+            Logger.error(`error occured ${JSON.stringify(error)}`);
         }
-        console.log(body);
     });
 }
 
@@ -70,11 +71,8 @@ function sendEmailToSchoolAdmin(email, name) {
     };
     mg.messages().send(data, function(error, body) {
         if (error) {
-            console.log("========================");
-            console.log(error);
-            console.log("========================");
+            Logger.error(`error occured ${JSON.stringify(error)}`);
         }
-        console.log(body);
     });
 }
 
@@ -93,11 +91,8 @@ function doSendInvitationEmail(student, teacher, password) {
     };
     mg.messages().send(data, function(error, body) {
         if (error) {
-            console.log("========================");
-            console.log(error);
-            console.log("========================");
+            Logger.error(`error occured ${JSON.stringify(error)}`);
         }
-        console.log(body);
     });
 }
 
@@ -162,8 +157,8 @@ function sendInvitation(teacher, student, role) {
   }
   return sgMail
     .send(msg)
-    .then(() => console.log("sent mail"))
-    .catch((err) => console.log(err.message));
+    .then(() => Logger.info(`sent mail`))
+    .catch((err) => Logger.error(`error occured ${JSON.stringify(err)}`));
 }
 
 function sendLoginDetails(email, name, password, schoolName, isNew = false) {
@@ -204,8 +199,8 @@ function sendLoginDetails(email, name, password, schoolName, isNew = false) {
 
   return sgMail
     .send(msg)
-    .then(() => console.log("sent mail"))
-    .catch((err) => console.log(err.message));
+    .then(() => Logger.info(`sent mail`))
+    .catch((err) => Logger.error(`error occured ${JSON.stringify(err)}`));
 }
 
 async function sendResetPassword(student, token, isStudent = true) {
@@ -222,14 +217,11 @@ async function sendResetPassword(student, token, isStudent = true) {
     }),
   };
 
-  console.log(data);
+  Logger.info(`Sending data: ${JSON.stringify(data)}`);
   mg.messages().send(data, function (error, body) {
     if (error) {
-      console.log("========================");
-      console.log(error);
-      console.log("========================");
+      Logger.error(`error occured ${JSON.stringify(error)}`);
     }
-    console.log(body);
   });
 }
 

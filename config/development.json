@@ -1,6 +1,0 @@
-{
-    "app_name": "StanLab",
-
-    "lab_backend_port": 5000,
-    "mongodb_URI": "mongodb://localhost/StanLab"
-}
