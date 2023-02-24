@@ -24,17 +24,23 @@ async function getLabs(req, res) {
                     .populate({ path: "experiment", select: ["name", "_id", "subject"] })
                     .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
 
-                console.log(experiment);
-                const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
-                    path: "teacher",
-                    select: ["name", "email", "_id"],
-                });
-                experiment.teacher = teacherClass.teacher;
-                experiment.class = experiment.classId;
-                delete experiment.classId;
-                // experiment.set("teacher", teacherClass.teacher);
+                if (!experiment || !experiment.classId) {
+                    await LabExperiment.deleteOne({ _id: lab._id });
+                }
 
-                results.push(experiment);
+                if (experiment && experiment.classId) {
+                    const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
+                        path: "teacher",
+                        select: ["name", "email", "_id"],
+                    });
+                    experiment.teacher = teacherClass.teacher;
+                    experiment.class = experiment.classId;
+                    delete experiment.classId;
+
+                    // experiment.set("teacher", teacherClass.teacher);
+
+                    results.push(experiment);
+                }
             }
         }
 
