@@ -113,7 +113,7 @@ async function getTeacherAssignedLabs(req, res) {
 
         let labs = await LabExperiment.find(filter).populate({
             path: "experiment",
-            select: ["_id", "class", "subject", "instruction", "name"],
+            select: ["_id", "class", "subject", "instruction", "name", "icon"],
         });
 
         ServerResponse(req, res, 200, labs, "labs successfully fetched");
