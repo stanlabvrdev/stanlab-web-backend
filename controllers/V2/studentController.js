@@ -21,7 +21,7 @@ async function getLabs(req, res) {
         if (labs.length > 0) {
             for (const lab of labs) {
                 const experiment = await LabExperiment.findOne({ _id: lab._id })
-                    .populate({ path: "experiment", select: ["name", "_id", "subject"] })
+                    .populate({ path: "experiment", select: ["name", "_id", "subject", "icon"] })
                     .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
 
                 if (!experiment || !experiment.classId) {
