@@ -1,22 +1,19 @@
-const { Student } = require('../models/student')
+const { Student } = require("../models/student");
+const { ServerErrorHandler } = require("../services/response/serverResponse");
 
 async function isFreelanceStudent(req, res, next) {
-    if (!req.student)
-        return res.status(403).send({ message: 'Not authenticated' })
+    if (!req.student) return res.status(403).send({ message: "Not authenticated" });
 
     try {
-        const student = await Student.findOne({ _id: req.student._id })
-        if (!student.school) return next()
+        const student = await Student.findOne({ _id: req.student._id });
+        if (!student.school) return next();
 
-        return res
-            .status(403)
-            .send({
-                message: 'You cannot perform this operation, please ask your school',
-            })
+        return res.status(403).send({
+            message: "You cannot perform this operation, please ask your school",
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).send({ message: 'Something went wrong' })
+        ServerErrorHandler(req, res, error);
     }
 }
 
-module.exports = { isFreelanceStudent }
+module.exports = { isFreelanceStudent };

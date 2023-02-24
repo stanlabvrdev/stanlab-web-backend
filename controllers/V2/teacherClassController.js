@@ -5,7 +5,12 @@ const { Student } = require("../../models/student");
 const { TeacherClass } = require("../../models/teacherClass");
 const { doInviteStudent } = require("../../services/teacherService");
 const { StudentScore } = require("../../models/studentScore");
-const { ServerErrorHandler } = require("../../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
+const teacherClassService = require("../../services/teacherClass/teacherClass.service");
+const NotAuthorizedError = require("../../services/exceptions/not-authorized");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
+const studentTeacherService = require("../../services/teacherClass/teacher-student");
+const NotFoundError = require("../../services/exceptions/not-found");
 
 async function inviteStudent(req, res) {
     const { student_email } = req.body;
@@ -62,21 +67,29 @@ async function deleteUnpublishedClass(req, res) {
 
 async function getStudents(req, res) {
     try {
-        const classData = await TeacherClass.findOne({
-                _id: req.params.classId,
-            })
-            .populate({
-                path: "students",
-                select: "name email imageUrl avatar _id isAccepted",
-            })
-            .select("students, teacher");
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+        });
 
-        if (!classData) return res.status(404).send({ message: "Class not found" });
+        ServerResponse(req, res, 200, classData, "teachers fetched successfully");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 
-        if (classData.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
+async function getTeachers(req, res) {
+    try {
+        const teachers = [];
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+            teacher: req.teacher._id,
+        });
 
-        res.send(classData);
+        for (let data of classData) {
+            teachers.push(data.teacher);
+        }
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -85,22 +98,21 @@ async function getStudents(req, res) {
 async function addStudentToClass(req, res) {
     const { studentId } = req.body;
     try {
-        let teacherClass = await TeacherClass.findOne({
+        let teacherClass = await teacherClassService.getOne({
             _id: req.params.classId,
         });
 
-        if (!teacherClass) return res.status(404).send({ message: "Class not found" });
+        const studentTeacher = await studentTeacherService.findOne({ teacher: req.teacher._id, student: studentId });
 
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
+        if (studentTeacher) throw new NotAuthorizedError();
 
-        const isStudent = teacherClass.checkStudentById(studentId);
-        if (isStudent) return res.status(400).send({ message: "Student already added to class" });
+        const added = await studentTeacherClassService.create({
+            teacher: req.teacher._id,
+            student: studentId,
+            class: teacherClass._id,
+        });
 
-        teacherClass = teacherClass.addStudentToClass(studentId);
-        await teacherClass.save();
-
-        res.send(true);
+        ServerResponse(req, res, 201, added, "student added to class successfully");
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
         ServerErrorHandler(req, res, error);
@@ -110,17 +122,13 @@ async function addStudentToClass(req, res) {
 async function inviteStudentToClass(req, res) {
     const { studentEmails } = req.body;
     try {
+        let result = null;
         if (!studentEmails || studentEmails.length < 1)
             return res.status(400).send({ message: "studentEmails is require and must be atleast 1" });
 
-        let teacherClass = await TeacherClass.findOne({
+        let teacherClass = await teacherClassService.getOne({
             _id: req.params.classId,
         });
-
-        if (!teacherClass) return res.status(404).send({ message: "Class not found" });
-
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
 
         for (const studentEmail of studentEmails) {
             let student = await Student.findOne({ email: studentEmail });
@@ -141,15 +149,19 @@ async function inviteStudentToClass(req, res) {
                 await student.save();
             }
 
+            result = await studentTeacherService.create(req.teacher._id, student._id, teacherClass._id);
+
             const isStudent = teacherClass.checkStudentById(student._id);
-            if (isStudent) return res.status(200).send({ message: "Student added to class", data: teacherClass.students });
+            if (isStudent) {
+                ServerResponse(req, res, 200, result, "Student added to class");
+            }
 
             teacherClass = teacherClass.addStudentToClass(student._id);
             await teacherClass.save();
         }
-        res.send({ message: "Student added to class", data: teacherClass.students });
+
+        ServerResponse(req, res, 200, result, "Student added to class");
     } catch (error) {
-        if (error.kind === "ObjectId") return res.status(404).send({ message: "Class not found" });
         ServerErrorHandler(req, res, error);
     }
 }
@@ -329,4 +341,5 @@ module.exports = {
     getStudents,
     inviteStudentToClass,
     getScores,
+    getTeachers,
 };

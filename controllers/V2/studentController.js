@@ -8,7 +8,8 @@ const { TeacherClass } = require("../../models/teacherClass");
 const constants = require("../../utils/constants");
 const { LabExperiment } = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
-const { ServerErrorHandler } = require("../../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
 
 async function getLabs(req, res) {
     const studentId = req.student._id;
@@ -54,23 +55,27 @@ async function getLabs(req, res) {
 async function getClasses(req, res) {
     const studentId = req.student._id;
     try {
-        const student = await Student.findOne({ _id: studentId })
-            .populate({
-                path: "classes",
-                select: ["_id", "title", "subject", "section", "teacher"],
-            })
-            .lean();
+        const classes = await studentTeacherClassService.getAll({ student: studentId });
+        // const promisified = await Promise.all(results);
+        ServerResponse(req, res, 200, classes, "classes successfully fetched");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 
-        const classes = student.classes;
+async function getTeachers(req, res) {
+    try {
+        const teachers = [];
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+            student: req.student._id,
+        });
 
-        for (const clas of classes) {
-            const teacher = await Teacher.findOne({ _id: clas.teacher }).lean();
-
-            clas.teacher = _.pick(teacher, ["name", "email", "_id"]);
+        for (let data of classData) {
+            teachers.push(data.teacher);
         }
 
-        // const promisified = await Promise.all(results);
-        res.send({ messages: "classes successfully fetched", data: classes });
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -84,7 +89,6 @@ async function getScores(req, res) {
             .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
             .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
 
-        console.log(scores);
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -95,4 +99,5 @@ module.exports = {
     getLabs,
     getClasses,
     getScores,
+    getTeachers,
 };

@@ -9,6 +9,19 @@ const { ServerErrorHandler, ServerResponse } = require("../services/response/ser
 const { excelParserService } = require("../services/excelParserService");
 const { passwordService } = require("../services/passwordService");
 const BadRequestError = require("../services/exceptions/bad-request");
+const { generateUserName, getFullName } = require("../services/student/generator");
+const NotFoundError = require("../services/exceptions/not-found");
+const { TeacherClass } = require("../models/teacherClass");
+const generateRandomString = require("../utils/randomStr");
+const { StudentTeacher } = require("../models/teacherStudent");
+const studentTeacherService = require("../services/teacherClass/teacher-student");
+const studentService = require("../services/student/student.service");
+const teacherService = require("../services/teacher/teacher.service");
+const teacherClassService = require("../services/teacherClass/teacherClass.service");
+const Logger = require("../utils/logger");
+const CustomError = require("../services/exceptions/custom");
+const { doValidate } = require("../services/exceptions/validator");
+const { csvUploaderService } = require("../services/csv-uploader");
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body;
@@ -45,49 +58,55 @@ async function inviteTeacher(req, res) {
 
         res.send({ message: "Invitation sent" });
     } catch (ex) {
-        console.log(ex);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, ex);
     }
 }
 
 async function createStudent(req, res) {
-    const { error } = validateStudent(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    try {
+        doValidate(validateStudent(req.body));
+        let { name, email, password, studentClass, teacher } = req.body;
 
-    let { name, email, password, studentClass, teacher } = req.body;
-    const teacherEmail = await Teacher.findOne({ email });
-    if (teacherEmail) return res.status(400).send({ message: "You cannot use same email registered as  teacher" });
+        const teacherEmail = await teacherService.findOne({ email });
 
-    let student = await Student.findOne({ email });
+        if (teacherEmail) {
+            throw new BadRequestError("You cannot use same email registered as  teacher");
+        }
 
-    if (student) return res.status(400).send("Email already registered");
+        let student = await studentService.findOne({ email });
 
-    password = await passwordService.hash(password);
+        if (student) {
+            throw new BadRequestError("Email already registered");
+        }
 
-    student = new Student({
-        name,
-        email,
-        password,
-        studentClass,
-        teacher,
-    });
+        password = await passwordService.hash(password);
 
-    // student[constants.trialPeriod.title] = moment().add(constants.trialPeriod.days, "days");
-    await student.save();
-    const token = student.generateAuthToken();
-    res
-        .header("x-auth-token", token)
-        .header("access-control-expose-headers", "x-auth-token")
-        .send(_.pick(student, ["name", "email", "studentClass", "teacher", "_id"]));
+        student = await studentService.create({
+            name,
+            email,
+            password,
+            studentClass,
+            teacher,
+        });
+
+        const token = student.generateAuthToken();
+        res
+            .header("x-auth-token", token)
+            .header("access-control-expose-headers", "x-auth-token")
+            .send(_.pick(student, ["name", "email", "studentClass", "teacher", "_id"]));
+    } catch (err) {
+        ServerErrorHandler(req, res, err);
+    }
 }
 
 async function getStudent(req, res) {
     const { studentId } = req.params;
     try {
-        const student = await Student.findOne({ _id: studentId }).select("-password -__v -avatar");
+        const student = await studentService.getOneAndFilter({ _id: studentId });
 
-        if (!student) return res.status(404).send({ message: "Student not found" });
-        if (student._id.toString() !== studentId) return res.status(403).send({ message: "Not authorize" });
+        if (student._id.toString() !== studentId) {
+            throw new CustomError(403, "Not authorize");
+        }
 
         res.send(student);
     } catch (error) {
@@ -119,18 +138,88 @@ async function bulkCreate(req, res) {
     }
 }
 
+async function bulkSignup(req, res) {
+    try {
+        const data = await excelParserService.convertToJSON(req);
+
+        const studentLastIndex = data.findIndex((data) => data.Firstname.toLowerCase() == "teachers");
+        const onlyStudents = data.slice(0, studentLastIndex).map((item) => ({
+            first_name: item.Firstname,
+            last_name: item.Surname,
+        }));
+        const onlyTeachers = data.slice(studentLastIndex + 2).map((item) => ({
+            first_name: item.Firstname,
+            last_name: item.Surname,
+            email: item.__EMPTY,
+            subject: item.__EMPTY_1,
+        }));
+
+        for (let stud of onlyStudents) {
+            stud.user_name = await generateUserName(stud.first_name, stud.last_name);
+        }
+        for (let teacherData of onlyTeachers) {
+            const teacher = await teacherService.getOne({ email: teacherData.email });
+
+            let teacherClass = await TeacherClass.findOne({ subject: teacherData.subject });
+
+            if (!teacherClass) {
+                teacherClass = await teacherClassService.create({
+                    subject: teacherData.subject,
+                    name: teacherData.subject,
+                    title: teacherData.subject,
+                });
+            }
+
+            teacherData.classId = teacherClass._id;
+            teacherData.teacherId = teacher._id;
+
+            for (const studentData of onlyStudents) {
+                const student = await studentService.create({
+                    name: getFullName(studentData.first_name, studentData.last_name),
+                    userName: studentData.user_name,
+                });
+
+                await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+
+                Logger.info(`Created student ${JSON.stringify(student)}`);
+            }
+        }
+
+        ServerResponse(req, res, 201, null, "successfully uploaded students");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
+async function downloadStudents(req, res) {
+    try {
+        const teacher = await teacherService.getOne({ email: req.body.email });
+
+        const result = await studentTeacherService.getDownload({ teacher: teacher._id });
+
+        const downloadedUrl = await csvUploaderService.getCsv(result, "students", "student");
+
+        ServerResponse(req, res, 201, downloadedUrl, "successfully downloaded students");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
 async function acceptTeacher(req, res) {
     const teacherId = req.params.teacherId;
     try {
-        let student = await Student.findOne({ _id: req.student._id });
-        let teacher = await Teacher.findOne({ _id: teacherId });
+        let student = await studentService.getOne({ _id: req.student._id });
+        let teacher = await teacherService.getOne({ _id: teacherId });
 
         teacher = teacher.acceptStudent(student._id);
         student = student.acceptTeacher(teacherId);
 
         await teacher.save();
         await student.save();
-        res.send({ message: "Invite accepted" });
+
+        const approved = await studentTeacherService.create(teacher._id, student._id);
+
+        ServerResponse(req, res, 200, approved, "Invite accepted");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -139,45 +228,30 @@ async function acceptTeacher(req, res) {
 async function deleteTeacher(req, res) {
     const { teacherId } = req.params;
     try {
-        let teacher = await Teacher.findOne({ _id: teacherId });
-        let student = await Student.findOne({ _id: req.student._id });
+        let teacher = await teacherService.getOne({ _id: teacherId });
+        let student = await studentService.getOne({ _id: req.student._id });
         let updatedStudent = student.removeTeacher(teacherId);
         if (!updatedStudent) return res.status(404).send({ message: "Teacher not found" });
 
         await updatedStudent.save();
-        if (!teacher) return res.status(400).send({ message: "Something is wrong" });
 
         teacher = teacher.markStudentAsRemoved(student._id);
         await teacher.save();
-        res.status(204).send(true);
+
+        ServerResponse(req, res, 200, null, "deleted successfully");
     } catch (error) {
-        if (error.kind === "ObjectId") return res.status(404).send({ message: "Teacher not found" });
         ServerErrorHandler(req, res, error);
     }
 }
 
 async function declineInvite(req, res) {
     try {
-        const teacher = await Teacher.findOne({ _id: req.params.teacherId });
-        const student = await Student.findOne({ _id: req.student._id });
-        if (!teacher) return res.status(404).send({ message: "Teacher does not exist" });
-        // console.log(teacher);
-        let teacherIndex = student.teachers.findIndex((t) => {
-            console.log(t);
-            return t._id.toString() === req.params.teacherId.toString();
-        });
+        const teacher = await teacherService.getOne({ _id: req.params.teacherId });
+        const student = await studentService.getOne({ _id: req.student._id });
 
-        if (teacherIndex < 0) return res.status(404).send({ message: "Teacher does not exist!" });
+        const declined = await studentTeacherService.declineRequest(teacher._id, student._id);
 
-        const teacherStudent = teacher.students.find((s) => {
-            console.log(s);
-            return s._id.toString() === req.student._id.toString();
-        });
-        teacherStudent.status = "declined";
-        student.teachers.splice(teacherIndex, 1);
-        await student.save();
-        await teacher.save();
-        res.send({ message: " declined" });
+        ServerResponse(req, res, 200, declined, "Invite declined");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -192,7 +266,6 @@ async function getLabClasswork(req, res) {
             // .exec()
             .select("classworks.labClasswork");
 
-        // console.log(quizClass.classworks.quizClasswork)
         res.send(labClass);
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -209,7 +282,6 @@ async function getClasswork(req, res) {
             // .exec()
             .select("classworks");
 
-        // console.log(quizClass.classworks.quizClasswork)
         res.send(classworks);
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -219,7 +291,9 @@ async function getClasswork(req, res) {
 async function getAvatar(req, res) {
     try {
         const student = await Student.findById(req.params.id);
-        if (!student || !student.avatar) return res.status(404).send({ message: "Not Found" });
+        if (!student) {
+            throw new NotFoundError("Teacher not found");
+        }
         res.set("Content-Type", "image/png").send(student.avatar);
     } catch (error) {
         ServerErrorHandler(req, res, error);
@@ -228,13 +302,10 @@ async function getAvatar(req, res) {
 
 async function getTeachers(req, res) {
     try {
-        const teachers = await Student.findOne({ _id: req.student._id })
-            .populate({
-                path: "teachers.teacher",
-                select: "name email imageUrl avatar _id isAccepted",
-            })
-            .select("teachers");
-        res.send(teachers);
+        studentTeacherService.getTeachersByStudentId(req.student._id);
+        const teachers = await studentTeacherService.getTeachersByStudentId(req.student._id);
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -291,4 +362,6 @@ module.exports = {
     postFinishedQuiz,
     getFinishedQuiz,
     bulkCreate,
+    bulkSignup,
+    downloadStudents,
 };
