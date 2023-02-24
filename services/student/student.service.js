@@ -34,5 +34,5 @@ class StudentService {
         return student;
     }
 }
-
-module.exports = new StudentService();
+const studentService = new StudentService();
+module.exports = studentService;
