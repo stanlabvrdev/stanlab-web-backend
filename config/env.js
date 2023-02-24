@@ -28,6 +28,9 @@ class Env {
             cloudinary_api_key: process.env.CLOUDINARY_PUBLIC_KEY,
             cloudinary_secret_key: process.env.CLOUDINARY_SECRET_KEY,
             mailgun_API_KEY: process.env.MAILGUN_API_KEY,
+            aws_bucket: process.env.AWS_BUCKET,
+            aws_access_key_id: process.env.AWS_S3_ACCESS_KEY,
+            aws_s3_secret: process.env.AWS_S3_SECRET,
         };
     }
     getProduction() {
