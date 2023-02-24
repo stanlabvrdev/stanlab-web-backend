@@ -21,6 +21,7 @@ const teacherClassService = require("../services/teacherClass/teacherClass.servi
 const Logger = require("../utils/logger");
 const CustomError = require("../services/exceptions/custom");
 const { doValidate } = require("../services/exceptions/validator");
+const { csvUploaderService } = require("../services/csv-uploader");
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body;
@@ -190,6 +191,20 @@ async function bulkSignup(req, res) {
     }
 }
 
+async function downloadStudents(req, res) {
+    try {
+        const teacher = await teacherService.getOne({ email: req.body.email });
+
+        const result = await studentTeacherService.getDownload({ teacher: teacher._id });
+
+        const downloadedUrl = await csvUploaderService.getCsv(result, "students", "student");
+
+        ServerResponse(req, res, 201, downloadedUrl, "successfully downloaded students");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
 async function acceptTeacher(req, res) {
     const teacherId = req.params.teacherId;
     try {
@@ -348,4 +363,5 @@ module.exports = {
     getFinishedQuiz,
     bulkCreate,
     bulkSignup,
+    downloadStudents,
 };
