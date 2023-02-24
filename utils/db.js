@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
-const config = require("config");
 
-module.exports = mongoose.connect(config.get("mongodb_URI"), {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+const envConfig = require("../config/env");
+
+const env = envConfig.getAll();
+
+module.exports = mongoose.connect(env.mongodb_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
 });

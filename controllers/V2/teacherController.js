@@ -14,6 +14,10 @@ const SystemExperiment = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
 const { ServerResponse, ServerErrorHandler } = require("../../services/response/serverResponse");
 const NotFoundError = require("../../services/exceptions/not-found");
+const studentService = require("../../services/student/student.service");
+const BadRequestError = require("../../services/exceptions/bad-request");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
+const studentTeacherService = require("../../services/teacherClass/teacher-student");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -31,8 +35,7 @@ async function deleteStudent(req, res) {
         await student.save();
         res.status(204).send(true);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "something went wrong" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -55,8 +58,7 @@ async function createClass(req, res) {
         await teacher.save();
         res.send(teacherClass);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send({ message: "error creating" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -143,32 +145,7 @@ async function updateTeacher(req, res) {
         await teacher.save();
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(500).send("Something went wrong");
-    }
-}
-
-async function addStudentToClass(req, res) {
-    const { classId } = req.params;
-    const { studentId } = req.body;
-    if (!studentId) return res.status(400).send({ message: "studentId is required" });
-    try {
-        const teacherClass = await TeacherClass.findOne({ _id: classId });
-        const student = await Student.findOne({ _id: studentId });
-        if (!student) return res.status(404).send({ message: "student not found" });
-        const classStudents = teacherClass.students;
-        if (classStudents.find((s) => s.toString() === studentId.toString()))
-            return res.status(400).send({ message: "student already added to this class" });
-        if (student.classes.find((c) => c.toString() === classId.toString()))
-            return res.status(400).send({ message: "student already in this class" });
-        student.classes.push(classId);
-        teacherClass.students.push(student._id);
-        await student.save();
-        await teacherClass.save();
-        res.send(teacherClass);
-    } catch (error) {
-        res.status(400).send({ message: "Invalid class or student id" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -197,7 +174,6 @@ async function sendQuizToStudents(req, res) {
         newQuiz = await newQuiz.save();
 
         for (let studentId of students) {
-            // console.log('From send quiz route  student are = ', studentData)
             let student = await Student.findOne({ _id: studentId });
             // classworks.quizClasswork.push(newQuiz._id)
             student = student.addQuiz(newQuiz._id);
@@ -290,13 +266,11 @@ async function sendInviteToStudent(req, res) {
             const salt = await bcrypt.genSalt(10);
             let password = await bcrypt.hash(generatedPassword, salt);
 
-            const createdStudent = new Student({
+            const createdStudent = await studentService.create({
                 email: studentEmail,
                 password,
                 name: "new student",
             });
-
-            await createdStudent.save();
 
             // create student
 
@@ -306,7 +280,7 @@ async function sendInviteToStudent(req, res) {
         }
 
         const isStudent = teacher.checkStudentById(student._id);
-        if (isStudent) return res.status(400).send({ message: "Invitation already sent to this student" });
+        if (isStudent) throw new BadRequestError("Invitation already sent to this student");
 
         // add student to class
 
@@ -320,7 +294,9 @@ async function sendInviteToStudent(req, res) {
 
         await teacher.save();
         await student.save();
-        return res.send({ data: { id: student._id, email: student.email }, message: "Invitation sent!" });
+        await studentTeacherService.create(teacher._id, createdStudent._id);
+
+        ServerResponse(req, res, 200, { id: student._id, email: student.email }, "Invitation sent!");
     } catch (ex) {
         ServerErrorHandler(req, res, ex);
     }
@@ -348,8 +324,7 @@ async function getTeacher(req, res) {
         if (!teacher) return res.status(404).send({ message: "Teacher with this ID was not found" });
         res.send(teacher);
     } catch (error) {
-        console.log(error.message);
-        res.status(400).send({ message: "Invalid teacher ID" });
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -396,7 +371,6 @@ async function getStudentScores(req, res) {
 
 module.exports = {
     acceptStudentInvite,
-    addStudentToClass,
     createAvatar,
     createClass,
     createTeacher,

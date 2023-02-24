@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-const config = require("config");
+
+const envConfig = require("../config/env");
+
+const env = envConfig.getAll();
 
 // profile:snapshot of the student
 const studentSchema = new mongoose.Schema({
@@ -52,10 +55,10 @@ const studentSchema = new mongoose.Schema({
         type: String,
         minlength: 5,
         maxlength: 255,
-        required: true,
-        unique: true,
     },
     name: { type: String, minlength: 5, maxlength: 255, required: true },
+    userName: { type: String },
+    authCode: { type: String },
     password: { type: String, minlength: 5, maxlength: 1024, required: true },
     imageUrl: { type: String },
     plan: {
@@ -80,13 +83,15 @@ const studentSchema = new mongoose.Schema({
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Question" }],
         default: [],
     },
+    lastLogin: { type: Date },
     signupDate: { type: Date, default: Date.now },
     trialPeriodEnds: { type: Date },
     school: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin" },
+    createdAt: { type: Date, default: Date.now },
 });
 
 studentSchema.methods.generateAuthToken = function() {
-    const token = jwt.sign({ _id: this._id, role: this.role }, config.get("jwtKey"));
+    const token = jwt.sign({ _id: this._id, role: this.role }, env.jwtKey);
     return token;
 };
 
@@ -104,7 +109,6 @@ studentSchema.methods.addQuiz = function(quizId) {
     return this;
 };
 studentSchema.methods.addLab = function(experimentId) {
-    // console.log('addLab', experimentId)
     const newExperiment = {
         sentLab: experimentId,
         isCompleted: false,
@@ -120,10 +124,9 @@ studentSchema.methods.addLab = function(experimentId) {
 
 studentSchema.methods.addCompletQuiz = function(sentQuizId, totalPoints, answersSummary, scores) {
     const quizData = this.classworks.quizClasswork.find((data) => {
-        // console.log(data, sentQuizId)
         return data._id.toString() === sentQuizId.toString();
     });
-    // console.log(quizData)
+
     if (quizData) {
         quizData.isCompleted = true;
         quizData.totalPoints = totalPoints;
@@ -134,7 +137,6 @@ studentSchema.methods.addCompletQuiz = function(sentQuizId, totalPoints, answers
 };
 studentSchema.methods.getCompletedQuizById = function(quizId) {
     const quizData = this.classworks.quizClasswork.find((data) => {
-        // console.log(data, sentQuizId)
         return data._id.toString() === quizId.toString();
     });
 
@@ -145,7 +147,6 @@ studentSchema.methods.getCompletedQuizById = function(quizId) {
 };
 studentSchema.methods.addCompleteExperiment = function(experimentId, scores, experiment) {
     const labData = this.classworks.labClasswork.find((data) => {
-        // console.log(data, sentQuizId)
         return data._id.toString() === experimentId.toString();
     });
     if (labData) {
@@ -216,7 +217,7 @@ studentSchema.methods.addUnregisterTeacher = function(email) {
 function validateStudent(student) {
     const schema = Joi.object({
         name: Joi.string().min(5).max(255).required(),
-        email: Joi.string().min(5).max(255).email().required(),
+        email: Joi.string().min(5).max(255).required(),
         password: Joi.string().min(5).max(255).required(),
         studentClass: Joi.string(),
         role: Joi.string(),
@@ -233,4 +234,5 @@ function validateIDs(id, testString) {
 }
 
 const Student = mongoose.model("Student", studentSchema);
+
 module.exports = { Student, validateStudent, validateIDs };

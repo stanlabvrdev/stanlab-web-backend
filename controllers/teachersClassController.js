@@ -38,8 +38,7 @@ async function inviteStudent(req, res) {
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class Not found" });
 
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -56,8 +55,7 @@ async function deleteUnpublishedClass(req, res) {
     } catch (error) {
         if (error.kind === "ObjectId") return res.status(404).send({ message: "Class Not found" });
 
-        res.status(500).send({ message: "something went wrong" });
-        console.log(error.message);
+        ServerErrorHandler(req, res, error);
     }
 }
 
@@ -78,30 +76,6 @@ async function getStudents(req, res) {
             return res.status(401).send({ message: "Not autorized!" });
 
         res.send(classData);
-    } catch (error) {
-        ServerErrorHandler(req, res, error);
-    }
-}
-
-async function addStudentToClass(req, res) {
-    const { studentId } = req.body;
-    try {
-        let teacherClass = await TeacherClass.findOne({
-            _id: req.params.classId,
-        });
-
-        if (!teacherClass) return res.status(404).send({ message: "Class not found" });
-
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
-
-        const isStudent = teacherClass.checkStudentById(studentId);
-        if (isStudent) return res.status(400).send({ message: "Student already added to class" });
-
-        teacherClass = teacherClass.addStudentToClass(studentId);
-        await teacherClass.save();
-
-        res.send(true);
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -226,7 +200,6 @@ async function deleteStudentFromClass(req, res) {
         await teacherClass.save();
         res.status(204).send(true);
     } catch (error) {
-        console.log(error.message);
         if (error.kind === "ObjectId") return res.status(400).send({ message: "Invalid class Id" });
         ServerErrorHandler(req, res, error);
     }
@@ -247,7 +220,6 @@ async function getPublishedClassData(req, res) {
     }
 }
 module.exports = {
-    addStudentToClass,
     deleteLab,
     deleteQuiz,
     deleteStudentFromClass,
