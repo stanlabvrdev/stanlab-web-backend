@@ -122,15 +122,13 @@ async function addStudentToClass(req, res) {
 async function inviteStudentToClass(req, res) {
     const { studentEmails } = req.body;
     try {
+        let result = null;
         if (!studentEmails || studentEmails.length < 1)
             return res.status(400).send({ message: "studentEmails is require and must be atleast 1" });
 
         let teacherClass = await teacherClassService.getOne({
             _id: req.params.classId,
         });
-
-        if (teacherClass.teacher.toString() !== req.teacher._id.toString())
-            return res.status(401).send({ message: "Not autorized!" });
 
         for (const studentEmail of studentEmails) {
             let student = await Student.findOne({ email: studentEmail });
@@ -151,22 +149,18 @@ async function inviteStudentToClass(req, res) {
                 await student.save();
             }
 
-            await studentTeacherClassService.create({
-                student: student._id,
-                teacher: req.teacher._id,
-                class: teacherClass._id,
-            });
+            result = await studentTeacherService.create(req.teacher._id, student._id, teacherClass._id);
 
             const isStudent = teacherClass.checkStudentById(student._id);
             if (isStudent) {
-                ServerResponse(req, res, 200, null, "Student added to class");
+                ServerResponse(req, res, 200, result, "Student added to class");
             }
 
             teacherClass = teacherClass.addStudentToClass(student._id);
             await teacherClass.save();
         }
 
-        ServerResponse(req, res, 200, null, "Student added to class");
+        ServerResponse(req, res, 200, result, "Student added to class");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
