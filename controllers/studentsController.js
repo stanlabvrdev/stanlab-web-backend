@@ -62,8 +62,8 @@ async function inviteTeacher(req, res) {
 }
 
 async function createStudent(req, res) {
-    doValidate(validateStudent(req.body));
     try {
+        doValidate(validateStudent(req.body));
         let { name, email, password, studentClass, teacher } = req.body;
 
         const teacherEmail = await teacherService.findOne({ email });
