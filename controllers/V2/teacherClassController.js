@@ -80,7 +80,7 @@ async function getTeachers(req, res) {
     try {
         const teachers = [];
         const classData = await studentTeacherClassService.getAll({
-            _id: req.params.classId,
+            class: req.params.classId,
             teacher: req.teacher._id,
         });
 
