@@ -70,7 +70,6 @@ async function getScores(req, res) {
             .populate({ path: "student", select: ["name", "_id", "email"], model: "Student" })
             .populate({ path: "student_class", select: ["title", "subject", "section", "_id"] });
 
-        console.log(scores);
         res.send({ messages: "scores successfully fetched", data: scores });
     } catch (error) {
         ServerErrorHandler(req, res, error);
