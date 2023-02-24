@@ -8,7 +8,8 @@ const { TeacherClass } = require("../../models/teacherClass");
 const constants = require("../../utils/constants");
 const { LabExperiment } = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
-const { ServerErrorHandler } = require("../../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
 
 async function getLabs(req, res) {
     const studentId = req.student._id;
@@ -62,6 +63,24 @@ async function getClasses(req, res) {
     }
 }
 
+async function getTeachers(req, res) {
+    try {
+        const teachers = [];
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+            student: req.student._id,
+        });
+
+        for (let data of classData) {
+            teachers.push(data.teacher);
+        }
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
 async function getScores(req, res) {
     const studentId = req.student._id;
     const { classId } = req.params;
@@ -80,4 +99,5 @@ module.exports = {
     getLabs,
     getClasses,
     getScores,
+    getTeachers,
 };
