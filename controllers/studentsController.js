@@ -174,12 +174,16 @@ async function bulkSignup(req, res) {
             teacherData.teacherId = teacher._id;
 
             for (const studentData of onlyStudents) {
-                const student = await studentService.create({
-                    name: getFullName(studentData.first_name, studentData.last_name),
-                    userName: studentData.user_name,
-                });
+                let student = studentService.findOne({ email: studentData.user_name });
 
-                await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+                if (!student) {
+                    student = await studentService.create({
+                        name: getFullName(studentData.first_name, studentData.last_name),
+                        userName: studentData.user_name,
+                    });
+
+                    await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+                }
 
                 Logger.info(`Created student ${JSON.stringify(student)}`);
             }
