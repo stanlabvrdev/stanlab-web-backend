@@ -22,19 +22,26 @@ async function getLabs(req, res) {
         if (labs.length > 0) {
             for (const lab of labs) {
                 const experiment = await LabExperiment.findOne({ _id: lab._id })
-                    .populate({ path: "experiment", select: ["name", "_id", "subject"] })
+                    .populate({ path: "experiment", select: ["name", "_id", "subject", "icon"] })
                     .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
 
-                const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
-                    path: "teacher",
-                    select: ["name", "email", "_id"],
-                });
-                experiment.teacher = teacherClass.teacher;
-                experiment.class = experiment.classId;
-                delete experiment.classId;
-                // experiment.set("teacher", teacherClass.teacher);
+                if (!experiment || !experiment.classId) {
+                    await LabExperiment.deleteOne({ _id: lab._id });
+                }
 
-                results.push(experiment);
+                if (experiment && experiment.classId) {
+                    const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
+                        path: "teacher",
+                        select: ["name", "email", "_id"],
+                    });
+                    experiment.teacher = teacherClass.teacher;
+                    experiment.class = experiment.classId;
+                    delete experiment.classId;
+
+                    // experiment.set("teacher", teacherClass.teacher);
+
+                    results.push(experiment);
+                }
             }
         }
 
@@ -48,24 +55,27 @@ async function getLabs(req, res) {
 async function getClasses(req, res) {
     const studentId = req.student._id;
     try {
-        // const student = await Student.findOne({ _id: studentId })
-        //     .populate({
-        //         path: "classes",
-        //         select: ["_id", "title", "subject", "section", "teacher"],
-        //     })
-        //     .lean();
-
-        // const classes = student.classes;
-
-        // for (const clas of classes) {
-        //     const teacher = await Teacher.findOne({ _id: clas.teacher }).lean();
-
-        //     clas.teacher = _.pick(teacher, ["name", "email", "_id"]);
-        // }
-
         const classes = await studentTeacherClassService.getAll({ student: studentId });
         // const promisified = await Promise.all(results);
         ServerResponse(req, res, 200, classes, "classes successfully fetched");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
+async function getTeachers(req, res) {
+    try {
+        const teachers = [];
+        const classData = await studentTeacherClassService.getAll({
+            class: req.params.classId,
+            student: req.student._id,
+        });
+
+        for (let data of classData) {
+            teachers.push(data.teacher);
+        }
+
+        ServerResponse(req, res, 200, teachers, "teachers fetched successfully");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -89,4 +99,5 @@ module.exports = {
     getLabs,
     getClasses,
     getScores,
+    getTeachers,
 };

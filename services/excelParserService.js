@@ -22,6 +22,17 @@ class ExcelParserService {
 
         return xlsx.utils.sheet_to_json(sheet, { defval: "" });
     }
+
+    generateReport(data, sheetName) {
+        const workbook = xlsx.utils.book_new();
+
+        const worksheet = xlsx.utils.json_to_sheet(data);
+        xlsx.utils.book_append_sheet(workbook, worksheet, sheetName);
+        return xlsx.write(workbook, {
+            bookType: "xlsx",
+            type: "buffer",
+        });
+    }
 }
 
 const excelParserService = new ExcelParserService();
