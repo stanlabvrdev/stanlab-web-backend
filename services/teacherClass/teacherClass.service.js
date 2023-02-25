@@ -3,6 +3,15 @@ const NotFoundError = require("../exceptions/not-found");
 
 class TeacherClassService {
     async create(data) {
+        const teacherClass = await TeacherClass.findOne({ title: data.title });
+
+        if (teacherClass) {
+          return reject({
+            code: 400,
+            message: "A class with this title already exist",
+          });
+        }
+        
         const created = new TeacherClass(data);
         return created.save();
     }

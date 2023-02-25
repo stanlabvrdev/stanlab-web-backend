@@ -1268,6 +1268,30 @@
             "description": "Resource Fetched Successfully"
           }
         }
+      },
+      "patch": {
+        "tags": ["school admin"],
+        "description": "Update school admin",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateSchoolAdmin"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource Updated Successfully"
+          }
+        }
       }
     },
     "/schools/login": {
@@ -1320,7 +1344,7 @@
     "/schools/addBulkTeachers": {
       "post": {
         "tags": ["school admin"],
-        "description": "Add teachers in bulk",
+        "description": "Add teachers in bulk. Contents are: Firstname, Surname, Email",
         "consumes": ["multipart/form-data"],
         "parameters": [
           {
@@ -1415,7 +1439,14 @@
       "get": {
         "tags": ["school admin"],
         "description": "Get classes",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string",
+            "example": "Bio 101"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1457,7 +1488,7 @@
     "/schools/addBulkStudents": {
       "post": {
         "tags": ["school admin"],
-        "description": "Add Students in bulk",
+        "description": "Add Students in bulk. Contents are: Firstname, Surname",
         "consumes": ["multipart/form-data"],
         "parameters": [
           {
@@ -1479,11 +1510,20 @@
         }
       }
     },
-    "/schools/getStudents": {
-      "get": {
+    "/schools/addStudentToClass": {
+      "patch": {
         "tags": ["school admin"],
-        "description": "Get students",
-        "parameters": [],
+        "description": "Add a student to a class",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "obj",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/addStudentToClass"
+            }
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1491,31 +1531,16 @@
         ],
         "responses": {
           "200": {
-            "description": "Resource Fetched Successfully"
+            "description": "Resource Updated Successfully"
           }
         }
       }
     },
-    "/schools/{id}": {
+    "/schools/getStudents": {
       "get": {
         "tags": ["school admin"],
-        "description": "Get school admin",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "name": "obj",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/GetSchoolAdmin"
-            }
-          }
-        ],
+        "description": "Get students",
+        "parameters": [],
         "security": [
           {
             "bearerAuth": []
@@ -2434,28 +2459,28 @@
     "CreateSchoolAdmin": {
       "type": "object",
       "required": [
-        "schoolName",
-        "schoolEmail",
         "adminName",
-        "adminEmail",
+        "schoolName",
+        "email",
+        "schoolEmail",
         "password"
       ],
       "properties": {
-        "schoolName": {
-          "type": "string",
-          "example": "kits and kitten school"
-        },
-        "schoolEmail": {
-          "type": "string",
-          "example": "k&k@mail.com"
-        },
         "adminName": {
           "type": "string",
           "example": "Anita Banks"
         },
-        "adminEmail": {
+        "schoolName": {
+          "type": "string",
+          "example": "kits and kitten school"
+        },
+        "email": {
           "type": "string",
           "example": "pqsquarelsv@gmail.com"
+        },
+        "schoolEmail": {
+          "type": "string",
+          "example": "k&k@mail.com"
         },
         "password": {
           "type": "string",
@@ -2477,17 +2502,34 @@
         }
       }
     },
+    "updateSchoolAdmin": {
+      "type": "object",
+      "properties": {
+        "adminName": {
+          "type": "string",
+          "example": "Anita Banks"
+        },
+        "schoolName": {
+          "type": "string",
+          "example": "kits and kitten school"
+        },
+        "email": {
+          "type": "string",
+          "example": "pqsquarelsv@gmail.com"
+        },
+        "schoolEmail": {
+          "type": "string",
+          "example": "k&k@mail.com"
+        }
+      }
+    },
     "CreateATeacher": {
       "type": "object",
-      "required": ["name", "surname", "email"],
+      "required": ["name", "email"],
       "properties": {
         "name": {
           "type": "string",
-          "example": "Jerry"
-        },
-        "surname": {
-          "type": "string",
-          "example": "Seinfeld"
+          "example": "Jerry Seinfeld"
         },
         "email": {
           "type": "string",
@@ -2541,17 +2583,17 @@
         }
       }
     },
-    "GetSchoolAdmin": {
+    "addStudentToClass": {
       "type": "object",
-      "required": ["name", "email"],
+      "required": ["userName, classId"],
       "properties": {
-        "name": {
+        "userName": {
           "type": "string",
-          "example": "Dayo keth"
+          "example": "BisJoh9060"
         },
-        "email": {
+        "classId": {
           "type": "string",
-          "example": "keth@mail.com"
+          "example": "63e5f0e660c2721d0a1d233r"
         }
       }
     },

@@ -1,13 +1,16 @@
 const { ServerErrorHandler } = require("../services/response/serverResponse");
 const {
   validateSchoolAdmin,
-  validateLoginSchoolAdmin,
+  validateSchoolAdminLogin,
+  validateUpdateSchoolAdmin,
   validateAddATeacher,
   validateCreateClass,
   validateAddTeacherToClass,
   validateAddAStudent,
-} = require("../validations/schoolAdmin.validation");
-const SchoolAdminService = require("../services/schoolAdmin.service");
+  validateAddStudentToClass,
+} = require("../services/schoolAdmin/validations/schoolAdmin.validation");
+const SchoolAdminService = require("../services/schoolAdmin/schoolAdmin.service");
+const { requestFilter } = require("../utils/requestFilter");
 
 const schoolAdminInstance = new SchoolAdminService();
 
@@ -26,7 +29,7 @@ exports.createSchoolAdmin = async (req, res) => {
 
 exports.schoolAdminLogin = async (req, res) => {
   try {
-    const { error } = validateLoginSchoolAdmin(req.body);
+    const { error } = validateSchoolAdminLogin(req.body);
     if (error)
       return res.status(400).send({ message: error.details[0].message });
 
@@ -49,6 +52,26 @@ exports.getSchoolAdmin = async (req, res) => {
     return res.send({
       code: 200,
       message: "School admin successfull fetched",
+      schoolAdmin,
+    });
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.updateSchoolAdmin = async (req, res) => {
+  try {
+    const { error } = validateUpdateSchoolAdmin(req.body);
+    if (error)
+      return res.status(400).send({ message: error.details[0].message });
+
+    const schoolAdmin = await schoolAdminInstance.updateSchoolAdmin(
+      req.school._id,
+      req.body
+    );
+    return res.send({
+      code: 200,
+      message: "School admin successfull updated",
       schoolAdmin,
     });
   } catch (error) {
@@ -128,7 +151,7 @@ exports.assignTeacherToClass = async (req, res) => {
     await schoolAdminInstance.assignTeacherToClass(req.body);
     return res.send({
       code: 200,
-      message: "Teacher Added Successfully",
+      message: "Teacher Assigned Successfully",
     });
   } catch (error) {
     ServerErrorHandler(req, res, error);
@@ -137,7 +160,8 @@ exports.assignTeacherToClass = async (req, res) => {
 
 exports.getClasses = async (req, res) => {
   try {
-    const data = await schoolAdminInstance.getClasses();
+    const filter = await requestFilter({ ...req.query });
+    const data = await schoolAdminInstance.getClasses(filter);
     return res.send({
       code: 200,
       message: "Class fetched Successfully",
@@ -175,6 +199,22 @@ exports.addBulkStudents = async (req, res) => {
     return res.send({
       code: 201,
       message: "Students Added Successfully",
+    });
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.addStudentToClass = async (req, res) => {
+  try {
+    const { error } = validateAddStudentToClass(req.body);
+    if (error)
+      return res.status(400).send({ message: error.details[0].message });
+
+    await schoolAdminInstance.addStudentToClass(req.body);
+    return res.send({
+      code: 200,
+      message: "Student Added to Class Successfully",
     });
   } catch (error) {
     ServerErrorHandler(req, res, error);

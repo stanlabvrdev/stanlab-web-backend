@@ -1,12 +1,14 @@
-const bcrypt = require("bcryptjs");
+const { passwordService } = require("../../services/passwordService");
 const jwt = require("jsonwebtoken");
-const config = require("config");
-const SchoolAdmin = require("../models/schoolAdmin");
-const { Teacher } = require("../models/teacher");
-const generateRandomString = require("../utils/randomStr");
-const { TeacherClass } = require("../models/teacherClass");
-const { sendEmailToSchoolAdmin, sendTeacherInviteEmail } = require("./email");
-const { Student } = require("../models/student");
+const envConfig = require("../../config/env");
+const env = envConfig.getAll();
+const SchoolAdmin = require("../../models/schoolAdmin");
+const { Teacher } = require("../../models/teacher");
+const generateRandomString = require("../../utils/randomStr");
+const teacherClassService = require("../teacherClass/teacherClass.service");
+const { TeacherClass } = require("../../models/teacherClass");
+const { sendEmailToSchoolAdmin, sendTeacherInviteEmail } = require("../email");
+const { Student } = require("../../models/student");
 const Papa = require("papaparse");
 
 class SchoolAdminService {
@@ -17,7 +19,7 @@ class SchoolAdminService {
           schoolEmail: body.schoolEmail,
         });
         const admin = await SchoolAdmin.findOne({
-          adminEmail: body.adminEmail,
+          email: body.email,
         });
 
         if (school) {
@@ -33,8 +35,7 @@ class SchoolAdminService {
           });
         }
 
-        const salt = await bcrypt.genSalt(10);
-        body.password = await bcrypt.hash(body.password, salt);
+        body.password = await passwordService.hash(body.password);
 
         const createdSchoolAdmin = await SchoolAdmin.create(body);
 
@@ -62,13 +63,7 @@ class SchoolAdminService {
           });
         }
 
-        const isEqual = await bcrypt.compare(body.password, school.password);
-        if (!isEqual) {
-          return reject({
-            code: 400,
-            message: "Password incorrect",
-          });
-        }
+        await passwordService.compare(body.password, school.password);
 
         school.password = undefined;
         const token = await this.generateAuthToken(school._id, school.role);
@@ -89,7 +84,7 @@ class SchoolAdminService {
   generateAuthToken(id, role) {
     return new Promise(async (resolve, reject) => {
       try {
-        const token = jwt.sign({ _id: id, role }, config.get("jwtKey"));
+        const token = jwt.sign({ _id: id, role }, env.jwtKey);
         resolve(token);
       } catch (error) {
         return reject(error);
@@ -108,11 +103,27 @@ class SchoolAdminService {
     });
   }
 
+  updateSchoolAdmin(schoolId, body) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const school = await SchoolAdmin.findById({ _id: schoolId });
+        await school.updateOne(body);
+        resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+
   addATeacher(schoolId, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const school = await SchoolAdmin.findById(schoolId);
-
+        const registeredStudent = await Student.findOne({ email: body.email });
+        if (registeredStudent) {
+          return res.status(401).send({
+            message: "You cannot use same email registered as Student",
+          });
+        }
         const teacher = await Teacher.findOne({ email: body.email });
         if (teacher && teacher.checkIsSchool(schoolId)) {
           return reject({
@@ -121,24 +132,27 @@ class SchoolAdminService {
           });
         }
 
-        //let password = generateRandomString(7);
+        //let autoPassword = generateRandomString(7);
 
         const autoPassword = "12345";
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(autoPassword, salt);
+        const hashedPassword = await passwordService.hash(autoPassword);
 
         const createdTeacher = await Teacher.create({
           ...body,
           password: hashedPassword,
         });
-
         sendTeacherInviteEmail(createdTeacher, autoPassword);
 
-        await createdTeacher.updateOne({
-          schools: { $addToSet: { school: schoolId } },
-        });
+        console.log(schoolId);
 
-        await school.updateOne({ $addToSet: { teachers: createdTeacher._id } });
+        await Teacher.updateOne(
+          { _id: createdTeacher },
+          { schools: { school: schoolId } }
+        );
+
+        await SchoolAdmin.updateOne({
+          $addToSet: { teachers: [createdTeacher._id] },
+        });
 
         resolve(createdTeacher);
       } catch (error) {
@@ -150,11 +164,8 @@ class SchoolAdminService {
   addBulkTeachers(file, schoolId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const school = await SchoolAdmin.findById(schoolId);
-
         const autoPassword = "12345";
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(autoPassword, salt);
+        const hashedPassword = await passwordService.hash(autoPassword);
 
         const csvData = [];
         Papa.parse(file, {
@@ -165,24 +176,43 @@ class SchoolAdminService {
         });
 
         for (const teacher of csvData) {
-          //let password = generateRandomString(7);
-          // const autoPassword = "12345";
-          // const salt = await bcrypt.genSalt(10);
-          // const hashedPassword = await bcrypt.hash(autoPassword, salt);
-          const teachers = await Teacher.create({
-            ...teacher,
+          //let autoPassword = generateRandomString(7);
+          // const hashedPassword = await passwordService.hash(autoPassword);
+
+          const registeredStudent = await Student.findOne({
+            email: teacher.Email,
+          });
+          if (registeredStudent)
+            return res.status(401).send({
+              message: "You cannot use same email registered as Student",
+            });
+
+          const isteacher = await Teacher.findOne({ email: teacher.Email });
+          if (isteacher && isteacher.checkIsSchool(schoolId)) {
+            return reject({
+              code: 400,
+              message: "You have already added this teacher",
+            });
+          }
+          const newTeachers = await Teacher.create({
+            name: `${teacher.Firstname} ${teacher.Surname}`,
+            email: `${teacher.Email}`,
             password: hashedPassword,
           });
 
-          sendTeacherInviteEmail(teachers, autoPassword);
+          sendTeacherInviteEmail(newTeachers.email, autoPassword);
 
-          await teachers.updateOne({
-            schools: { $addToSet: { school: schoolId } },
-          });
+          await Teacher.updateOne(
+            { _id: newTeachers },
+            { schools: { school: schoolId } }
+          );
 
-          await school.updateOne({
-            $addToSet: { teachers: teachers._id },
-          });
+          await SchoolAdmin.updateOne(
+            { _id: schoolId },
+            {
+              $addToSet: { teachers: [newTeachers._id] },
+            }
+          );
         }
 
         resolve();
@@ -198,7 +228,7 @@ class SchoolAdminService {
         const teachers = await SchoolAdmin.findById({ _id: schoolId })
           .populate({
             path: "teachers",
-            select: "-students -password -role -schools -__v",
+            select: " -password -role -schools -__v",
           })
           .select("teachers");
         resolve(teachers);
@@ -211,16 +241,7 @@ class SchoolAdminService {
   createClass(body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const teacherClass = await TeacherClass.findOne({ title: body.title });
-
-        if (teacherClass) {
-          return reject({
-            code: 400,
-            message: "A class with this title already exist",
-          });
-        }
-
-        const createdTeacherClass = await TeacherClass.create(body);
+        const createdTeacherClass = await teacherClassService.create(body);
 
         resolve(createdTeacherClass);
       } catch (error) {
@@ -251,7 +272,7 @@ class SchoolAdminService {
         await teacherClass.updateOne({ teacher: teacher._id });
         await teacher.updateOne({
           $addToSet: { classes: teacherClass._id },
-        })
+        });
 
         resolve();
       } catch (error) {
@@ -260,10 +281,13 @@ class SchoolAdminService {
     });
   }
 
-  getClasses() {
+  getClasses(filter) {
     return new Promise(async (resolve, reject) => {
       try {
-        const classes = await TeacherClass.find();
+        const classes = await TeacherClass.find({
+          ...filter,
+        });
+
         resolve(classes);
       } catch (error) {
         return reject(error);
@@ -274,11 +298,9 @@ class SchoolAdminService {
   addAStudent(schoolId, body) {
     return new Promise(async (resolve, reject) => {
       try {
-        const school = await SchoolAdmin.findById(schoolId);
-
+        //let autoPassword = generateRandomString(7);
         const autoPassword = "12345";
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(autoPassword, salt);
+        const hashedPassword = await passwordService.hash(autoPassword);
 
         const random = Math.floor(1000 + Math.random() * 9000);
 
@@ -288,13 +310,21 @@ class SchoolAdminService {
         )}${random}`;
 
         const createdStudent = await Student.create({
-          ...body,
+          name: `${body.name} ${body.surname}`,
           password: hashedPassword,
           userName,
         });
 
-        await school.updateOne({ $addToSet: { students: createdStudent._id } });
-        await createdStudent.updateOne({ $addToSet: { school: schoolId } });
+        await SchoolAdmin.updateOne(
+          { _id: schoolId },
+          {
+            $addToSet: { students: createdStudent._id },
+          }
+        );
+        await Student.updateOne(
+          { _id: createdStudent._id },
+          { school: schoolId }
+        );
 
         resolve(createdStudent);
       } catch (error) {
@@ -306,11 +336,8 @@ class SchoolAdminService {
   addBulkStudents(file, schoolId) {
     return new Promise(async (resolve, reject) => {
       try {
-        const school = await SchoolAdmin.findById(schoolId);
-
         const autoPassword = "12345";
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(autoPassword, salt);
+        const hashedPassword = await passwordService.hash(autoPassword);
 
         const csvData = [];
         Papa.parse(file, {
@@ -321,22 +348,73 @@ class SchoolAdminService {
         });
 
         for (const student of csvData) {
-          const students = await Student.create({
-            ...student,
-            userName: `${student.name.substring(
+          const newStudents = await Student.create({
+            name: `${student.Firstname} ${student.Surname}`,
+            userName: `${student.Firstname.substring(
               0,
               3
-            )}${student.surname.substring(0, 3)}${Math.floor(
+            )}${student.Surname.substring(0, 3)}${Math.floor(
               1000 + Math.random() * 9000
             )}`,
             password: hashedPassword,
           });
 
-          await school.updateOne({
-            $addToSet: { students: students._id },
-          });
-          await students.updateOne({ $addToSet: { school: schoolId } });
+          await SchoolAdmin.updateOne(
+            { _id: schoolId },
+            {
+              $addToSet: { students: newStudents._id },
+            }
+          );
+          await Student.updateOne(
+            { _id: newStudents._id },
+            { school: schoolId }
+          );
         }
+
+        resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+
+  addStudentToClass(body) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const student = await Student.findOne({
+          userName: body.userName,
+        });
+        if (!student) {
+          return reject({
+            code: 400,
+            message: "Student was not found",
+          });
+        }
+
+        const teacherClass = await TeacherClass.findById({ _id: body.classId });
+        if (!teacherClass) {
+          return reject({
+            code: 400,
+            message: "Class was not found",
+          });
+        }
+
+        await teacherClass.updateOne({
+          $addToSet: { students: [student._id] },
+        });
+        await Student.updateOne(
+          { _id: student._id },
+          {
+            $addToSet: { classes: [teacherClass._id] },
+            teachers: { teacher: teacherClass.teacher, isAccepted: true },
+          }
+        );
+        await Teacher.updateOne(
+          { _id: teacherClass.teacher },
+          {
+            students: { student: student._id, isAccepted: true },
+          }
+        );
 
         resolve();
       } catch (error) {

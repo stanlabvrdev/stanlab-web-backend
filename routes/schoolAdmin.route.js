@@ -3,6 +3,7 @@ const {
   createSchoolAdmin,
   schoolAdminLogin,
   getSchoolAdmin,
+  updateSchoolAdmin,
   addATeacher,
   addBulkTeachers,
   getTeachers,
@@ -11,6 +12,7 @@ const {
   getClasses,
   addAStudent,
   addBulkStudents,
+  addStudentToClass,
   getStudents
 } = require("../controllers/schoolAdmin.controller");
 const { schoolAuth } = require("../middleware/auth");
@@ -33,6 +35,7 @@ const router = express.Router();
 router.post("/", createSchoolAdmin);
 router.post("/login", schoolAdminLogin);
 router.get("/", [schoolAuth], getSchoolAdmin);
+router.patch("/", [schoolAuth], updateSchoolAdmin);
 router.post("/addATeacher", [schoolAuth], addATeacher);
 router.post(
   "/addBulkTeachers",
@@ -51,6 +54,7 @@ router.post(
   upload.single("uploadStudents"),
   addBulkStudents
 );
+router.patch("/addStudentToClass", [schoolAuth], addStudentToClass);
 router.get("/getStudents", [schoolAuth], getStudents);
 
 module.exports = router;
