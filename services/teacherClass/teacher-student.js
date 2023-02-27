@@ -11,7 +11,7 @@ class StudentTeacherService {
 
             exist.studentApproved = true;
 
-            return exist;
+            return exist.save();
         }
 
         if (classId) {
@@ -61,7 +61,7 @@ class StudentTeacherService {
 
         exist.studentApproved = false;
 
-        return exist;
+        return exist.save();
     }
 
     async getTeachersByStudentId(studentId) {
