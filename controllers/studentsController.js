@@ -21,6 +21,7 @@ const teacherClassService = require("../services/teacherClass/teacherClass.servi
 const Logger = require("../utils/logger");
 const CustomError = require("../services/exceptions/custom");
 const { doValidate } = require("../services/exceptions/validator");
+const { csvUploaderService } = require("../services/csv-uploader");
 
 async function inviteTeacher(req, res) {
     let { teacherEmail } = req.body;
@@ -62,8 +63,8 @@ async function inviteTeacher(req, res) {
 }
 
 async function createStudent(req, res) {
-    doValidate(validateStudent(req.body));
     try {
+        doValidate(validateStudent(req.body));
         let { name, email, password, studentClass, teacher } = req.body;
 
         const teacherEmail = await teacherService.findOne({ email });
@@ -173,18 +174,36 @@ async function bulkSignup(req, res) {
             teacherData.teacherId = teacher._id;
 
             for (const studentData of onlyStudents) {
-                const student = await studentService.create({
-                    name: getFullName(studentData.first_name, studentData.last_name),
-                    userName: studentData.user_name,
-                });
+                let student = studentService.findOne({ email: studentData.user_name });
 
-                await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+                if (!student) {
+                    student = await studentService.create({
+                        name: getFullName(studentData.first_name, studentData.last_name),
+                        userName: studentData.user_name,
+                    });
+
+                    await studentTeacherService.create(teacher._id, student._id, teacherClass._id);
+                }
 
                 Logger.info(`Created student ${JSON.stringify(student)}`);
             }
         }
 
         ServerResponse(req, res, 201, null, "successfully uploaded students");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
+async function downloadStudents(req, res) {
+    try {
+        const teacher = await teacherService.getOne({ email: req.body.email });
+
+        const result = await studentTeacherService.getDownload({ teacher: teacher._id });
+
+        const downloadedUrl = await csvUploaderService.getCsv(result, "students", "student");
+
+        ServerResponse(req, res, 201, downloadedUrl, "successfully downloaded students");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -348,4 +367,5 @@ module.exports = {
     getFinishedQuiz,
     bulkCreate,
     bulkSignup,
+    downloadStudents,
 };

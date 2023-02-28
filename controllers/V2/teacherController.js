@@ -14,6 +14,10 @@ const SystemExperiment = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
 const { ServerResponse, ServerErrorHandler } = require("../../services/response/serverResponse");
 const NotFoundError = require("../../services/exceptions/not-found");
+const studentService = require("../../services/student/student.service");
+const BadRequestError = require("../../services/exceptions/bad-request");
+const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
+const studentTeacherService = require("../../services/teacherClass/teacher-student");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -262,13 +266,11 @@ async function sendInviteToStudent(req, res) {
             const salt = await bcrypt.genSalt(10);
             let password = await bcrypt.hash(generatedPassword, salt);
 
-            const createdStudent = new Student({
+            const createdStudent = await studentService.create({
                 email: studentEmail,
                 password,
                 name: "new student",
             });
-
-            await createdStudent.save();
 
             // create student
 
@@ -278,7 +280,7 @@ async function sendInviteToStudent(req, res) {
         }
 
         const isStudent = teacher.checkStudentById(student._id);
-        if (isStudent) return res.status(400).send({ message: "Invitation already sent to this student" });
+        if (isStudent) throw new BadRequestError("Invitation already sent to this student");
 
         // add student to class
 
@@ -292,7 +294,9 @@ async function sendInviteToStudent(req, res) {
 
         await teacher.save();
         await student.save();
-        return res.send({ data: { id: student._id, email: student.email }, message: "Invitation sent!" });
+        await studentTeacherService.create(teacher._id, createdStudent._id);
+
+        ServerResponse(req, res, 200, { id: student._id, email: student.email }, "Invitation sent!");
     } catch (ex) {
         ServerErrorHandler(req, res, ex);
     }

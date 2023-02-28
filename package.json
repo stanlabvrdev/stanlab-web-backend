@@ -12,9 +12,9 @@
     "license": "ISC",
     "dependencies": {
         "@sendgrid/mail": "^7.4.0",
+        "aws-sdk": "^2.1323.0",
         "bcryptjs": "^2.4.3",
         "cloudinary": "^1.23.0",
-        "config": "^3.3.2",
         "cors": "^2.8.5",
         "dotenv": "^16.0.3",
         "express": "^4.17.1",
@@ -32,9 +32,11 @@
         "node-fetch": "^2.6.1",
         "passport": "^0.4.1",
         "passport-google-oauth20": "^2.0.0",
+        "pdf-parse": "^1.1.1",
         "sharp": "^0.26.3",
         "stripe": "^8.129.0",
         "swagger-ui-express": "^4.6.0",
+        "textract": "^2.5.0",
         "winston": "^3.8.2",
         "winston-daily-rotate-file": "^4.7.1",
         "xlsx": "^0.18.5"
