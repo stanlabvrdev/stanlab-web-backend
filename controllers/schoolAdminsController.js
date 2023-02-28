@@ -4,12 +4,7 @@ const _ = require("lodash");
 const { Teacher } = require("../models/teacher");
 const { Student } = require("../models/student");
 const generateRandomString = require("../utils/randomStr");
-const {
-    sendLoginDetails,
-    sendEmailToSchoolAdmin,
-    sendTeacherInviteEmail,
-    sendStudentInviteEmail,
-} = require("../services/email");
+const { sendEmailToSchoolAdmin, sendStudentInviteEmail, sendTeacherWelcomeEmail } = require("../services/email");
 
 const { ServerErrorHandler } = require("../services/response/serverResponse");
 
@@ -66,7 +61,7 @@ async function createTeacher(req, res) {
         if (teacher && teacher.checkIsSchool(school._id))
             return res.status(400).send({ message: "You have already added this teacher" });
         if (teacher) {
-            sendTeacherInviteEmail(teacher);
+            sendTeacherWelcomeEmail(teacher);
             teacher.addSchool(school._id);
             school = school.addTeacher(teacher._id);
             await school.save();
@@ -76,7 +71,6 @@ async function createTeacher(req, res) {
         teacher = new Teacher({ name, email, password: hashedPassword });
         teacher.addSchool(school._id);
 
-        sendTeacherInviteEmail(teacher, password);
         await teacher.save();
         school = school.addTeacher(teacher._id);
         await school.save();

@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const _ = require("lodash");
-const { sendInvitation } = require("../services/email");
+
 const { Student, validateStudent } = require("../models/student");
 const { Teacher } = require("../models/teacher");
 const constants = require("../utils/constants");
@@ -35,7 +35,7 @@ async function inviteTeacher(req, res) {
         if (!teacher) {
             let isStudent = student.addUnregisterTeacher(teacherEmail);
             if (!isStudent) return res.status(400).send({ message: "Invite already sent" });
-            sendInvitation({ email: teacherEmail, name: "" }, student, "student");
+
             await student.save();
             return res.send({
                 message: "Teacher not on platform, request has been sent to Teacher email",
@@ -51,7 +51,6 @@ async function inviteTeacher(req, res) {
 
         // send mail to student
         // this method may not need to be waited in the future -> decision has to be made here on this
-        sendInvitation(teacher, student, "student");
 
         await teacher.save();
         await student.save();
