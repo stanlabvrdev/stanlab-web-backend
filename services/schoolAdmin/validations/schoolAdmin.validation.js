@@ -66,6 +66,7 @@ function validateAddAStudent(admin) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(255).required(),
     surname: Joi.string().min(3).max(255).required(),
+    classId: Joi.string().required()
   });
 
   return schema.validate(admin);

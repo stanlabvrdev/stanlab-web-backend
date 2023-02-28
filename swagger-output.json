@@ -1492,9 +1492,16 @@
         "consumes": ["multipart/form-data"],
         "parameters": [
           {
+            "name": "classId",
+            "in": "formData",
+            "type": "string",
+            "required": "true"
+          },
+          {
             "in": "formData",
             "name": "uploadStudents",
             "type": "file",
+            "required": "true",
             "description": "Upload a list of students from a csv file."
           }
         ],
@@ -1540,7 +1547,14 @@
       "get": {
         "tags": ["school admin"],
         "description": "Get students",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "classes",
+            "type": "string",
+            "example": "Bio 101"
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -2571,7 +2585,7 @@
     },
     "CreateAStudent": {
       "type": "object",
-      "required": ["name", "surname"],
+      "required": ["name", "surname", "classId"],
       "properties": {
         "name": {
           "type": "string",
@@ -2580,6 +2594,10 @@
         "surname": {
           "type": "string",
           "example": "Leye"
+        },
+        "classId": {
+          "type": "string",
+          "example": "63fe2b4297fac74644fc4b5d"
         }
       }
     },

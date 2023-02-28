@@ -160,7 +160,7 @@ exports.assignTeacherToClass = async (req, res) => {
 
 exports.getClasses = async (req, res) => {
   try {
-    const filter = await requestFilter({ ...req.query });
+    const filter = requestFilter({ ...req.query });
     const data = await schoolAdminInstance.getClasses(filter);
     return res.send({
       code: 200,
@@ -195,7 +195,7 @@ exports.addAStudent = async (req, res) => {
 exports.addBulkStudents = async (req, res) => {
   try {
     const csv = req.file.buffer.toString();
-    await schoolAdminInstance.addBulkStudents(csv, req.school._id);
+    await schoolAdminInstance.addBulkStudents(csv, req.school._id, req.body);
     return res.send({
       code: 201,
       message: "Students Added Successfully",
@@ -223,7 +223,8 @@ exports.addStudentToClass = async (req, res) => {
 
 exports.getStudents = async (req, res) => {
   try {
-    const data = await schoolAdminInstance.getStudents(req.school._id);
+    const filter = requestFilter({ ...req.query });
+    const data = await schoolAdminInstance.getStudents(req.school._id, filter);
     return res.send({
       code: 200,
       message: "Students successfull fetched",

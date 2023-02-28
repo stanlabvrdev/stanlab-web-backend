@@ -143,8 +143,6 @@ class SchoolAdminService {
         });
         sendTeacherInviteEmail(createdTeacher, autoPassword);
 
-        console.log(schoolId);
-
         await Teacher.updateOne(
           { _id: createdTeacher },
           { schools: { school: schoolId } }
@@ -298,6 +296,13 @@ class SchoolAdminService {
   addAStudent(schoolId, body) {
     return new Promise(async (resolve, reject) => {
       try {
+        const teacherClass = await TeacherClass.findById({ _id: body.classId });
+        if (!teacherClass) {
+          return reject({
+            code: 400,
+            message: "Class was not found",
+          });
+        }
         //let autoPassword = generateRandomString(7);
         const autoPassword = "12345";
         const hashedPassword = await passwordService.hash(autoPassword);
@@ -313,6 +318,9 @@ class SchoolAdminService {
           name: `${body.name} ${body.surname}`,
           password: hashedPassword,
           userName,
+          school: schoolId,
+          classes: teacherClass._id,
+          teachers: { teacher: teacherClass.teacher, isAccepted: true },
         });
 
         await SchoolAdmin.updateOne(
@@ -321,9 +329,14 @@ class SchoolAdminService {
             $addToSet: { students: createdStudent._id },
           }
         );
-        await Student.updateOne(
-          { _id: createdStudent._id },
-          { school: schoolId }
+        await teacherClass.updateOne({
+          $addToSet: { students: [createdStudent._id] },
+        });
+        await Teacher.updateOne(
+          { _id: teacherClass.teacher },
+          {
+            students: { student: createdStudent._id, isAccepted: true },
+          }
         );
 
         resolve(createdStudent);
@@ -333,9 +346,17 @@ class SchoolAdminService {
     });
   }
 
-  addBulkStudents(file, schoolId) {
+  addBulkStudents(file, schoolId, body) {
     return new Promise(async (resolve, reject) => {
       try {
+        const teacherClass = await TeacherClass.findById({ _id: body.classId });
+        if (!teacherClass) {
+          return reject({
+            code: 400,
+            message: "Class was not found",
+          });
+        }
+
         const autoPassword = "12345";
         const hashedPassword = await passwordService.hash(autoPassword);
 
@@ -357,6 +378,9 @@ class SchoolAdminService {
               1000 + Math.random() * 9000
             )}`,
             password: hashedPassword,
+            school: schoolId,
+            classes: teacherClass._id,
+            teachers: { teacher: teacherClass.teacher, isAccepted: true },
           });
 
           await SchoolAdmin.updateOne(
@@ -365,9 +389,16 @@ class SchoolAdminService {
               $addToSet: { students: newStudents._id },
             }
           );
-          await Student.updateOne(
-            { _id: newStudents._id },
-            { school: schoolId }
+          await teacherClass.updateOne({
+            $addToSet: { students: [newStudents._id] },
+          });
+          await Teacher.updateOne(
+            { _id: teacherClass.teacher },
+            {
+              $addToSet: {
+                students: { student: [newStudents._id], isAccepted: true },
+              },
+            }
           );
         }
 
@@ -423,17 +454,20 @@ class SchoolAdminService {
     });
   }
 
-  getStudents(schoolId) {
+  getStudents(schoolId, filter) {
     return new Promise(async (resolve, reject) => {
       try {
-        const students = await SchoolAdmin.findById({ _id: schoolId })
-          .populate({
-            path: "students",
-            select:
-              "-unregisteredTeacher -teachers -password -role -school -__v -signupDate",
-          })
-          .select("students");
-        resolve(students);
+        const students = await Student.find({ school: schoolId, ...filter });
+
+        const classStudents = students.map((s) => {
+          let filterStudents = {
+            name: s.name,
+            userName: s.userName,
+          };
+          return filterStudents;
+        });
+
+        resolve(classStudents);
       } catch (error) {
         return reject(error);
       }
