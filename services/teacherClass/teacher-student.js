@@ -11,9 +11,7 @@ class StudentTeacherService {
 
             exist.studentApproved = true;
 
-            await exist.save();
-
-            return exist;
+            return exist.save();
         }
 
         if (classId) {
