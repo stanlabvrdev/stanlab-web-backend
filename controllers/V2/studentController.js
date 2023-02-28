@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const _ = require("lodash");
-const { sendInvitation } = require("../../services/email");
+
 const { Student, validateStudent } = require("../../models/student");
 const { Teacher } = require("../../models/teacher");
 const { TeacherClass } = require("../../models/teacherClass");
