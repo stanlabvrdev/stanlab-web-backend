@@ -163,10 +163,12 @@ async function studentLabLogin(req, res) {
     const { email, password } = req.body;
 
     try {
-        const student = await Student.findOne({ email });
-        if (!student) return res.status(404).send("Invalid Credentials");
-        const isPasswordValid = await bcrypt.compare(password, student.password);
-        if (!isPasswordValid) return res.status(404).send("Invalid credentials");
+        const student = await studentService.findOne({ $or: [{ email }, { userName: email }] });
+        if (!student) throw new BadRequestError("Invalid Credentials");
+
+        const isValid = await bcrypt.compare(password, student.password);
+
+        if (!isValid) throw new BadRequestError("Invalid credentials");
 
         const token = student.generateAuthToken();
         const studentCredentials = {
