@@ -11,6 +11,7 @@ const Experiment = require("../models/experiment");
 const { sendInvitation, doSendInvitationEmail } = require("../services/email");
 const { LabExperiment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/labAssignment");
+const studentService = require("./student/student.service");
 
 async function doInviteStudent(req, res) {
     // const { studentEmail, classId } = req.body
@@ -37,13 +38,11 @@ async function doInviteStudent(req, res) {
         const salt = await bcrypt.genSalt(10);
         let password = await bcrypt.hash(generatedPassword, salt);
 
-        const createdStudent = new Student({
+        const createdStudent = await studentService.create({
             email: studentEmail,
             password,
             name: "new student",
         });
-
-        await createdStudent.save();
 
         // create student
 

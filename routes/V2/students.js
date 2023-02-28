@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.get("/labs", studentAuth, studentsController.getLabs);
 router.get("/classes", studentAuth, studentsController.getClasses);
+router.get("/classes/:classId/teachers", studentAuth, studentsController.getTeachers);
 router.get("/classes/:classId/scores", studentAuth, studentsController.getScores);
 
 module.exports = router;

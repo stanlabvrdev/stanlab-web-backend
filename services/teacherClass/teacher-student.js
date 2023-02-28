@@ -11,7 +11,7 @@ class StudentTeacherService {
 
             exist.studentApproved = true;
 
-            return exist;
+            return exist.save();
         }
 
         if (classId) {
@@ -30,6 +30,28 @@ class StudentTeacherService {
 
         return newStudentTeacher.save();
     }
+
+    async getAll(conditions) {
+        return StudentTeacher.find(conditions).populate("student").populate("teacher");
+    }
+    async getDownload(conditions) {
+        const data = await StudentTeacher.find(conditions)
+            .populate({ path: "student", select: "name userName authCode" })
+            .populate({ path: "teacher", select: "name email" });
+
+        if (data.length < 1) return data;
+
+        const results = [];
+        for (let item of data) {
+            results.push({
+                name: item.student.name,
+                userName: item.student.userName,
+                password: item.student.authCode,
+            });
+        }
+
+        return results;
+    }
     async declineRequest(teacherId, studentId) {
         const exist = await StudentTeacher.findOne({ student: studentId, teacher: teacherId });
 
@@ -39,7 +61,7 @@ class StudentTeacherService {
 
         exist.studentApproved = false;
 
-        return exist;
+        return exist.save();
     }
 
     async getTeachersByStudentId(studentId) {

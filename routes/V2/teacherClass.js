@@ -1,12 +1,13 @@
 const express = require("express");
-const { teacherAuth, studentAuth } = require("../../middleware/auth");
+const { teacherAuth, studentAuth, teacherStudentAuth } = require("../../middleware/auth");
 
 const teachersClassController = require("../../controllers/V2/teacherClassController");
 const router = express.Router();
 
 // get all student from class
 
-router.get("/:classId/students", teacherAuth, teachersClassController.getStudents);
+router.get("/:classId/students", teacherStudentAuth, teachersClassController.getStudents);
+router.get("/:classId/teachers", teacherStudentAuth, teachersClassController.getTeachers);
 
 // add a student to class
 router.post("/:classId/add-student", teacherAuth, teachersClassController.addStudentToClass);
