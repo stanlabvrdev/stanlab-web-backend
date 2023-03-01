@@ -8,7 +8,9 @@ const {
     getQuestions,
     deleteQuestionGroup,
     getAQuestionGroup,
-    editQuestionGroup
+    editQuestionGroup,
+    assignNow,
+    assignLater
 } = require('../../controllers/V2/question-gen.controller')
 
 const {
@@ -35,6 +37,8 @@ router.use(teacherAuth)
 
 router.post('/filegenerate', upload.single('pdfFile'), genFromFile)
 router.post('/textgenerate', genFromText)
+router.post('/assignNow', assignNow)
+router.post('/assignLater', assignLater)
 router.route('/').post(saveQuestions).get(getQuestions)
 router.route('/:id').delete(deleteQuestionGroup).get(getAQuestionGroup).put(editQuestionGroup)
 
