@@ -59,7 +59,27 @@ function formatQuestions(arrOfQuestions) {
     return finalQuestions
 }
 
+
+
+async function saveGeneratedQuestions(questions, GeneratedQuestions, QuestionGroup, subject, topic, req) {
+    try {
+        const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each))
+        const savedQuests = (await Promise.allSettled(questionSavePromises)).filter(each => each.status === 'fulfilled').map(each => each.value.id)
+        const questGroup = await QuestionGroup.create({
+            teacher: req.teacher._id,
+            subject,
+            topic,
+            questions: savedQuests
+        })
+        return questGroup
+    } catch (err) {
+        throw err
+    }
+}
+
+
 module.exports = {
     genQuestions,
-    formatQuestions
+    formatQuestions,
+    saveGeneratedQuestions
 }
