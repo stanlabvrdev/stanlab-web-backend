@@ -8,7 +8,7 @@ const { Student } = require("../models/student");
 const { TeacherClass, validateClass } = require("../models/teacherClass");
 const QuizClasswork = require("../models/quizClasswork");
 const Experiment = require("../models/experiment");
-const { sendInvitation, doSendInvitationEmail } = require("../services/email");
+const { doSendInvitationEmail } = require("../services/email");
 const { LabExperiment } = require("../models/labAssignment");
 const SystemExperiment = require("../models/labAssignment");
 const { ServerErrorHandler, ServerResponse } = require("../services/response/serverResponse");
@@ -105,7 +105,6 @@ async function createTeacher(req, res) {
         password,
         email,
     });
-
     await teacher.save();
     const token = teacher.generateAuthToken();
     res
@@ -274,8 +273,6 @@ async function sendInviteToStudent(req, res) {
 
         // add teacher to student list
         student = student.addTeacher(teacher._id, "teacher");
-
-        sendInvitation(teacher, student, "teacher");
 
         await teacher.save();
         await student.save();
