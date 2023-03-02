@@ -5,6 +5,7 @@ const {
     splitTo500
 } = require('../utils/docParse');
 const CustomError = require('../services/exceptions/custom')
+const NotFoundError = require('../services/exceptions/not-found')
 
 //Parse pdf or text and make call to ML model
 async function genQuestions(fileType, buffer) {
@@ -77,9 +78,54 @@ async function saveGeneratedQuestions(questions, GeneratedQuestions, QuestionGro
     }
 }
 
+async function assignQuestions(req, Teacher, TeacherClass, QuestionGroup, Student, mcqModel, createTopicalMcqNotification) {
+    try {
+        const {
+            questGroupId,
+            classID,
+            startDate,
+            dueDate
+        } = req.body
+        const teacher = await Teacher.findOne({
+            _id: req.teacher._id
+        });
+        //  Check class
+        let questGroup = await QuestionGroup.findById(questGroupId)
+        if (!questGroup) throw new NotFoundError('Questions not found')
+        let teacherClass = await TeacherClass.findOne({
+            _id: classID,
+            teacher: teacher._id
+        });
+        if (!teacherClass) throw new NotFoundError("Class not found");
+        const students = teacherClass.students;
+        if (students.length < 1) throw new NotFoundError("No student found");
+
+        //Notifications promise array
+        const promises = [];
+        for (let studentId of students) {
+            const student = await Student.findOne({
+                _id: studentId
+            });
+            let assigment = await mcqModel.create({
+                questions: questGroupId,
+                classId: classID,
+                startDate,
+                dueDate,
+                student: studentId,
+                teacher: teacher._id
+            })
+            promises.push(createTopicalMcqNotification(student._id, assigment._id));
+        }
+        await Promise.all(promises);
+    } catch (err) {
+        throw err
+    }
+}
+
 
 module.exports = {
     genQuestions,
     formatQuestions,
-    saveGeneratedQuestions
+    saveGeneratedQuestions,
+    assignQuestions
 }
