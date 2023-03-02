@@ -178,7 +178,6 @@ async function assignNow(req, res) {
                 student: studentId,
                 teacher: teacher._id
             })
-            console.log(student, assigment, 'test')
             promises.push(createTopicalMcqNotification(student._id, assigment._id));
         }
 
