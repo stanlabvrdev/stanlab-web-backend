@@ -158,7 +158,7 @@ async function assignNow(req, res) {
         //  Check class
         let teacherClass = await TeacherClass.findOne({
             _id: classID,
-            teacher: req.teacher._id
+            teacher: teacher._id
         });
         if (!teacherClass) throw new NotFoundError("Class not found");
         const students = teacherClass.students;
@@ -190,50 +190,51 @@ async function assignNow(req, res) {
     }
 }
 
-// async function assignLater(req, res) {
-//     try {
-//         const {
-//             questGroupId,
-//             classID,
-//             startDate,
-//             dueDate
-//         } = req.body
-//         const teacher = await Teacher.findOne({
-//             _id: req.teacher._id
-//         });
-//         //  Check class
-//         let teacherClass = await TeacherClass.findOne({
-//             _id: classID,
-//             teacher: teacher._id
-//         });
-//         if (!teacherClass) throw new NotFoundError("Class not found");
-//         const students = teacherClass.students;
-//         if (students.length < 1) throw new NotFoundError("No student found");
+async function assignLater(req, res) {
+    try {
+        const {
+            questGroupId,
+            classID,
+            startDate,
+            dueDate
+        } = req.body
+        const teacher = await Teacher.findOne({
+            _id: req.teacher._id
+        });
+        //  Check class
+        let questGroup = await QuestionGroup.findById(questGroupId)
+        if (!questGroup) throw new NotFoundError('Questions not found')
+        let teacherClass = await TeacherClass.findOne({
+            _id: classID,
+            teacher: teacher._id
+        });
+        if (!teacherClass) throw new NotFoundError("Class not found");
+        const students = teacherClass.students;
+        if (students.length < 1) throw new NotFoundError("No student found");
 
-//         //Notifications promise array
-//         const promises = [];
+        //Notifications promise array
+        const promises = [];
+        for (let studentId of students) {
+            const student = await Student.findOne({
+                _id: studentId
+            });
+            let assigment = await mcqModel.create({
+                questions: questGroupId,
+                classId: classID,
+                startDate,
+                dueDate,
+                student: studentId,
+                teacher: teacher._id
+            })
+            promises.push(createTopicalMcqNotification(student._id, assigment._id));
+        }
+        await Promise.all(promises);
 
-//         for (let studentId of students) {
-//             const student = await Student.findOne({
-//                 _id: studentId
-//             });
-//             let assigment = await mcqModel.create({
-//                 questions: questGroupId,
-//                 classId: classID,
-//                 startDate,
-//                 dueDate,
-//                 student: studentId,
-//                 teacher: teacher._id
-//             })
-//             promises.push(createTopicalMcqNotification(student._id, assigment._id));
-//         }
-//         await Promise.all(promises);
-
-//         ServerResponse(req, res, 201, null, "Assignment successful");
-//     } catch (err) {
-//         ServerErrorHandler(req, res, err)
-//     }
-// }
+        ServerResponse(req, res, 201, null, "Assignment successful");
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
 
 module.exports = {
     genFromFile,
