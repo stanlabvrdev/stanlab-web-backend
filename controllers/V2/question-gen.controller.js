@@ -36,6 +36,13 @@ const populateOptions = {
         lean: true
     }
 }
+const models = {
+    Teacher,
+    TeacherClass,
+    QuestionGroup,
+    Student,
+    mcqModel
+}
 
 async function genFromFile(req, res) {
     try {
@@ -69,12 +76,7 @@ async function genFromText(req, res) {
 
 async function saveQuestions(req, res) {
     try {
-        const {
-            subject,
-            topic,
-            questions
-        } = req.body
-        const questGroup = await saveGeneratedQuestions(questions, GeneratedQuestions, QuestionGroup, subject, topic, req)
+        const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
         return ServerResponse(req, res, 200, questGroup, 'Saved')
     } catch (err) {
         ServerErrorHandler(req, res, err)
@@ -143,14 +145,9 @@ async function editQuestionGroup(req, res) {
 
 async function assignNow(req, res) {
     try {
-        const {
-            subject,
-            topic,
-            questions,
-        } = req.body
-        const questGroup = await saveGeneratedQuestions(questions, GeneratedQuestions, QuestionGroup, subject, topic, req)
+        const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
         req.body.questGroupId = questGroup._id
-        await assignQuestions(req, Teacher, TeacherClass, QuestionGroup, Student, mcqModel, createTopicalMcqNotification)
+        await assignQuestions(req, models, createTopicalMcqNotification)
         ServerResponse(req, res, 201, null, "Assignment successful");
     } catch (err) {
         ServerErrorHandler(req, res, err)
@@ -159,7 +156,7 @@ async function assignNow(req, res) {
 
 async function assignLater(req, res) {
     try {
-        await assignQuestions(req, Teacher, TeacherClass, QuestionGroup, Student, mcqModel, createTopicalMcqNotification)
+        await assignQuestions(req, models, createTopicalMcqNotification)
         ServerResponse(req, res, 201, null, "Assignment successful");
     } catch (err) {
         ServerErrorHandler(req, res, err)
