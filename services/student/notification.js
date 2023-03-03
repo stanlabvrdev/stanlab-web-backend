@@ -22,7 +22,19 @@ async function submittedScoreNotification(studentId, assignmentId) {
     return notification.save();
 }
 
+async function createTopicalMcqNotification(studentId, assignmentId) {
+    const notification = new Notification({
+        title: "New Topical MCQ Assignment",
+        message: `You have a new Topical MCQ assignment`,
+        type: NOTIFICATION_TYPES.topicalMCQ,
+        recipient: studentId,
+        entity: assignmentId,
+    });
+    return notification.save();
+}
+
 module.exports = {
     createAssignedLabNotification,
     submittedScoreNotification,
+    createTopicalMcqNotification
 };
