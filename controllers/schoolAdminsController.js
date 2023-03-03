@@ -6,7 +6,8 @@ const { Student } = require("../models/student");
 const generateRandomString = require("../utils/randomStr");
 const { sendEmailToSchoolAdmin, sendStudentInviteEmail, sendTeacherWelcomeEmail } = require("../services/email");
 
-const { ServerErrorHandler } = require("../services/response/serverResponse");
+const { ServerErrorHandler, ServerResponse } = require("../services/response/serverResponse");
+const { excelParserService } = require("../services/excelParserService");
 
 async function createSchoolAdmin(req, res) {
     const { error } = validateSchoolAdmin(req.body);
@@ -111,6 +112,17 @@ async function createStudent(req, res) {
     }
 }
 
+async function bulkCreateStudnt(req, res) {
+    try {
+        const data = await excelParserService.convertToJSON(req)
+        console.log(data)
+        res.send({ message: "Students created successfully" });
+        ServerResponse(req, res, 201, null, "successfully uploaded students");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
+
 async function getTeachers(req, res) {
     try {
         const schoolTeachers = await SchoolAdmin.findOne({
@@ -143,6 +155,7 @@ module.exports = {
     createSchoolAdmin,
     createTeacher,
     createStudent,
+    bulkCreateStudnt,
     getTeachers,
     getSchoolAdmin,
 };
