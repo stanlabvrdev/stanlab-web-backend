@@ -1,11 +1,26 @@
 const {
     genQuestions,
-    formatQuestions
+    formatQuestions,
+    saveGeneratedQuestions,
+    assignQuestions
 } = require('../../services/questionGeneration')
 const {
     GeneratedQuestions,
     QuestionGroup
 } = require('../../models/generated-questions')
+const mcqModel = require('../../models/MCQassignment')
+const {
+    Teacher
+} = require('../../models/teacher')
+const {
+    TeacherClass
+} = require('../../models/teacherClass')
+const {
+    Student
+} = require('../../models/student')
+const {
+    createTopicalMcqNotification
+} = require('../../services/student/notification')
 const axios = require('axios')
 const CustomError = require('../../services/exceptions/custom')
 const {
@@ -20,6 +35,13 @@ const populateOptions = {
     options: {
         lean: true
     }
+}
+const models = {
+    Teacher,
+    TeacherClass,
+    QuestionGroup,
+    Student,
+    mcqModel
 }
 
 async function genFromFile(req, res) {
@@ -54,19 +76,7 @@ async function genFromText(req, res) {
 
 async function saveQuestions(req, res) {
     try {
-        const {
-            subject,
-            topic,
-            questions
-        } = req.body
-        const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each))
-        const savedQuests = (await Promise.allSettled(questionSavePromises)).filter(each => each.status === 'fulfilled').map(each => each.value.id)
-        const questGroup = await QuestionGroup.create({
-            teacher: req.teacher._id,
-            subject,
-            topic,
-            questions: savedQuests
-        })
+        const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
         return ServerResponse(req, res, 200, questGroup, 'Saved')
     } catch (err) {
         ServerErrorHandler(req, res, err)
@@ -132,6 +142,27 @@ async function editQuestionGroup(req, res) {
         ServerErrorHandler(req, res, err)
     }
 }
+
+async function assignNow(req, res) {
+    try {
+        const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
+        req.body.questGroupId = questGroup._id
+        await assignQuestions(req, models, createTopicalMcqNotification)
+        ServerResponse(req, res, 201, null, "Assignment successful");
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
+
+async function assignLater(req, res) {
+    try {
+        await assignQuestions(req, models, createTopicalMcqNotification)
+        ServerResponse(req, res, 201, null, "Assignment successful");
+    } catch (err) {
+        ServerErrorHandler(req, res, err)
+    }
+}
+
 module.exports = {
     genFromFile,
     genFromText,
@@ -139,5 +170,7 @@ module.exports = {
     getQuestions,
     deleteQuestionGroup,
     getAQuestionGroup,
-    editQuestionGroup
+    editQuestionGroup,
+    assignNow,
+    assignLater
 }
