@@ -78,15 +78,6 @@ exports.getSchoolAdmin = async (req, res) => {
   }
 };
 
-exports.getTeachers = async (req, res) => {
-  try {
-    const teachers = await schoolAdminService.getTeachers(req.school._id);
-    res.send({ data: teachers, message: "teachers successfull fetched" });
-  } catch (error) {
-    ServerErrorHandler(req, res, error);
-  }
-};
-
 exports.getStudents = async (req, res) => {
   try {
     const students = await schoolAdminService.getStudents(req.school._id);

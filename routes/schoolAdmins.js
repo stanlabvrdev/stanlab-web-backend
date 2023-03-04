@@ -7,7 +7,6 @@ const {
   bulkCreateStudents,
   getSchoolAdmin,
   getStudents,
-  getTeachers
 } = require("../controllers/schoolAdmin.controller");
 const schoolAdminController = require("../controllers/schoolAdminsController");
 const { schoolAuth } = require("../middleware/auth");
@@ -18,7 +17,6 @@ router.post("/teachers", schoolAuth, createTeacher);
 router.post("/students", schoolAuth, createStudent);
 router.post("/students/bulk", schoolAuth, uploadFile("student-file"), bulkCreateStudents);
 router.get("/", schoolAuth, getSchoolAdmin);
-router.get("/teachers", schoolAuth, getTeachers);
 router.get("/students", schoolAuth, getStudents);
 //router.post("/", schoolAdminController.createSchoolAdmin);
 //router.get("/", schoolAuth, schoolAdminController.getSchoolAdmin);
