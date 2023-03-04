@@ -124,13 +124,6 @@ class SchoolAdminService {
     return school;
   }
 
-  async getTeachers(schoolId) {
-    const teacher = SchoolTeacher.find({ school: schoolId })
-      .populate("teacher")
-      .select("-school -__v");
-    return teacher;
-  }
-
   async getStudents(schoolId) {
     const students = SchoolStudent.find({ school: schoolId })
       .populate("student")
