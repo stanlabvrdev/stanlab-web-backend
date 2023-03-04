@@ -8,7 +8,9 @@ const {
     getQuestions,
     deleteQuestionGroup,
     getAQuestionGroup,
-    editQuestionGroup
+    editQuestionGroup,
+    assignNow,
+    assignLater
 } = require('../../controllers/V2/question-gen.controller')
 
 const {
@@ -33,8 +35,10 @@ const upload = multer({
 
 router.use(teacherAuth)
 
-router.post('/filegenerate', upload.single('pdfFile'), genFromFile)
-router.post('/textgenerate', genFromText)
+router.post('/file-generate', upload.single('pdfFile'), genFromFile)
+router.post('/text-generate', genFromText)
+router.post('/assign-now', assignNow)
+router.post('/assign-later', assignLater)
 router.route('/').post(saveQuestions).get(getQuestions)
 router.route('/:id').delete(deleteQuestionGroup).get(getAQuestionGroup).put(editQuestionGroup)
 
