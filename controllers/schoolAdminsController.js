@@ -112,17 +112,6 @@ async function createStudent(req, res) {
     }
 }
 
-async function bulkCreateStudnt(req, res) {
-    try {
-        const data = await excelParserService.convertToJSON(req)
-        console.log(data)
-        res.send({ message: "Students created successfully" });
-        ServerResponse(req, res, 201, null, "successfully uploaded students");
-    } catch (error) {
-        ServerErrorHandler(req, res, error);
-    }
-}
-
 async function getTeachers(req, res) {
     try {
         const schoolTeachers = await SchoolAdmin.findOne({
@@ -155,7 +144,6 @@ module.exports = {
     createSchoolAdmin,
     createTeacher,
     createStudent,
-    bulkCreateStudnt,
     getTeachers,
     getSchoolAdmin,
 };
