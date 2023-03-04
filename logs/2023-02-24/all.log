@@ -1,0 +1,8 @@
+[24-Feb-2023 13:11:30:1130] [info]: 	/api/v2/students/labs - GET - ::1 - JsonWebTokenError: invalid signature
+[24-Feb-2023 13:11:30:1130] [http]: 	GET /api/v2/students/labs 500 43 - 170.891 ms
+
+[24-Feb-2023 13:11:41:1141] [http]: 	GET /api/v2/students/labs 200 49 - 193.047 ms
+
+[24-Feb-2023 13:12:46:1246] [info]: 	/api/login/students - POST - ::1 - Error: Invalid Credentials
+[24-Feb-2023 13:12:46:1246] [http]: 	POST /api/login/students 400 45 - 176.653 ms
+
