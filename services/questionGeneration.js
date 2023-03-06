@@ -113,7 +113,7 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
         if (!teacherClass) throw new NotFoundError("Class not found");
 
         const students = teacherClass.students;
-        if (students.length < 1) throw new NotFoundError("No student found");
+        if (students.length < 1) throw new NotFoundError("No student in this class");
 
         //Notifications promise array
         const promises = [];
