@@ -93,8 +93,8 @@ class SchoolAdminService {
     await schoolStudent.save();
   }
 
-  async bulkCreateStudents(file, schoolId) {
-    const data = await excelParserService.convertToJSON(file);
+  async bulkCreateStudents(obj, schoolId) {
+    const data = await excelParserService.convertToJSON(obj);
     const promises = [];
     const schools = [];
     for (let item of data) {
