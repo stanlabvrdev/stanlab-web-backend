@@ -77,7 +77,7 @@ async function genFromText(req, res) {
 async function saveQuestions(req, res) {
     try {
         const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
-        return ServerResponse(req, res, 200, questGroup, 'Saved')
+        return ServerResponse(req, res, 200, questGroup, 'Questions saved to \'Question bank\'')
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
@@ -116,7 +116,7 @@ async function getAQuestionGroup(req, res) {
             _id: id
         }).populate(populateOptions)
         if (questionGroup) return ServerResponse(req, res, 200, questionGroup, 'Successful')
-        else return ServerResponse(req, res, 404, undefined, 'Not found')
+        else return ServerResponse(req, res, 404, undefined, 'Questions, Not found')
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
@@ -148,7 +148,7 @@ async function assignNow(req, res) {
         const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
         req.body.questGroupId = questGroup._id
         await assignQuestions(req, models, createTopicalMcqNotification)
-        ServerResponse(req, res, 201, null, "Assignment successful");
+        ServerResponse(req, res, 201, null, "Topical assignment assigned");
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
@@ -157,7 +157,7 @@ async function assignNow(req, res) {
 async function assignLater(req, res) {
     try {
         await assignQuestions(req, models, createTopicalMcqNotification)
-        ServerResponse(req, res, 201, null, "Assignment successful");
+        ServerResponse(req, res, 201, null, "Topical assignment assigned");
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
