@@ -125,15 +125,17 @@ async function getAQuestionGroup(req, res) {
 async function editQuestionGroup(req, res) {
     try {
         const id = req.params.id;
-        const questions = req.body.questions
-        const update = {
-            subject: req.body.subject,
-            topic: req.body.topic
-        }
+        const questions = req.body.questions        
         const options = {
             new: true
         }
         const updatedQuestions = await Promise.allSettled(questions.map((each) => GeneratedQuestions.findByIdAndUpdate(each._id, each, options)))
+        const newQuestionsID = updatedQuestions.filter(each => each.value).map(each => each.value._id)
+        const update = {
+            subject: req.body.subject,
+            topic: req.body.topic,
+            questions: newQuestionsID
+        }
         const updated = await QuestionGroup.findByIdAndUpdate(id, {
             $set: update
         }, options).populate(populateOptions)
