@@ -5,7 +5,8 @@ const {
 } = require("../../middleware/auth");
 const {
     getStudentsUnattemptedMCQ,
-    getMCQquestions
+    getMCQquestions,
+    submitAssignment
 } = require('../../controllers/V2/MCQ-controller')
 
 const router = express.Router();
@@ -13,5 +14,6 @@ const router = express.Router();
 router.use(studentAuth)
 router.get("/pending", getStudentsUnattemptedMCQ);
 router.get("/pending/:id", getMCQquestions);
+router.post("/submit", submitAssignment);
 
 module.exports = router;
