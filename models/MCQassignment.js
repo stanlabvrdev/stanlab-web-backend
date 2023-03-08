@@ -1,5 +1,15 @@
 const mongoose = require('mongoose')
 
+
+//schema for scores since I plan on scores to be an embedded document within the mcq assignment schema
+
+const score = mongoose.Schema({
+    score: Number,
+    date: {
+        type: Date,
+        default: Date.now()
+    }
+})
 const mcqSchema = mongoose.Schema({
     questions: {
         type: mongoose.Schema.Types.ObjectId,
@@ -9,13 +19,8 @@ const mcqSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "TeacherClass"
     },
-    startDate: {
-        type: Date,
-        default: Date.now
-    },
-    dueDate: {
-        type: Date
-    },
+    startDate: Date,
+    dueDate: Date,
     instruction: {
         type: String
     },
@@ -32,20 +37,15 @@ const mcqSchema = mongoose.Schema({
         ref: "Teacher",
     },
 
-    submissionDate: {
-        type: Date,
-    },
-
+    submissionDate: Date,
     grade: {
-        type: Number,
+        type: Number, // I ain't sure if this should be a number or a string
     },
     comments: {
         type: String,
     },
-    score: {
-        type: Number,
-        default: 0
-    }
+    noOfQuestions: Number,
+    scores: [score]
 })
 
 const mcqModel = mongoose.model("mcqModel", mcqSchema);
