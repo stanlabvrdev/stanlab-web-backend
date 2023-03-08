@@ -1,12 +1,10 @@
 //This endpoint handles contracts that involve the MCQs - may later be extended to also handle true/false questions when they are available
 const mcqModel = require('../../models/MCQassignment')
 const {
-    QuestionGroup
-} = require('../../models/generated-questions')
-const {
     ServerResponse,
     ServerErrorHandler
 } = require("../../services/response/serverResponse");
+const NotFoundError = require('../../services/exceptions/not-found')
 
 const populateOptions = {
     path: 'questions',
@@ -36,7 +34,25 @@ async function getMCQquestions(req, res) {
         const questions = await mcqModel.findOne({
             _id: req.params.id
         }).populate(populateOptions).select('-__v').lean()
+        if (!questions) throw new NotFoundError('Questions not found')
         ServerResponse(req, res, 200, questions, "Assignment questions fetched successfully");
+    } catch (err) {
+        ServerErrorHandler(req, res, err);
+    }
+}
+
+async function submitAssignment(req, res) {
+    try {
+        const assignment = await mcqModel.findOne({
+            student: req.student._id,
+            _id: req.body.assignmentID
+        })
+        if (!assignment) throw new NotFoundError('Assigment not found')
+        assignment.scores.push({
+            score: req.body.score
+        })
+        await assignment.save()
+        ServerResponse(req, res, 200, assignment, 'Score saved successfully')
     } catch (err) {
         ServerErrorHandler(req, res, err);
     }
@@ -44,5 +60,6 @@ async function getMCQquestions(req, res) {
 
 module.exports = {
     getStudentsUnattemptedMCQ,
-    getMCQquestions
+    getMCQquestions,
+    submitAssignment
 }
