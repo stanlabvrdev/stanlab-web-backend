@@ -94,7 +94,20 @@ async function getStudentLabs(req, res) {
         ServerErrorHandler(req, res, error);
     }
 }
+async function deleteAssignedLabsByTeacher(req, res) {
+    try {
+        const teacher = await Teacher.findOne({ email: req.body.email });
 
+        if (!teacher) throw new NotFoundError("teacher not found");
+
+        await LabExperiment.deleteOne({ teacher: teacher._id });
+        await StudentScore.deleteOne({ teacherId: teacher._id });
+
+        ServerResponse(req, res, 200, null, "successfully deleted");
+    } catch (error) {
+        ServerErrorHandler(req, res, error);
+    }
+}
 async function getTeacherAssignedLabs(req, res) {
     try {
         const { error } = validateGetQuery(req.query);
@@ -150,4 +163,5 @@ module.exports = {
     getStudentLabs,
     getTeacherAssignedLabs,
     getLabStudents,
+    deleteAssignedLabsByTeacher,
 };
