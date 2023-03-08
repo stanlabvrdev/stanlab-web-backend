@@ -100,8 +100,8 @@ async function deleteAssignedLabsByTeacher(req, res) {
 
         if (!teacher) throw new NotFoundError("teacher not found");
 
-        await LabExperiment.deleteOne({ teacher: teacher._id });
-        await StudentScore.deleteOne({ teacherId: teacher._id });
+        await LabExperiment.deleteMany({ teacher: teacher._id });
+        await StudentScore.deleteMany({ teacherId: teacher._id });
 
         ServerResponse(req, res, 200, null, "successfully deleted");
     } catch (error) {
