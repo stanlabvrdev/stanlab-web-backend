@@ -16,7 +16,6 @@ const mailgun = require("mailgun-js");
 const Logger = require("../utils/logger");
 // const DOMAIN = "https://www.stanlabvr.com";
 
-Logger.info(`===Connecting to Mailgun: ${mailgunAPIKey}=====`);
 const DOMAIN = "stanlabvr.com";
 const mg = mailgun({ apiKey: mailgunAPIKey, domain: DOMAIN });
 

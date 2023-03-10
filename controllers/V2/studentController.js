@@ -1,52 +1,13 @@
-const bcrypt = require("bcryptjs");
-const moment = require("moment");
-const _ = require("lodash");
-
-const { Student, validateStudent } = require("../../models/student");
-const { Teacher } = require("../../models/teacher");
-const { TeacherClass } = require("../../models/teacherClass");
-const constants = require("../../utils/constants");
-const { LabExperiment } = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
 const { ServerErrorHandler, ServerResponse } = require("../../services/response/serverResponse");
 const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
+const studentLabExperimentService = require("../../services/labExperiment/student-lab-experiment.service");
 
 async function getLabs(req, res) {
-    const studentId = req.student._id;
     try {
-        const student = await Student.findOne({ _id: studentId });
+        const experiments = await studentLabExperimentService.getAll(req);
 
-        const labs = student.labs;
-
-        const results = [];
-        if (labs.length > 0) {
-            for (const lab of labs) {
-                const experiment = await LabExperiment.findOne({ _id: lab._id })
-                    .populate({ path: "experiment", select: ["name", "_id", "subject", "icon"] })
-                    .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" });
-
-                if (!experiment || !experiment.classId) {
-                    await LabExperiment.deleteOne({ _id: lab._id });
-                }
-
-                if (experiment && experiment.classId) {
-                    const teacherClass = await TeacherClass.findOne({ _id: experiment.classId._id }).populate({
-                        path: "teacher",
-                        select: ["name", "email", "_id"],
-                    });
-                    experiment.teacher = teacherClass.teacher;
-                    experiment.class = experiment.classId;
-                    delete experiment.classId;
-
-                    // experiment.set("teacher", teacherClass.teacher);
-
-                    results.push(experiment);
-                }
-            }
-        }
-
-        // const promisified = await Promise.all(results);
-        res.send({ messages: "lab successfully fetched", data: results });
+        ServerResponse(req, res, 200, experiments, "lab successfully fetched");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
