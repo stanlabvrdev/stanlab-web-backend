@@ -3,7 +3,10 @@ const { Teacher } = require("../../models/teacher");
 const { Student } = require("../../models/student");
 const { SchoolTeacher } = require("../../models/schoolTeacher");
 const { SchoolStudent } = require("../../models/schoolStudent");
-const { sendEmailToSchoolAdmin, sendTeacherWelcomeEmail } = require("../email");
+const {
+  sendEmailToSchoolAdmin,
+  sendWelcomeEmailToTeacher,
+} = require("../email");
 const NotFoundError = require("../exceptions/not-found");
 const { passwordService } = require("../passwordService");
 const generateRandomString = require("../../utils/randomStr");
@@ -55,7 +58,7 @@ class SchoolAdminService {
     teacher = new Teacher({ name, email, password: hashedPassword });
 
     await teacher.save();
-    sendTeacherWelcomeEmail(teacher, password);
+    sendWelcomeEmailToTeacher(teacher, password);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
