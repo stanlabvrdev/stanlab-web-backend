@@ -26,6 +26,8 @@ const teacherClassSchema = new mongoose.Schema({
     sentQuiz: [{ type: mongoose.Schema.Types.ObjectId, ref: "QuizClasswork" }],
     sentLab: [{ type: mongoose.Schema.Types.ObjectId, ref: "Experiment" }],
     isPublished: { type: Boolean, default: false },
+    school: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin" },
+    colour: { type: String }
 });
 
 teacherClassSchema.methods.publishClass = function() {
@@ -95,10 +97,21 @@ function validateClass(classObj) {
         section: Joi.string(),
         classwork: Joi.object(),
         students: Joi.array(),
+        colour: Joi.string()
+    });
+    return schema.validate(classObj);
+}
+
+function validateUpdateClass(classObj) {
+    const schema = Joi.object({
+        title: Joi.string().min(5).max(50),
+        subject: Joi.string(),
+        section: Joi.string(),
+        colour: Joi.string()
     });
     return schema.validate(classObj);
 }
 
 const TeacherClass = mongoose.model("TeacherClass", teacherClassSchema);
 
-module.exports = { TeacherClass, validateClass };
+module.exports = { TeacherClass, validateClass, validateUpdateClass };
