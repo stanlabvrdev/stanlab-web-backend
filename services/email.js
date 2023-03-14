@@ -58,6 +58,23 @@ function sendTeacherWelcomeEmail(teacher, password) {
     });
 }
 
+function sendWelcomeEmailToTeacher(teacher, password) {
+    const data = {
+        from: "StanLab <info@stanlab.com>",
+        to: teacher.email,
+        subject: "School invitation",
+        template: "welcome_teacher_new",
+        'h:X-Mailgun-Variables': JSON.stringify({
+            email: teacher.email,
+            password: password,
+            name: teacher.name,
+        })
+    };
+    mg.messages().send(data, function (error, body) {
+        console.log(body);
+    });
+}
+
 function sendEmailToSchoolAdmin(admin) {
     const data = {
         from: "StanLab <info@stanlab.com>",
@@ -125,4 +142,5 @@ module.exports = {
     sendStudentInviteEmail,
     sendResetPassword,
     sendTeacherWelcomeEmail,
+    sendWelcomeEmailToTeacher
 };
