@@ -161,9 +161,10 @@ class SchoolAdminService {
     for (let item of data) {
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
-
       let existingTeacher = await Teacher.findOne({ email: item.Email });
-      if (existingTeacher) throw new BadRequestError("teacher already exists");
+      if (existingTeacher) {
+        continue;
+      }
 
       const teacher = new Teacher({
         name: getFullName(item.Firstname, item.Surname),
