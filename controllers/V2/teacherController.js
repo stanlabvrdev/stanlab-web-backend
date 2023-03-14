@@ -8,7 +8,7 @@ const { Student } = require("../../models/student");
 const { TeacherClass, validateClass } = require("../../models/teacherClass");
 const QuizClasswork = require("../../models/quizClasswork");
 const Experiment = require("../../models/experiment");
-const { sendInvitation, doSendInvitationEmail } = require("../../services/email");
+const { doSendInvitationEmail } = require("../../services/email");
 const { LabExperiment } = require("../../models/labAssignment");
 const SystemExperiment = require("../../models/labAssignment");
 const { StudentScore } = require("../../models/studentScore");
@@ -18,6 +18,7 @@ const studentService = require("../../services/student/student.service");
 const BadRequestError = require("../../services/exceptions/bad-request");
 const studentTeacherClassService = require("../../services/teacherClass/teacher-student-class");
 const studentTeacherService = require("../../services/teacherClass/teacher-student");
+const teacherClassService = require("../../services/teacherClass/teacherClass.service");
 
 async function deleteStudent(req, res) {
     const { studentId } = req.params;
@@ -64,23 +65,23 @@ async function createClass(req, res) {
 
 async function getClass(req, res) {
     try {
-        const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
+        const teacherClasses = await teacherClassService.getAll({ teacher: req.teacher._id });
 
-        if (!teacherClasses) {
-            throw new NotFoundError("class not found");
-        }
+        // if (!teacherClasses) {
+        //     throw new NotFoundError("class not found");
+        // }
 
-        let picked = teacherClasses.classes;
-        if (picked.length > 0)
-            picked = picked.map((cl) => ({
-                _id: cl._id,
-                isPublished: cl.isPublished,
-                title: cl.title,
-                subject: cl.subject,
-                section: cl.section,
-            }));
+        // let picked = teacherClasses.classes;
+        // if (picked.length > 0)
+        //     picked = picked.map((cl) => ({
+        //         _id: cl._id,
+        //         isPublished: cl.isPublished,
+        //         title: cl.title,
+        //         subject: cl.subject,
+        //         section: cl.section,
+        //     }));
 
-        ServerResponse(req, res, 200, picked);
+        ServerResponse(req, res, 200, teacherClasses, "classes successfully fetched");
     } catch (error) {
         ServerErrorHandler(req, res, error);
     }
@@ -289,8 +290,6 @@ async function sendInviteToStudent(req, res) {
 
         // add teacher to student list
         student = student.addTeacher(teacher._id, "teacher");
-
-        sendInvitation(teacher, student, "teacher");
 
         await teacher.save();
         await student.save();
