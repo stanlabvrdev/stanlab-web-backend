@@ -9,7 +9,7 @@ const env = envConfig.getAll();
 const schoolAdminSchema = new mongoose.Schema({
     adminName: { type: String, required: true, minLength: 3, maxlength: 255 },
     schoolName: { type: String, required: true, minLength: 3, maxlength: 255 },
-    password: { type: String, required: true, minLength: 255 },
+    password: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     schoolEmail: { type: String, required: true, unique: true },
     teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teacher" }],

@@ -29,8 +29,8 @@ router.post("/invite-teacher", [studentAuth, isFreelanceStudent, paymentAuth], s
 // Post: Register a new Student
 
 router.post("/", studentsController.createStudent);
-router.post("/bulk", uploadFile, studentsController.bulkCreate);
-router.post("/sign-up/bulk", uploadFile, studentsController.bulkSignup);
+router.post("/bulk", uploadFile("student-file"), studentsController.bulkCreate);
+router.post("/sign-up/bulk", uploadFile("student-file"), studentsController.bulkSignup);
 router.post("/sign-up/bulk/download", studentsController.downloadStudents);
 router.post("/password/reset", studentsController.createStudent);
 

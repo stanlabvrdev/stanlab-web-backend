@@ -20,22 +20,24 @@ const storage = multer.diskStorage({
     },
 });
 
-const uploadFile = (req, res, next) => {
-    const multerUploader = multer({
-        storage,
-        limits: {
-            fileSize: 10 * 1000 * 1000,
-        },
-        fileFilter: function(req, file, cb) {
-            return cb(null, true);
-        },
-    }).single("students-file");
+const uploadFile = (fileName) => {
+    return (req, res, next) => {
+        const multerUploader = multer({
+            storage,
+            limits: {
+                fileSize: 10 * 1000 * 1000,
+            },
+            fileFilter: function(req, file, cb) {
+                return cb(null, true);
+            },
+        }).single(fileName);
 
-    multerUploader(req, res, (err) => {
-        if (!req.file) throw new NotFoundError("no file found");
+        multerUploader(req, res, (err) => {
+            if (!req.file) throw new NotFoundError("no file found");
 
-        next();
-    });
+            next();
+        });
+    };
 };
 
 exports.uploadFile = uploadFile;

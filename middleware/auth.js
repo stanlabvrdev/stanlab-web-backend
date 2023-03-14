@@ -13,6 +13,7 @@ function teacherAuth(req, res, next) {
     try {
         const decoded = jwt.verify(token, env.jwtKey);
         // check to see if the role is teacher -> send 403
+
         if (decoded.role !== "Teacher") return res.status(403).send("Access Denied!.");
         req.teacher = decoded;
         next();

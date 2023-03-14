@@ -5,6 +5,7 @@ const {
     splitTo500
 } = require('../utils/docParse');
 const CustomError = require('../services/exceptions/custom')
+const NotFoundError = require('../services/exceptions/not-found')
 
 //Parse pdf or text and make call to ML model
 async function genQuestions(fileType, buffer) {
@@ -26,7 +27,6 @@ async function genQuestions(fileType, buffer) {
         const questions = (await Promise.allSettled(callsToModel)).filter(each => each.status === 'fulfilled').map(each => each.value.data)
         return questions
     } catch (err) {
-        // console.log(err.message || null)
         throw err
     }
 }
@@ -59,7 +59,87 @@ function formatQuestions(arrOfQuestions) {
     return finalQuestions
 }
 
+
+
+async function saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup) {
+    try {
+        const {
+            questions,
+            subject,
+            topic
+        } = req.body
+        const questionSavePromises = questions.map((each) => GeneratedQuestions.create(each)) //Maps through each question object in the array and saves the questions (returns an array of create promises)
+        const savedQuests = (await Promise.allSettled(questionSavePromises)) //Awaits the array of promises created in the previous step
+        const savedQuestionsID = savedQuests.filter(each => each.status === 'fulfilled').map(each => each.value.id) //Extracts the id of the saved questions from the fulfilled promises
+        const questGroup = await QuestionGroup.create({
+            teacher: req.teacher._id,
+            subject,
+            topic,
+            questions: savedQuestionsID
+        })
+        return questGroup
+    } catch (err) {
+        throw err
+    }
+}
+
+async function assignQuestions(req, models, createTopicalMcqNotification) {
+    const {
+        questGroupId,
+        classID,
+        startDate,
+        dueDate
+    } = req.body;
+    const {
+        Teacher,
+        TeacherClass,
+        QuestionGroup,
+        Student,
+        mcqModel
+    } = models;
+    try {
+        const teacher = await Teacher.findOne({
+            _id: req.teacher._id
+        });
+        // Check if question group exists
+        let questGroup = await QuestionGroup.findById(questGroupId);
+        if (!questGroup) throw new NotFoundError('Questions not found');
+
+        // Check if teacher class exists and belongs to teacher
+        let teacherClass = await TeacherClass.findOne({
+            _id: classID,
+            teacher: teacher._id
+        });
+        if (!teacherClass) throw new NotFoundError("Class not found");
+
+        const students = teacherClass.students;
+        if (students.length < 1) throw new NotFoundError("No student found");
+
+        //Notifications promise array
+        const promises = [];
+        for (let studentId of students) {
+            const student = await Student.findOne({
+                _id: studentId
+            });
+            let assigment = await mcqModel.create({
+                questions: questGroupId,
+                classId: classID,
+                startDate,
+                dueDate,
+                student: studentId,
+                teacher: teacher._id
+            })
+            promises.push(createTopicalMcqNotification(student._id, assigment._id));
+        }
+        await Promise.all(promises);
+    } catch (err) {
+        throw err
+    }
+}
+
 module.exports = {
     genQuestions,
-    formatQuestions
+    formatQuestions,
+    saveGeneratedQuestions,
+    assignQuestions
 }

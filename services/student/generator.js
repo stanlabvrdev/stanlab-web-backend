@@ -5,11 +5,11 @@ async function generateUserName(first_name, last_name) {
     let userName = `${first_name}${last_name}-00${count}`;
     let students = await Student.find({ userName });
 
-    // while (students && students.length > 0) {
-    //     count++;
-    //     userName = `${first_name}${last_name}-00${count}`;
-    //     students = await Student.find({ userName });
-    // }
+    while (students && students.length > 0) {
+        count++;
+        userName = `${first_name}${last_name}-00${count}`;
+        students = await Student.find({ userName });
+    }
     return userName;
 }
 
