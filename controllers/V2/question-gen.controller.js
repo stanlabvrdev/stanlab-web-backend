@@ -8,7 +8,8 @@ const {
     GeneratedQuestions,
     QuestionGroup
 } = require('../../models/generated-questions')
-const mcqModel = require('../../models/MCQassignment')
+const studentMCQ = require('../../models/studentMCQ')
+const teacherMCQ = require('../../models/teacherMCQ')
 const {
     Teacher
 } = require('../../models/teacher')
@@ -41,7 +42,8 @@ const models = {
     TeacherClass,
     QuestionGroup,
     Student,
-    mcqModel
+    studentMCQ,
+    teacherMCQ
 }
 
 async function genFromFile(req, res) {
@@ -125,7 +127,7 @@ async function getAQuestionGroup(req, res) {
 async function editQuestionGroup(req, res) {
     try {
         const id = req.params.id;
-        const questions = req.body.questions        
+        const questions = req.body.questions
         const options = {
             new: true
         }
@@ -149,8 +151,8 @@ async function assignNow(req, res) {
     try {
         const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup)
         req.body.questGroupId = questGroup._id
-        await assignQuestions(req, models, createTopicalMcqNotification)
-        ServerResponse(req, res, 201, null, "Topical assignment assigned");
+        const assignment = await assignQuestions(req, models, createTopicalMcqNotification)
+        ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
@@ -158,8 +160,8 @@ async function assignNow(req, res) {
 
 async function assignLater(req, res) {
     try {
-        await assignQuestions(req, models, createTopicalMcqNotification)
-        ServerResponse(req, res, 201, null, "Topical assignment assigned");
+        const assignment = await assignQuestions(req, models, createTopicalMcqNotification)
+        ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
     } catch (err) {
         ServerErrorHandler(req, res, err)
     }
