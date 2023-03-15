@@ -16,6 +16,7 @@ const { excelParserService } = require("../excelParserService");
 const { TeacherClass } = require("../../models/teacherClass");
 const { StudentTeacherClass } = require("../../models/teacherStudentClass");
 const { csvUploaderService } = require("../csv-uploader");
+const { Profile } = require("../../models/profile");
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -68,6 +69,13 @@ class SchoolAdminService {
       teacher: teacher._id,
     });
     await schoolTeacher.save();
+
+    const teacherProfile = new Profile({
+      teacher: teacher._id,
+      selectedSchool: school._id,
+      isActive: true,
+    });
+    await teacherProfile.save();
 
     const response = {
       id: teacher._id,
@@ -159,6 +167,8 @@ class SchoolAdminService {
     const data = await excelParserService.convertToJSON(obj);
     const promises = [];
     const schools = [];
+    const profile = [];
+
     for (let item of data) {
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
@@ -182,8 +192,15 @@ class SchoolAdminService {
         student: teacher._id,
       });
       schools.push(schoolTeacher.save());
+
+      const teacherProfile = new Profile({
+        teacher: teacher._id,
+        selectedSchool: school._id,
+        isActive: true,
+      });
+      profile.push(teacherProfile.save());
     }
-    const teachers = await Promise.all(promises, schools);
+    const teachers = await Promise.all(promises, schools, profile);
     const response = teachers.map((e) => {
       return {
         id: e._id,
