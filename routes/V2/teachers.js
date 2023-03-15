@@ -47,6 +47,9 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 router.get("/classes", teacherAuth, teachersController.getClass);
 
+// get school classes
+router.get("/school/classes", teacherAuth, teachersController.getSchoolClass);
+
 // post: Teacher avatar
 
 const upload = multer({
