@@ -12,6 +12,8 @@ const {
   createClass,
   addTeacherToClass,
   addStudentToClass,
+  downloadStudents,
+  addStudentsToClassInBulk,
   getStudentsByClass,
   getTeacherClasses,
   getClasses,
@@ -42,6 +44,13 @@ router.get("/teachers", schoolAuth, getTeachers);
 router.post("/classes", schoolAuth, createClass);
 router.put("/classes/:classId/teacher", schoolAuth, addTeacherToClass);
 router.put("/classes/:classId/student", schoolAuth, addStudentToClass);
+router.post("/bulk/download", schoolAuth, downloadStudents);
+router.post(
+  "/classes/:classId/student/bulk",
+  schoolAuth,
+  uploadFile("student-file"),
+  addStudentsToClassInBulk
+);
 router.get("/classes/student/:classId", schoolAuth, getStudentsByClass);
 router.get("/classes/teacher/:classId", schoolAuth, getTeacherClasses);
 router.get("/classes", schoolAuth, getClasses);

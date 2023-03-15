@@ -15,6 +15,7 @@ const BadRequestError = require("../exceptions/bad-request");
 const { excelParserService } = require("../excelParserService");
 const { TeacherClass } = require("../../models/teacherClass");
 const { StudentTeacherClass } = require("../../models/teacherStudentClass");
+const { csvUploaderService } = require("../csv-uploader");
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -263,7 +264,6 @@ class SchoolAdminService {
         teacher: element._id,
       });
       if (!schoolTeacher) throw new NotFoundError("school teacher not found");
-      console.log("schoolTeacher", schoolTeacher);
 
       let existingTeacher = await StudentTeacherClass.findOne({
         school: school._id,
@@ -318,6 +318,83 @@ class SchoolAdminService {
       });
       promises.push(studentClass.save());
     });
+    await Promise.all(promises);
+  }
+
+  async getDownload(conditions) {
+    const data = await SchoolStudent.find(conditions).populate({
+      path: "student",
+      select: "name userName authCode",
+    });
+
+    if (data.length < 1) return data;
+
+    const results = [];
+    for (let item of data) {
+      results.push({
+        name: item.student.name,
+        userName: item.student.userName,
+        password: item.student.authCode,
+      });
+    }
+
+    return results;
+  }
+
+  async downloadStudents(schoolId) {
+    let school = await SchoolAdmin.findOne({ _id: schoolId });
+    if (!school) throw new NotFoundError("school admin not found");
+
+    const result = await this.getDownload({ school: school._id });
+
+    const downloadedUrl = await csvUploaderService.getCsv(
+      result,
+      "students",
+      "student"
+    );
+
+    return downloadedUrl;
+  }
+
+  async addStudentsToClassInBulk(obj, schoolId, classId) {
+    let school = await SchoolAdmin.findOne({ _id: schoolId });
+
+    const teacherClass = await TeacherClass.findOne({ _id: classId });
+    if (!teacherClass) throw new NotFoundError("class not found");
+
+    const data = await excelParserService.convertToJSON(obj);
+    const promises = [];
+
+    for (let item of data) {
+      let student = await Student.findOne({ userName: item.userName });
+      if (!student) {
+        continue;
+      }
+
+      const schoolStudent = await SchoolStudent.find({
+        school: school._id,
+        student: student._id,
+      });
+      if (!schoolStudent) {
+        continue;
+      }
+
+      let existingStudents = await StudentTeacherClass.findOne({
+        school: school._id,
+        student: student._id,
+      });
+      if (existingStudents) {
+        continue;
+      }
+
+      const studentClass = new StudentTeacherClass({
+        student: student._id,
+        class: teacherClass._id,
+        school: school._id,
+      });
+      promises.push(studentClass.save());
+    }
+
     await Promise.all(promises);
   }
 
