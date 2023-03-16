@@ -189,7 +189,7 @@ class SchoolAdminService {
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
-        student: teacher._id,
+        teacher: teacher._id,
       });
       schools.push(schoolTeacher.save());
 
