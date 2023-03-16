@@ -43,8 +43,11 @@ exports.createTeacher = async (req, res) => {
     const { error } = validateSchoolUser(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    await schoolAdminService.createTeacher(req.body, req.school._id);
-    ServerResponse(req, res, 201, null, "invitation sent sucessfully");
+    const teacher = await schoolAdminService.createTeacher(
+      req.body,
+      req.school._id
+    );
+    ServerResponse(req, res, 201, teacher, "invitation sent sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -55,8 +58,11 @@ exports.createStudent = async (req, res) => {
     const { error } = validateStudent(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    await schoolAdminService.createStudent(req.body, req.school._id);
-    ServerResponse(req, res, 201, null, "student added sucessfully");
+    const student = await schoolAdminService.createStudent(
+      req.body,
+      req.school._id
+    );
+    ServerResponse(req, res, 201, student, "student added sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -64,8 +70,23 @@ exports.createStudent = async (req, res) => {
 
 exports.bulkCreateStudents = async (req, res) => {
   try {
-    await schoolAdminService.bulkCreateStudents(req, req.school._id);
-    ServerResponse(req, res, 201, null, "students added sucessfully");
+    const students = await schoolAdminService.bulkCreateStudents(
+      req,
+      req.school._id
+    );
+    ServerResponse(req, res, 201, students, "students added sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.bulkCreateTeachers = async (req, res) => {
+  try {
+    const teachers = await schoolAdminService.bulkCreateTeachers(
+      req,
+      req.school._id
+    );
+    ServerResponse(req, res, 201, teachers, "teachers added sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -89,13 +110,25 @@ exports.getStudents = async (req, res) => {
   }
 };
 
+exports.getTeachers = async (req, res) => {
+  try {
+    const teachers = await schoolAdminService.getTeachers(req.school._id);
+    ServerResponse(req, res, 200, teachers, "teachers successfull fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 exports.createClass = async (req, res) => {
   try {
     const { error } = validateClass(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    await schoolAdminService.createClass(req.body, req.school._id);
-    ServerResponse(req, res, 201, null, "class created sucessfully");
+    const teacherClass = await schoolAdminService.createClass(
+      req.body,
+      req.school._id
+    );
+    ServerResponse(req, res, 201, teacherClass, "class created sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -106,7 +139,7 @@ exports.addTeacherToClass = async (req, res) => {
     await schoolAdminService.addTeacherToClass(
       req.school._id,
       req.params.classId,
-      req.params.teacherId
+      req.body
     );
     ServerResponse(req, res, 200, null, "teacher added to class sucessfully");
   } catch (error) {
@@ -119,9 +152,39 @@ exports.addStudentToClass = async (req, res) => {
     await schoolAdminService.addStudentToClass(
       req.school._id,
       req.params.classId,
-      req.params.studentId
+      req.body
     );
     ServerResponse(req, res, 200, null, "student added to class sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.downloadStudents = async (req, res) => {
+  try {
+    const downloadedUrl = await schoolAdminService.downloadStudents(
+      req.school._id
+    );
+    ServerResponse(
+      req,
+      res,
+      201,
+      downloadedUrl,
+      "successfully downloaded students"
+    );
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.addStudentsToClassInBulk = async (req, res) => {
+  try {
+    await schoolAdminService.addStudentsToClassInBulk(
+      req,
+      req.school._id,
+      req.params.classId
+    );
+    ServerResponse(req, res, 200, null, "students added to class sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -154,6 +217,18 @@ exports.getTeacherClasses = async (req, res) => {
 exports.getClasses = async (req, res) => {
   try {
     const teacherClass = await schoolAdminService.getClasses(req.school._id);
+    ServerResponse(req, res, 200, teacherClass, "class successfull fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+exports.getClassById = async (req, res) => {
+  try {
+    const teacherClass = await schoolAdminService.getClassById(
+      req.school._id,
+      req.params.classId
+    );
     ServerResponse(req, res, 200, teacherClass, "class successfull fetched");
   } catch (error) {
     ServerErrorHandler(req, res, error);
