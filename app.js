@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoDB = require("./utils/db");
 
 // const passport = require("passport");
 const Joi = require("joi");
@@ -11,7 +10,6 @@ const teachersRoute = require("./routes/teachers");
 const teachersV2Route = require("./routes/V2/teachers");
 const studentsV2Route = require("./routes/V2/students");
 const teacherClassV2Route = require("./routes/V2/teacherClass");
-const mcqRoutes = require('./routes/V2/MCQ-assignment')
 
 const studentRoute = require("./routes/students");
 const loginRoute = require("./routes/login");
@@ -82,6 +80,5 @@ app.use("/api/v2/students", studentsV2Route);
 app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
 app.use("/api/v2/ai/questions", generatedQuestionRoutes)
-app.use('/api/v2/mcq', mcqRoutes)
 
 module.exports = app;
