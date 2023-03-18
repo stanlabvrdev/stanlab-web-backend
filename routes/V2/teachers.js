@@ -8,9 +8,17 @@ const router = express.Router();
 
 const teachersClassControllerV2 = require("../../controllers/V2/teacherClassController");
 
-const { teacherAuth } = require("../../middleware/auth");
+const {
+    teacherAuth
+} = require("../../middleware/auth");
 const teachersController = require("../../controllers/V2/teacherController");
 
+const {
+    deleteAssignment,
+    getAssignment,
+    getAssignmentsByClass,
+    editAssignment
+} = require('../../controllers/V2/teacherMCQ.controller')
 // const info;
 // login via google oauth
 
@@ -68,7 +76,9 @@ router.post(
     upload.single("avatar"),
     teachersController.createAvatar,
     (error, req, res, next) => {
-        res.status(400).send({ error: error.message });
+        res.status(400).send({
+            error: error.message
+        });
     }
 );
 
@@ -107,4 +117,6 @@ router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptS
 // get a teacher
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
+
+router.route('/mcq-assignments/:id').put(teacherAuth, editAssignment).delete(teacherAuth, deleteAssignment)
 module.exports = router;
