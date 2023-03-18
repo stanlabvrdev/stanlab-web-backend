@@ -146,7 +146,8 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
                 dueDate,
                 student: studentId,
                 teacher: teacher._id,
-                type: assignmentType
+                type: assignmentType,
+                teacherAssignment: teacherAssignment._id
             })
             promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
             studentAssigments.push(studentAssignment._id)
