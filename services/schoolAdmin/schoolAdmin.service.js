@@ -189,7 +189,7 @@ class SchoolAdminService {
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
-        student: teacher._id,
+        teacher: teacher._id,
       });
       schools.push(schoolTeacher.save());
 
@@ -219,7 +219,10 @@ class SchoolAdminService {
 
   async getStudents(schoolId) {
     const students = SchoolStudent.find({ school: schoolId })
-      .populate({ path: "student", select: ["name", "userName"] })
+      .populate({
+        path: "student",
+        select: ["name", "userName", "authCode", "status"],
+      })
       .select([
         "-_id",
         "-school",
@@ -334,6 +337,8 @@ class SchoolAdminService {
         school: school._id,
       });
       promises.push(studentClass.save());
+
+      await Student.updateOne({ _id: element._id }, { status: "In class" });
     });
     await Promise.all(promises);
   }
@@ -410,6 +415,8 @@ class SchoolAdminService {
         school: school._id,
       });
       promises.push(studentClass.save());
+
+      await Student.updateOne({ _id: student._id }, { status: "In class" });
     }
 
     await Promise.all(promises);
