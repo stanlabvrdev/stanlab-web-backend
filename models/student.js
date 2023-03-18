@@ -88,6 +88,7 @@ const studentSchema = new mongoose.Schema({
     trialPeriodEnds: { type: Date },
     school: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin" },
     createdAt: { type: Date, default: Date.now },
+    status: { type: String, default: "Not in class" },
 });
 
 studentSchema.methods.generateAuthToken = function() {
