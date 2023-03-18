@@ -37,6 +37,11 @@ const studentMCQSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Teacher",
     },
+    teacherAssignment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "teacherMCQ",
+        required: true
+    },
     grade: {
         type: Number, // I ain't sure if this should be a number or a string
     },
