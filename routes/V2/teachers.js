@@ -15,8 +15,6 @@ const teachersController = require("../../controllers/V2/teacherController");
 
 const {
     deleteAssignment,
-    getAssignment,
-    getAssignmentsByClass,
     editAssignment
 } = require('../../controllers/V2/teacherMCQ.controller')
 // const info;
