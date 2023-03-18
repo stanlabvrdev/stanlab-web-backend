@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoDB = require("./utils/db");
 
 // const passport = require("passport");
 const Joi = require("joi");

@@ -6,6 +6,7 @@ const {
 } = require('../utils/docParse');
 const CustomError = require('../services/exceptions/custom')
 const NotFoundError = require('../services/exceptions/not-found')
+const BadRequestError = require('../services/exceptions/bad-request')
 
 //Parse pdf or text and make call to ML model
 async function genQuestions(fileType, buffer) {
@@ -83,21 +84,28 @@ async function saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup) {
     }
 }
 
+
+//The idea here is that after all the validations are done -each students get a copy of the assignment and the teacher also gets one
+//Now, the student's copy are stored on the teacher's copy so the teacher can track each student's progress and submissions
 async function assignQuestions(req, models, createTopicalMcqNotification) {
     const {
         questGroupId,
         classID,
         startDate,
-        dueDate
+        dueDate,
+        type,
     } = req.body;
     const {
         Teacher,
         TeacherClass,
         QuestionGroup,
         Student,
-        mcqModel
+        studentMCQ,
+        teacherMCQ
     } = models;
     try {
+        let assignmentType = type || 'Practice'
+        if (assignmentType !== 'Practice' && assignmentType !== 'Test') throw new BadRequestError('Assignment has to be of type Practice or Test')
         const teacher = await Teacher.findOne({
             _id: req.teacher._id
         });
@@ -113,25 +121,42 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
         if (!teacherClass) throw new NotFoundError("Class not found");
 
         const students = teacherClass.students;
-        if (students.length < 1) throw new NotFoundError("No student found");
+        if (students.length < 1) throw new NotFoundError("No student in this class");
 
+        //Create teacher's copy of assignment
+        const teacherAssignment = await teacherMCQ.create({
+            teacher: teacher._id,
+            questions: questGroupId,
+            classId: classID,
+            startDate,
+            dueDate,
+            type: assignmentType
+        })
         //Notifications promise array
         const promises = [];
+        const studentAssigments = []
         for (let studentId of students) {
             const student = await Student.findOne({
                 _id: studentId
             });
-            let assigment = await mcqModel.create({
+            let studentAssignment = await studentMCQ.create({
                 questions: questGroupId,
                 classId: classID,
                 startDate,
                 dueDate,
                 student: studentId,
-                teacher: teacher._id
+                teacher: teacher._id,
+                type: assignmentType,
+                teacherAssignment: teacherAssignment._id
             })
-            promises.push(createTopicalMcqNotification(student._id, assigment._id));
+            promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
+            studentAssigments.push(studentAssignment._id)
         }
         await Promise.all(promises);
+        //Stores the students assignments id on the teacher's copy - will aid teacher tracking of student
+        teacherAssignment.studentsWork = studentAssigments
+        await teacherAssignment.save()
+        return teacherAssignment
     } catch (err) {
         throw err
     }
