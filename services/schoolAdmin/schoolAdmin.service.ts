@@ -20,12 +20,14 @@ class SchoolAdminService {
     let { admin_name, school_name, password, admin_email, school_email } = body;
 
     let admin = await SchoolAdmin.findOne({ email: admin_email });
-    if (admin) throw new BadRequestError("admin with this email already exists");
+    if (admin)
+      throw new BadRequestError("admin with this email already exists");
 
     let school = await SchoolAdmin.findOne({
       schoolEmail: school_email,
     });
-    if (school) throw new BadRequestError("school with this email already exists");
+    if (school)
+      throw new BadRequestError("school with this email already exists");
 
     password = await passwordService.hash(password);
 
@@ -54,7 +56,12 @@ class SchoolAdminService {
 
     const hashedPassword = await passwordService.hash(password);
 
-    teacher = new Teacher({ name, email, password: hashedPassword });
+    teacher = new Teacher({
+      name,
+      email,
+      password: hashedPassword,
+      schoolTeacher: true,
+    });
 
     await teacher.save();
     sendWelcomeEmailToTeacher(teacher, password);
@@ -62,6 +69,7 @@ class SchoolAdminService {
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
       teacher: teacher._id,
+      schoolTeacher: true,
     });
     await schoolTeacher.save();
 
@@ -71,11 +79,11 @@ class SchoolAdminService {
       isActive: true,
     });
     await teacherProfile.save();
-
     const response = {
       id: teacher._id,
       name: teacher.name,
       email: teacher.email,
+      schoolTeacher: teacher.schoolTeacher,
     };
     return response;
   }
@@ -179,6 +187,7 @@ class SchoolAdminService {
         email: item.Email,
         password: hashedPassword,
         authCode: password,
+        schoolTeacher: true,
       });
       promises.push(teacher.save());
 
@@ -204,6 +213,7 @@ class SchoolAdminService {
         id: e._id,
         name: e.name,
         email: e.email,
+        schoolTeacher: e.schoolTeacher,
       };
     });
     return response;
@@ -221,13 +231,20 @@ class SchoolAdminService {
         path: "student",
         select: ["name", "userName", "authCode", "status"],
       })
-      .select(["-_id", "-school", "-studentApproved", "-teacher", "-createdAt", "-__v"]);
+      .select([
+        "-_id",
+        "-school",
+        "-studentApproved",
+        "-teacher",
+        "-createdAt",
+        "-__v",
+      ]);
     return students;
   }
 
   async getTeachers(schoolId) {
     const teachers = SchoolTeacher.find({ school: schoolId })
-      .populate({ path: "teacher", select: ["name", "email"] })
+      .populate({ path: "teacher", select: ["name", "email", "schoolTeacher"] })
       .select(["-_id", "-school", "-teacherApproved", "-createdAt", "-__v"]);
     return teachers;
   }
@@ -235,10 +252,15 @@ class SchoolAdminService {
   async createClass(body, schoolId) {
     const { title, subject, section, colour } = body;
 
-    const existingClass = await TeacherClass.findOne({ title });
-    if (existingClass) throw new BadRequestError("class with this title already exists");
-
     let school = await SchoolAdmin.findOne({ _id: schoolId });
+
+    const existingClass = await TeacherClass.findOne({
+      title,
+      school: school._id,
+    });
+
+    if (existingClass)
+      throw new BadRequestError("class with this title already exists");
 
     const teacherClass = new TeacherClass({
       title,
@@ -279,7 +301,10 @@ class SchoolAdminService {
         school: school._id,
         teacher: element._id,
       });
-      if (existingTeacher) throw new BadRequestError("teacher have already been added to this class");
+      if (existingTeacher)
+        throw new BadRequestError(
+          "teacher have already been added to this class"
+        );
 
       const addteacher = new StudentTeacherClass({
         teacher: element._id,
@@ -311,9 +336,13 @@ class SchoolAdminService {
 
       let existingStudents = await StudentTeacherClass.findOne({
         school: school._id,
+        class: teacherClass._id,
         student: element._id,
       });
-      if (existingStudents) throw new BadRequestError("student have already been added to this class");
+      if (existingStudents)
+        throw new BadRequestError(
+          "student have already been added to this class"
+        );
 
       const studentClass = new StudentTeacherClass({
         student: element._id,
@@ -353,7 +382,52 @@ class SchoolAdminService {
 
     const result = await this.getDownload({ school: school._id });
 
-    const downloadedUrl = await csvUploaderService.getCsv(result, "students", "student");
+    const downloadedUrl = await csvUploaderService.getCsv(
+      result,
+      "students",
+      "student"
+    );
+
+    return downloadedUrl;
+  }
+
+  async getDownloadByClass(conditions) {
+    const data = await StudentTeacherClass.find(conditions).populate({
+      path: "student",
+      select: "name userName authCode",
+    });
+
+    if (data.length < 1) return data;
+
+    const results: any = [];
+    for (let item of data) {
+      results.push({
+        name: item.student.name,
+        userName: item.student.userName,
+        password: item.student.authCode,
+      });
+    }
+
+    return results;
+  }
+
+  async downloadStudentsByClass(schoolId, classId) {
+    let school = await SchoolAdmin.findOne({ _id: schoolId });
+    if (!school) throw new NotFoundError("school admin not found");
+
+    const teacherClass = await TeacherClass.findOne({ _id: classId });
+    if (!teacherClass) throw new NotFoundError("class not found");
+
+    const result = await this.getDownloadByClass({
+      school: school._id,
+      class: teacherClass._id,
+    });
+
+    const downloadedUrl = await csvUploaderService.getCsv(
+      result,
+      "students",
+      "student"
+    );
 
     return downloadedUrl;
   }
@@ -413,7 +487,7 @@ class SchoolAdminService {
       school: schoolId,
       class: classId,
     })
-      .populate({ path: "student", select: ["name", "userName"] })
+      .populate({ path: "student", select: ["name", "userName", "authCode"] })
       .select(["-_id", "-school", "-class", "-teacher", "-createdAt", "-__v"]);
 
     return classStudent;
@@ -439,7 +513,11 @@ class SchoolAdminService {
   async getClasses(schoolId) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
-    let teacherClass = await TeacherClass.find({ school: school._id }).select(["title", "subject", "colour"]);
+    let teacherClass = await TeacherClass.find({ school: school._id }).select([
+      "title",
+      "subject",
+      "colour",
+    ]);
     if (!teacherClass) throw new NotFoundError("class not found");
 
     return teacherClass;
