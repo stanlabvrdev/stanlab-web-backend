@@ -59,7 +59,7 @@ class SchoolAdminService {
 
     const hashedPassword = await passwordService.hash(password);
 
-    teacher = new Teacher({ name, email, password: hashedPassword });
+    teacher = new Teacher({ name, email, password: hashedPassword, schoolTeacher: true });
 
     await teacher.save();
     sendWelcomeEmailToTeacher(teacher, password);
@@ -182,6 +182,7 @@ class SchoolAdminService {
         email: item.Email,
         password: hashedPassword,
         authCode: password,
+        schoolTeacher: true,
       });
       promises.push(teacher.save());
 
@@ -244,11 +245,14 @@ class SchoolAdminService {
   async createClass(body, schoolId) {
     const { title, subject, section, colour } = body;
 
-    const existingClass = await TeacherClass.findOne({ title });
+    let school = await SchoolAdmin.findOne({ _id: schoolId });
+
+    const existingClass = await TeacherClass.findOne({
+      title,
+      school: school._id,
+    });
     if (existingClass)
       throw new BadRequestError("class with this title already exists");
-
-    let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     const teacherClass = new TeacherClass({
       title,
@@ -324,6 +328,7 @@ class SchoolAdminService {
 
       let existingStudents = await StudentTeacherClass.findOne({
         school: school._id,
+        class: teacherClass._id,
         student: element._id,
       });
       if (existingStudents)
@@ -368,6 +373,47 @@ class SchoolAdminService {
     if (!school) throw new NotFoundError("school admin not found");
 
     const result = await this.getDownload({ school: school._id });
+
+    const downloadedUrl = await csvUploaderService.getCsv(
+      result,
+      "students",
+      "student"
+    );
+
+    return downloadedUrl;
+  }
+
+  async getDownloadByClass(conditions) {
+    const data = await StudentTeacherClass.find(conditions).populate({
+      path: "student",
+      select: "name userName authCode",
+    });
+
+    if (data.length < 1) return data;
+
+    const results = [];
+    for (let item of data) {
+      results.push({
+        name: item.student.name,
+        userName: item.student.userName,
+        password: item.student.authCode,
+      });
+    }
+
+    return results;
+  }
+
+  async downloadStudentsByClass(schoolId, classId) {
+    let school = await SchoolAdmin.findOne({ _id: schoolId });
+    if (!school) throw new NotFoundError("school admin not found");
+
+    const teacherClass = await TeacherClass.findOne({ _id: classId });
+    if (!teacherClass) throw new NotFoundError("class not found");
+
+    const result = await this.getDownloadByClass({
+      school: school._id,
+      class: teacherClass._id,
+    });
 
     const downloadedUrl = await csvUploaderService.getCsv(
       result,
@@ -433,7 +479,7 @@ class SchoolAdminService {
       school: schoolId,
       class: classId,
     })
-      .populate({ path: "student", select: ["name", "userName"] })
+      .populate({ path: "student", select: ["name", "userName", "authCode"] })
       .select(["-_id", "-school", "-class", "-teacher", "-createdAt", "-__v"]);
 
     return classStudent;

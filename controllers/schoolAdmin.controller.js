@@ -177,6 +177,24 @@ exports.downloadStudents = async (req, res) => {
   }
 };
 
+exports.downloadStudentsByClass = async (req, res) => {
+  try {
+    const downloadedUrl = await schoolAdminService.downloadStudentsByClass(
+      req.school._id,
+      req.params.classId
+    );
+    ServerResponse(
+      req,
+      res,
+      201,
+      downloadedUrl,
+      "successfully downloaded students"
+    );
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 exports.addStudentsToClassInBulk = async (req, res) => {
   try {
     await schoolAdminService.addStudentsToClassInBulk(

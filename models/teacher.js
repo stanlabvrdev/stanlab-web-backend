@@ -40,6 +40,8 @@ const teacherSchema = new mongoose.Schema({
         students: [{ student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" } }],
     }, ],
     school: { type: mongoose.Schema.Types.ObjectId, ref: "School" },
+    schoolTeacher: { type: Boolean, default: false },
+
 });
 
 function validateTeacher(teacher) {
