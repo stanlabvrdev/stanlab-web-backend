@@ -19,7 +19,6 @@ import BadRequestError from "../../services/exceptions/bad-request";
 import studentTeacherClassService from "../../services/teacherClass/teacher-student-class";
 import studentTeacherService from "../../services/teacherClass/teacher-student";
 import teacherClassService from "../../services/teacherClass/teacherClass.service";
-import { Profile } from "../../models/profile";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -81,30 +80,6 @@ async function getClass(req, res) {
     //         subject: cl.subject,
     //         section: cl.section,
     //     }));
-
-    ServerResponse(req, res, 200, teacherClasses, "classes successfully fetched");
-  } catch (error) {
-    ServerErrorHandler(req, res, error);
-  }
-}
-
-async function getSchoolClass(req, res) {
-  try {
-    let teacherCurrentSchool;
-    const teacher = await Teacher.findOne({ _id: req.teacher._id });
-
-    const profile = await Profile.findOne({ teacher: teacher._id });
-
-    if (profile.selectedSchool) {
-      teacherCurrentSchool = profile.selectedSchool;
-    }
-
-    const teacherClasses = await TeacherClass.find({ school: teacherCurrentSchool }).select([
-      "-students",
-      "-studentsByEmail",
-      "-school",
-      "-__v",
-    ]);
 
     ServerResponse(req, res, 200, teacherClasses, "classes successfully fetched");
   } catch (error) {
@@ -408,5 +383,4 @@ export default {
   updateTeacher,
   sendLabToStudents,
   getStudentScores,
-  getSchoolClass,
 };

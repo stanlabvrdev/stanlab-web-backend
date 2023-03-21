@@ -18,6 +18,8 @@ import { doValidate } from "../services/exceptions/validator";
 import teacherService from "../services/teacher/teacher.service";
 import BadRequestError from "../services/exceptions/bad-request";
 import studentService from "../services/student/student.service";
+import { Profile } from "../models/profile";
+import NotFoundError from "../services/exceptions/not-found";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -61,7 +63,29 @@ async function createClass(req, res) {
 async function getClass(req, res) {
   try {
     // const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
-    const teacherClasses = await teacherClassService.getAll({ teacher: req.teacher._id });
+
+    let teacherCurrentSchool;
+    let teacherClasses;
+
+    const profile = await Profile.findOne({ teacher: req.teacher._id });
+
+    if (profile) {
+        teacherCurrentSchool = profile.selectedSchool;
+
+        teacherClasses = await TeacherClass.find({
+        school: teacherCurrentSchool,
+        });
+    }
+
+    if (!profile) {
+        teacherClasses = await teacherClassService.getAll({
+            teacher: req.teacher._id,
+        });
+    }
+
+    if (!teacherClasses) {
+        throw new NotFoundError("class not found");
+    }
 
     ServerResponse(req, res, 200, teacherClasses, "classes fetched sucessfully");
   } catch (error) {
