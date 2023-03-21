@@ -13,6 +13,7 @@ import {
   addTeacherToClass,
   addStudentToClass,
   downloadStudents,
+  downloadStudentsByClass,
   addStudentsToClassInBulk,
   getStudentsByClass,
   getTeacherClasses,
@@ -36,6 +37,7 @@ router.post("/classes", schoolAuth, createClass);
 router.put("/classes/:classId/teacher", schoolAuth, addTeacherToClass);
 router.put("/classes/:classId/student", schoolAuth, addStudentToClass);
 router.post("/bulk/download", schoolAuth, downloadStudents);
+router.post("/bulk/download/:classId", schoolAuth, downloadStudentsByClass);
 router.post("/classes/:classId/student/bulk", schoolAuth, uploadFile("student-file"), addStudentsToClassInBulk);
 router.get("/classes/student/:classId", schoolAuth, getStudentsByClass);
 router.get("/classes/teacher/:classId", schoolAuth, getTeacherClasses);

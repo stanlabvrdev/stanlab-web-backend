@@ -23,6 +23,7 @@ interface TeacherAttrs {
   role: string;
   schools: any[];
   school: string;
+  schoolTeacher: Boolean;
 }
 
 interface TeacherDoc extends mongoose.Document {
@@ -41,6 +42,7 @@ interface TeacherDoc extends mongoose.Document {
   role: string;
   schools: any[];
   school: string;
+  schoolTeacher: Boolean;
 
   generateAuthToken: () => string;
 }
@@ -89,6 +91,7 @@ const teacherSchema = new mongoose.Schema<TeacherDoc>({
     },
   ],
   school: { type: mongoose.Schema.Types.ObjectId, ref: "School" },
+  schoolTeacher: { type: Boolean, default: false },
 });
 
 function validateTeacher(teacher) {
