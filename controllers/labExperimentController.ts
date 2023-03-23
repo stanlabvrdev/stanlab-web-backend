@@ -8,6 +8,8 @@ import { createAssignedLabNotification } from "../services/student/notification"
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import BadRequestError from "../services/exceptions/bad-request";
 import NotFoundError from "../services/exceptions/not-found";
+import { Profile } from "../models/profile"
+import { StudentTeacherClass } from "../models/teacherStudentClass";
 
 async function assignLab(req, res) {
   try {
@@ -23,17 +25,51 @@ async function assignLab(req, res) {
 
     if (!experiment) return res.status(404).send({ message: "experiment not found" });
 
-    //  check class
-    let teacherClass = await TeacherClass.findOne({ _id: class_id, teacher: teacher._id });
+    let teacherCurrentSchool;
+    let teacherClass;
+    let teacherstudents;
 
-    if (!teacherClass) {
-      throw new NotFoundError("class not found");
+    const profile = await Profile.findOne({ teacher: req.teacher._id });
+
+    if (profile) {
+      teacherCurrentSchool = profile.selectedSchool;
+
+      teacherClass = await TeacherClass.findOne({
+      _id: class_id,
+      school: teacherCurrentSchool,
+      });
+
+      if (!teacherClass) {
+        throw new NotFoundError("class not found");
+      }
+
+      teacherstudents = await StudentTeacherClass.find({ school: teacherCurrentSchool, class: class_id })
+      .populate({ path: "student", select: ["_id"] })
+      .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
+
+      if (!teacherstudents) {
+        throw new NotFoundError("No student found");
+      }
+
+      teacherstudents = teacherstudents.map(item => item.student._id);
     }
+    
 
-    const teacherstudents = teacherClass.students;
+    if (!profile) {
+      teacherClass = await TeacherClass.findOne({
+        _id: class_id,
+        teacher: req.teacher._id,
+      });
 
-    if (teacherstudents.length < 1) {
-      throw new NotFoundError("No student found");
+      if (!teacherClass) {
+        throw new NotFoundError("class not found");
+      }
+
+      teacherstudents = teacherClass.students;
+
+      if (teacherstudents.length < 1) {
+        throw new NotFoundError("No student found");
+      }
     }
 
     const students = teacherstudents;
