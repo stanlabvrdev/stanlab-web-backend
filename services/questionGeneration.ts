@@ -71,12 +71,30 @@ async function saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup) {
     const savedQuestionsID = savedQuests
       .filter((each) => each.status === "fulfilled")
       .map((each: any) => each.value.id); //Extracts the id of the saved questions from the fulfilled promises
-    const questGroup = await QuestionGroup.create({
-      teacher: req.teacher._id,
-      subject,
-      topic,
-      questions: savedQuestionsID,
-    });
+    let teacherCurrentSchool;
+    let questGroup;
+    const profile = await Profile.findOne({ teacher: req.teacher._id });
+
+    if (profile) {
+      teacherCurrentSchool = profile.selectedSchool;
+      questGroup = await QuestionGroup.create({
+        teacher: req.teacher._id,
+        subject,
+        topic,
+        questions: savedQuestionsID,
+        school: teacherCurrentSchool,
+      });
+    }
+
+    if (!profile) {
+      questGroup = await QuestionGroup.create({
+        teacher: req.teacher._id,
+        subject,
+        topic,
+        questions: savedQuestionsID,
+      });
+    }
+    
     return questGroup;
   } catch (err) {
     throw err;
@@ -102,6 +120,9 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
     let teacherCurrentSchool;
     let teacherClass;
     let teacherstudents;
+    const promises: any = [];
+    let teacherAssignment;
+    let studentAssigments: any;
 
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
@@ -122,9 +143,42 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
       }
 
       teacherstudents = teacherstudents.map(item => item.student._id);
+
+      const students = teacherstudents;
+      if (students.length < 1) throw new NotFoundError("No student in this class");
+
+      //Create teacher's copy of assignment
+      teacherAssignment = await teacherMCQ.create({
+        teacher: teacher._id,
+        questions: questGroupId,
+        classId: classID,
+        startDate,
+        dueDate,
+        type: assignmentType,
+        school: teacherCurrentSchool,
+      });
+      //Notifications promise array
+      studentAssigments = [];
+      for (let studentId of students) {
+        const student = await Student.findOne({
+          _id: studentId,
+        });
+        let studentAssignment: any = await studentMCQ.create({
+          questions: questGroupId,
+          classId: classID,
+          startDate,
+          dueDate,
+          student: studentId,
+          teacher: teacher._id,
+          type: assignmentType,
+          teacherAssignment: teacherAssignment._id,
+          school: teacherCurrentSchool,
+        });
+        promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
+        studentAssigments.push(studentAssignment._id);
+      }
     }
     
-
     if (!profile) {
       teacherClass = await TeacherClass.findOne({
       _id: classID,
@@ -138,40 +192,40 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
       if (teacherstudents.length < 1) {
         throw new NotFoundError("No student found");
       }
-    }
-    
-    const students = teacherstudents;
-    if (students.length < 1) throw new NotFoundError("No student in this class");
 
-    //Create teacher's copy of assignment
-    const teacherAssignment = await teacherMCQ.create({
-      teacher: teacher._id,
-      questions: questGroupId,
-      classId: classID,
-      startDate,
-      dueDate,
-      type: assignmentType,
-    });
-    //Notifications promise array
-    const promises: any = [];
-    const studentAssigments: any = [];
-    for (let studentId of students) {
-      const student = await Student.findOne({
-        _id: studentId,
-      });
-      let studentAssignment: any = await studentMCQ.create({
+      const students = teacherstudents;
+      if (students.length < 1) throw new NotFoundError("No student in this class");
+
+      //Create teacher's copy of assignment
+      teacherAssignment = await teacherMCQ.create({
+        teacher: teacher._id,
         questions: questGroupId,
         classId: classID,
         startDate,
         dueDate,
-        student: studentId,
-        teacher: teacher._id,
         type: assignmentType,
-        teacherAssignment: teacherAssignment._id,
       });
-      promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
-      studentAssigments.push(studentAssignment._id);
+      //Notifications promise array
+      studentAssigments= [];
+      for (let studentId of students) {
+        const student = await Student.findOne({
+          _id: studentId,
+        });
+        let studentAssignment: any = await studentMCQ.create({
+          questions: questGroupId,
+          classId: classID,
+          startDate,
+          dueDate,
+          student: studentId,
+          teacher: teacher._id,
+          type: assignmentType,
+          teacherAssignment: teacherAssignment._id,
+        });
+        promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
+        studentAssigments.push(studentAssignment._id);
+      }
     }
+    
     await Promise.all(promises);
     //Stores the students assignments id on the teacher's copy - will aid teacher tracking of student
     teacherAssignment.studentsWork = studentAssigments;
