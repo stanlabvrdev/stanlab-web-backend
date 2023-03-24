@@ -28,7 +28,7 @@ async function getAssignments(req, res) {
 
     const formattedAssignments = assignments.reduce(
       (acc, assignment) => {
-        if (assignment.type === "Practice" && currentDate > assignment.dueDate) {
+        if (assignment.type === "Practice" && currentDate < assignment.dueDate) {
           acc.pending.push(assignment);
         } else if (assignment.type === "Practice" && assignment.scores.length > 0) {
           acc.submitted.push(assignment);
