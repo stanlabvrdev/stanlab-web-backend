@@ -18,6 +18,10 @@ const studentScoreSchema = new mongoose.Schema(
     },
     score: { type: Number },
     isCompleted: { type: Boolean, default: false },
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SchoolAdmin"
+    },
   },
   { toJSON: { virtuals: true } }
 );
