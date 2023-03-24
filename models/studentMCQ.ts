@@ -53,6 +53,10 @@ const studentMCQSchema = new mongoose.Schema({
     type: [score],
     default: [],
   },
+  school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SchoolAdmin"
+  },
 });
 
 const studentMCQ = mongoose.model("studentMCQ", studentMCQSchema);

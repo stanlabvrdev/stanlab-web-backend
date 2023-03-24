@@ -28,6 +28,7 @@ async function assignLab(req, res) {
     let teacherCurrentSchool;
     let teacherClass;
     let teacherstudents;
+    const promises: any[] = [];
 
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
@@ -52,6 +53,41 @@ async function assignLab(req, res) {
       }
 
       teacherstudents = teacherstudents.map(item => item.student._id);
+
+      const students = teacherstudents;
+
+      for (const studentId of students) {
+        const student = await Student.findOne({ _id: studentId });
+
+        let lab = new LabExperiment({
+          dueDate: due_date,
+          experiment: experimentId,
+          startDate: start_date,
+          classId: teacherClass._id,
+          instruction,
+          student: student._id,
+          teacher: teacher._id,
+          school: teacherCurrentSchool,
+        });
+
+        lab = await lab.save();
+        let score = new StudentScore({
+          classId: teacherClass._id,
+          experimentId: lab._id,
+          studentId: student._id,
+          teacherId: teacher._id,
+          score: 0,
+          school: teacherCurrentSchool,
+        });
+
+        await score.save();
+
+        student.labs.push(lab._id);
+
+        promises.push(student.save());
+
+        promises.push(createAssignedLabNotification(student._id, lab.id, teacher.name || teacher.email));
+      }
     }
     
 
@@ -70,41 +106,39 @@ async function assignLab(req, res) {
       if (teacherstudents.length < 1) {
         throw new NotFoundError("No student found");
       }
-    }
 
-    const students = teacherstudents;
+      const students = teacherstudents;
 
-    const promises: any[] = [];
+      for (const studentId of students) {
+        const student = await Student.findOne({ _id: studentId });
 
-    for (const studentId of students) {
-      const student = await Student.findOne({ _id: studentId });
+        let lab = new LabExperiment({
+          dueDate: due_date,
+          experiment: experimentId,
+          startDate: start_date,
+          classId: teacherClass._id,
+          instruction,
+          student: student._id,
+          teacher: teacher._id,
+        });
 
-      let lab = new LabExperiment({
-        dueDate: due_date,
-        experiment: experimentId,
-        startDate: start_date,
-        classId: teacherClass._id,
-        instruction,
-        student: student._id,
-        teacher: teacher._id,
-      });
+        lab = await lab.save();
+        let score = new StudentScore({
+          classId: teacherClass._id,
+          experimentId: lab._id,
+          studentId: student._id,
+          teacherId: teacher._id,
+          score: 0,
+        });
 
-      lab = await lab.save();
-      let score = new StudentScore({
-        classId: teacherClass._id,
-        experimentId: lab._id,
-        studentId: student._id,
-        teacherId: teacher._id,
-        score: 0,
-      });
+        await score.save();
 
-      await score.save();
+        student.labs.push(lab._id);
 
-      student.labs.push(lab._id);
+        promises.push(student.save());
 
-      promises.push(student.save());
-
-      promises.push(createAssignedLabNotification(student._id, lab.id, teacher.name || teacher.email));
+        promises.push(createAssignedLabNotification(student._id, lab.id, teacher.name || teacher.email));
+      }
     }
 
     await Promise.all(promises);
