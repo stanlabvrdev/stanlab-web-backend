@@ -27,6 +27,10 @@ const labExperimentSchema = new mongoose.Schema({
   comments: {
     type: String,
   },
+  school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SchoolAdmin"
+  },
 });
 
 export function validateAssignment(assignnment) {

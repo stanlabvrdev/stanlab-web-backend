@@ -30,6 +30,10 @@ const teacherMCQschema = new mongoose.Schema({
       ref: "studentMCQ",
     },
   ],
+  school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SchoolAdmin"
+  },
 });
 
 const teacherMCQ = mongoose.model("teacherMCQ", teacherMCQschema);
