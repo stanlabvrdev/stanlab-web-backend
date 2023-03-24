@@ -3,6 +3,8 @@ import { parsePDF, parseDocx, splitTo500 } from "../utils/docParse";
 import CustomError from "../services/exceptions/custom";
 import NotFoundError from "../services/exceptions/not-found";
 import BadRequestError from "../services/exceptions/bad-request";
+import { Profile } from "../models/profile";
+import { StudentTeacherClass } from "../models/teacherStudentClass";
 
 //Parse pdf or text and make call to ML model
 async function genQuestions(fileType, buffer) {
@@ -97,14 +99,48 @@ async function assignQuestions(req, models, createTopicalMcqNotification) {
     let questGroup = await QuestionGroup.findById(questGroupId);
     if (!questGroup) throw new NotFoundError("Questions not found");
 
-    // Check if teacher class exists and belongs to teacher
-    let teacherClass = await TeacherClass.findOne({
+    let teacherCurrentSchool;
+    let teacherClass;
+    let teacherstudents;
+
+    const profile = await Profile.findOne({ teacher: req.teacher._id });
+
+    if (profile) {
+      teacherCurrentSchool = profile.selectedSchool;
+
+      teacherClass = await TeacherClass.findOne({
+      _id: classID,
+      school: teacherCurrentSchool,
+      });
+
+      teacherstudents = await StudentTeacherClass.find({ school: teacherCurrentSchool, class: teacherClass._id })
+      .populate({ path: "student", select: ["_id"] })
+      .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
+
+      if (!teacherstudents) {
+        throw new NotFoundError("No student found");
+      }
+
+      teacherstudents = teacherstudents.map(item => item.student._id);
+    }
+    
+
+    if (!profile) {
+      teacherClass = await TeacherClass.findOne({
       _id: classID,
       teacher: teacher._id,
-    });
-    if (!teacherClass) throw new NotFoundError("Class not found");
+      });
 
-    const students = teacherClass.students;
+      if (!teacherClass) throw new NotFoundError("Class not found");
+
+      teacherstudents = teacherClass.students;
+
+      if (teacherstudents.length < 1) {
+        throw new NotFoundError("No student found");
+      }
+    }
+    
+    const students = teacherstudents;
     if (students.length < 1) throw new NotFoundError("No student in this class");
 
     //Create teacher's copy of assignment
