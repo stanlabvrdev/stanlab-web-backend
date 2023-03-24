@@ -46,6 +46,10 @@ const questionGroupSchema = new mongoose.Schema({
       ref: "GeneratedQuestion",
     },
   ],
+  school: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SchoolAdmin"
+  },
 });
 
 const QuestionGroup = mongoose.model("QuestionGroup", questionGroupSchema);

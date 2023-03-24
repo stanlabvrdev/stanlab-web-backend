@@ -71,12 +71,30 @@ async function saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup) {
     const savedQuestionsID = savedQuests
       .filter((each) => each.status === "fulfilled")
       .map((each: any) => each.value.id); //Extracts the id of the saved questions from the fulfilled promises
-    const questGroup = await QuestionGroup.create({
-      teacher: req.teacher._id,
-      subject,
-      topic,
-      questions: savedQuestionsID,
-    });
+    let teacherCurrentSchool;
+    let questGroup;
+    const profile = await Profile.findOne({ teacher: req.teacher._id });
+
+    if (profile) {
+      teacherCurrentSchool = profile.selectedSchool;
+      questGroup = await QuestionGroup.create({
+        teacher: req.teacher._id,
+        subject,
+        topic,
+        questions: savedQuestionsID,
+        school: teacherCurrentSchool,
+      });
+    }
+
+    if (!profile) {
+      questGroup = await QuestionGroup.create({
+        teacher: req.teacher._id,
+        subject,
+        topic,
+        questions: savedQuestionsID,
+      });
+    }
+    
     return questGroup;
   } catch (err) {
     throw err;
