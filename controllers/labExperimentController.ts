@@ -8,7 +8,7 @@ import { createAssignedLabNotification } from "../services/student/notification"
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import BadRequestError from "../services/exceptions/bad-request";
 import NotFoundError from "../services/exceptions/not-found";
-import { Profile } from "../models/profile"
+import { Profile } from "../models/profile";
 import { StudentTeacherClass } from "../models/teacherStudentClass";
 
 async function assignLab(req, res) {
@@ -36,8 +36,8 @@ async function assignLab(req, res) {
       teacherCurrentSchool = profile.selectedSchool;
 
       teacherClass = await TeacherClass.findOne({
-      _id: class_id,
-      school: teacherCurrentSchool,
+        _id: class_id,
+        school: teacherCurrentSchool,
       });
 
       if (!teacherClass) {
@@ -45,14 +45,14 @@ async function assignLab(req, res) {
       }
 
       teacherstudents = await StudentTeacherClass.find({ school: teacherCurrentSchool, class: class_id })
-      .populate({ path: "student", select: ["_id"] })
-      .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
+        .populate({ path: "student", select: ["_id"] })
+        .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
 
       if (!teacherstudents) {
         throw new NotFoundError("No student found");
       }
 
-      teacherstudents = teacherstudents.map(item => item.student._id);
+      teacherstudents = teacherstudents.map((item) => item.student._id);
 
       const students = teacherstudents;
 
@@ -89,7 +89,6 @@ async function assignLab(req, res) {
         promises.push(createAssignedLabNotification(student._id, lab.id, teacher.name || teacher.email));
       }
     }
-    
 
     if (!profile) {
       teacherClass = await TeacherClass.findOne({
@@ -164,6 +163,20 @@ async function getStudentLabs(req, res) {
     ServerErrorHandler(req, res, error);
   }
 }
+async function deleteAssignedLabsByTeacher(req, res) {
+  try {
+    const teacher = await Teacher.findOne({ email: req.body.email });
+
+    if (!teacher) throw new NotFoundError("teacher not found");
+
+    const result = await LabExperiment.deleteMany({ teacher: teacher._id });
+    const result2 = await StudentScore.deleteMany({ teacherId: teacher._id });
+
+    ServerResponse(req, res, 200, { result, result2 }, "successfully deleted!");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
 
 async function getTeacherAssignedLabs(req, res) {
   try {
@@ -215,4 +228,4 @@ async function getLabStudents(req, res) {
   }
 }
 
-export default { assignLab, getStudentLabs, getTeacherAssignedLabs, getLabStudents };
+export default { assignLab, getStudentLabs, getTeacherAssignedLabs, getLabStudents, deleteAssignedLabsByTeacher };
