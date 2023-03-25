@@ -1,49 +1,33 @@
-Teacher API
-role: Teacher
+# Stanlab backend
 
-create Teacher via social login [Teacher with cannot register as a student with thesame email and student cannot register as a teacher with thesame email]
-Teacher invite student via email
-Teacher create a class before he can create a quiz or lab for a class
-Teacher create quiz with points and due date
-Teacher can accept student invite and decline
+## Installation
 
+To clone the project:
 
-************************
-Question API
-quiz are create based on a class 
-quiz references the teacher and the class
-delete a quiz.. remove all instances of the quiz Deleted
+```bash
+https://github.com/stanlabvrdev/stanlab-web-backend.git
+```
 
-************************
-Student API
+`cd` into the `stanlab-web-backend` directory
 
-student register and sign up via social login and can do same manually
+```bash
+cd stanlab-backend
+```
 
-student cannot register as teacher with same email
-student can send invitation to teacher
-student can accept teacher teacher invitation
+create a `.env` file with actual values similar to the `.env.sample` file.
 
+install project dependencies
+```
+npm install
+```
 
+compile Typescript files to Javascript (by continuously watching)
+```bash
+tsc -w
+```
 
+open another terminal, and run the project
+```bash
+npm run dev
+```
 
-const client = new net.Socket()
-
-    client.connect(
-        config.get('lab_backend_port'),
-        config.get('lab_backend_url'),
-        function() {
-            console.log('connected')
-            client.write('Hello from nodejs')
-        },
-    )
-
-    client.on('data', function(data) {
-        console.log('Recieved' + data)
-    })
-
-    client.on('close', function() {
-        console.log('connection closed')
-    })
-
-
-     sudo mongod --dbpath /System/Volumes/Data/data/db 
