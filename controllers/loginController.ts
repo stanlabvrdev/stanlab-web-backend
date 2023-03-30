@@ -15,6 +15,7 @@ import { doValidate } from "../services/exceptions/validator";
 import studentService from "../services/student/student.service";
 import BadRequestError from "../services/exceptions/bad-request";
 import CustomError from "../services/exceptions/custom";
+import { SuperAdmin } from "../models/superAdmin";
 
 const env = envConfig.getAll();
 
@@ -185,4 +186,18 @@ async function studentLabLogin(req, res) {
     ServerErrorHandler(req, res, error);
   }
 }
-export default { studentGoogleAuth, studentLogin, teacherGoogleAuth, teacherLogin, studentLabLogin, schoolAdminLogin };
+
+async function superAdminLogin(req, res) {
+  const { email, password } = req.body;
+  const { error } = validateAuth(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  const admin = await SuperAdmin.findOne({ email });
+  if (!admin) return res.status(400).send("Invalid Credentials");
+
+  const isValid = await bcrypt.compare(password, admin.password);
+
+  if (!isValid) return res.status(400).send("Invalid credentials");
+  const token = admin.generateAuthToken();
+  res.send(token);
+}
+export default { studentGoogleAuth, studentLogin, teacherGoogleAuth, teacherLogin, studentLabLogin, schoolAdminLogin, superAdminLogin };
