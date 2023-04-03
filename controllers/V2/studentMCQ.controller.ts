@@ -23,6 +23,9 @@ async function getAssignments(req, res) {
       .find({
         student: req.student._id,
       })
+      .populate("questions", "subject topic")
+      .populate("classId", "title")
+      .populate("teacher", "name")
       .select("-__v")
       .lean();
 
@@ -64,6 +67,8 @@ async function getAssignment(req, res) {
         student: req.student._id,
       })
       .populate(populateOptions)
+      .populate("classId", "title")
+      .populate("teacher", "name")
       .select("-__v")
       .lean();
     if (!assignment) throw new NotFoundError("Assignment not found");
@@ -77,10 +82,15 @@ async function getAssignment(req, res) {
 async function makeSubmission(req, res) {
   try {
     const { score } = req.body;
-    const assignment = await studentMCQ.findOne({
-      student: req.student._id,
-      _id: req.params.id,
-    });
+    const assignment = await studentMCQ
+      .findOne({
+        student: req.student._id,
+        _id: req.params.id,
+      })
+      .populate("questions", "subject topic")
+      .populate("classId", "title")
+      .populate("teacher", "name")
+      .select("-__v");
     if (!assignment) throw new NotFoundError("Assigment not found");
     if (Date.now() > assignment.dueDate) throw new BadRequestError("Assignment expired, cannot make a submission");
     if (assignment.type === "Practice") {
