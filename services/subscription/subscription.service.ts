@@ -4,8 +4,18 @@ import BadRequestError from "../exceptions/bad-request";
 import NotFoundError from "../exceptions/not-found";
 
 class SubscriptionService {
-  async createSubscriptionPlan(body) {
-    let { title, cost, description } = body;
+  async createSubscriptionPlan(body: any, adminId: string) {
+    let {
+      title,
+      cost,
+      vat,
+      description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+      is_active,
+    } = body;
 
     let existingPlan = await SubscriptionPlan.findOne({ title });
     if (existingPlan)
@@ -13,14 +23,24 @@ class SubscriptionService {
         "subscription plan with this title already exist"
       );
 
+    let admin = await SuperAdmin.findById({ _id: adminId });
+    if (!admin) throw new NotFoundError("admin not found");
+    console.log(admin._id)
+
     let plan = new SubscriptionPlan({
       title,
       cost,
+      vat: vat * 0.01,
       description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+      creator: admin._id,
+      is_active,
     });
 
-    await plan.save();
-    return plan;
+    return await plan.save();
   }
 
   async getSubscriptionPlans() {
@@ -30,7 +50,7 @@ class SubscriptionService {
     return plans;
   }
 
-  async updateSubscriptionPlan(body, planId) {
+  async updateSubscriptionPlan(body: any, planId: string) {
     let { title, cost, description } = body;
 
     let plan = await SubscriptionPlan.findById({ _id: planId });
@@ -40,8 +60,7 @@ class SubscriptionService {
     plan.cost = cost;
     plan.description = description;
 
-    await plan.save();
-    return plan;
+    return await plan.save();
   }
 }
 

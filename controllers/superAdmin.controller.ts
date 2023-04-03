@@ -48,7 +48,7 @@ export const updateSuperAdmin = async (req, res) => {
       req.body,
       req.params.adminId
     );
-    ServerResponse(req, res, 200, admin, "super admin successfully fetched");
+    ServerResponse(req, res, 200, admin, "super admin successfully updated");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }

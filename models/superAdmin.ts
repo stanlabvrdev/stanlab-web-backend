@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Joi from "joi";
 import jwt from "jsonwebtoken";
 import envConfig from "../config/env";
 

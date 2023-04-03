@@ -4,7 +4,7 @@ import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
 
 class SuperAdminService {
-  async createSuperAdmin(body) {
+  async createSuperAdmin(body: any) {
     let { name, userName, password, email } = body;
 
     let admin = await SuperAdmin.findOne({ email });
@@ -25,13 +25,13 @@ class SuperAdminService {
     return { admin, token };
   }
 
-  async getSuperAdmin(adminId) {
+  async getSuperAdmin(adminId: string) {
     const admin = await SuperAdmin.findOne({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
     return admin;
   }
 
-  async updateSuperAdmin(body, adminId) {
+  async updateSuperAdmin(body: any, adminId: string) {
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin was not found");
 
