@@ -4,7 +4,7 @@ import BadRequestError from "../exceptions/bad-request";
 import NotFoundError from "../exceptions/not-found";
 
 class SubscriptionService {
-  async createSubscriptionPlan(body: any, adminId: string) {
+  async createPlan(body: any, adminId: string) {
     let {
       title,
       cost,
@@ -43,14 +43,12 @@ class SubscriptionService {
     return await plan.save();
   }
 
-  async getSubscriptionPlans() {
+  async getPlans() {
     let plans = await SubscriptionPlan.find();
-    if (!plans) throw new NotFoundError("subscription plan not found");
-
     return plans;
   }
 
-  async updateSubscriptionPlan(body: any, planId: string) {
+  async updatePlanById(body: any, planId: string) {
     let { title, cost, description } = body;
 
     let plan = await SubscriptionPlan.findById({ _id: planId });

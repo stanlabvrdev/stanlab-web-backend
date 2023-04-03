@@ -9,12 +9,12 @@ import {
   validateUpdateSubscription,
 } from "../validations/subscription.validation";
 
-export const createSubscriptionPlan = async (req, res) => {
+export const createPlan = async (req, res) => {
   try {
     const { error } = validateSubscription(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    const plan = await subscriptionService.createSubscriptionPlan(
+    const plan = await subscriptionService.createPlan(
       req.body,
       req.superAdmin._id
     );
@@ -31,9 +31,9 @@ export const createSubscriptionPlan = async (req, res) => {
   }
 };
 
-export const getSubscriptionPlans = async (req, res) => {
+export const getPlans = async (req, res) => {
   try {
-    const plans = await subscriptionService.getSubscriptionPlans();
+    const plans = await subscriptionService.getPlans();
     ServerResponse(
       req,
       res,
@@ -46,12 +46,12 @@ export const getSubscriptionPlans = async (req, res) => {
   }
 };
 
-export const updateSubscriptionPlan = async (req, res) => {
+export const updatePlanById = async (req, res) => {
   try {
     const { error } = validateUpdateSubscription(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    const plan = await subscriptionService.updateSubscriptionPlan(
+    const plan = await subscriptionService.updatePlanById(
       req.body,
       req.params.planId
     );
