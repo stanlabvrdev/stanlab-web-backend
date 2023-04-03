@@ -1,16 +1,16 @@
 import express from "express";
 
 import {
-  createSubscriptionPlan,
-  getSubscriptionPlans,
-  updateSubscriptionPlan,
+  createPlan,
+  getPlans,
+  updatePlanById,
 } from "../controllers/subscription.controller";
 import { superAdminAuth } from "../middleware/auth";
 
 const router = express.Router();
 
-router.post("/", superAdminAuth, createSubscriptionPlan);
-router.get("/", superAdminAuth, getSubscriptionPlans);
-router.put("/:planId", superAdminAuth, updateSubscriptionPlan);
+router.post("/", superAdminAuth, createPlan);
+router.get("/", superAdminAuth, getPlans);
+router.put("/:planId", superAdminAuth, updatePlanById);
 
 export default router;
