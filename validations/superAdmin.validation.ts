@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-function validateSuperAdmin(admin) {
+function validateSuperAdmin(admin: any) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(255).required(),
     userName: Joi.string().min(3).max(255).required(),
@@ -11,7 +11,7 @@ function validateSuperAdmin(admin) {
   return schema.validate(admin);
 }
 
-function validateUpdateSuperAdmin(admin) {
+function validateUpdateSuperAdmin(admin: any) {
   const schema = Joi.object({
     name: Joi.string().min(3).max(255),
     userName: Joi.string().min(3).max(255),

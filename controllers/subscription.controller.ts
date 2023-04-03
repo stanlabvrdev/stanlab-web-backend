@@ -14,12 +14,15 @@ export const createSubscriptionPlan = async (req, res) => {
     const { error } = validateSubscription(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    const plan = await subscriptionService.createSubscriptionPlan(req.body);
+    const plan = await subscriptionService.createSubscriptionPlan(
+      req.body,
+      req.superAdmin._id
+    );
 
     ServerResponse(
       req,
       res,
-      200,
+      201,
       plan,
       "subscription plan created successfully"
     );
@@ -52,7 +55,7 @@ export const updateSubscriptionPlan = async (req, res) => {
       req.body,
       req.params.planId
     );
-    ServerResponse(req, res, 200, plan, "super admin successfully fetched");
+    ServerResponse(req, res, 200, plan, "subscription plan successfully updated");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
