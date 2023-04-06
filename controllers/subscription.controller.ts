@@ -7,6 +7,7 @@ import subscriptionService from "../services/subscription/subscription.service";
 import {
   validateSubscription,
   validateUpdateSubscription,
+  validatePayment,
 } from "../validations/subscription.validation";
 
 export const createPlan = async (req, res) => {
@@ -55,7 +56,40 @@ export const updatePlanById = async (req, res) => {
       req.body,
       req.params.planId
     );
-    ServerResponse(req, res, 200, plan, "subscription plan successfully updated");
+    ServerResponse(
+      req,
+      res,
+      200,
+      plan,
+      "subscription plan successfully updated"
+    );
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+export const makePayment = async (req, res) => {
+  try {
+    const { error } = validatePayment(req.body);
+    if (error) throw new BadRequestError(error.details[0].message);
+
+    const payment = await subscriptionService.makePayment(
+      req.body,
+      req.school._id
+    );
+    ServerResponse(req, res, 200, payment.data, payment.message);
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  try {
+    const studentSub = await subscriptionService.verifyPayment(
+      req.school._id,
+      req.query.reference
+    );
+    ServerResponse(req, res, 200, studentSub, "payment successfully verified");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }

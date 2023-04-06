@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
-import envConfig from "../config/env";
-const env = envConfig.getAll();
-import {DURATION_TYPES} from "../constants/duration-types"
-
-const types = [DURATION_TYPES.days, DURATION_TYPES.months, DURATION_TYPES.year]
+import { DURATION_TYPES } from "../enums/duration-types";
 
 interface SubscriptionPlanAttrs {
   title: string;
@@ -12,9 +8,9 @@ interface SubscriptionPlanAttrs {
   description: string;
   coupon: string;
   student_count: number;
-  duration: string;
+  duration: number;
   durationType: string;
-  creator: string;
+  creator: mongoose.Schema.Types.ObjectId;
   is_active: boolean;
 }
 
@@ -27,7 +23,7 @@ interface SubscriptionPlanDoc extends mongoose.Document {
   student_count: number;
   duration: number;
   durationType: string;
-  creator: string;
+  creator: mongoose.Schema.Types.ObjectId;
   is_active: boolean;
 }
 
@@ -42,8 +38,13 @@ const subscriptionPlanSchema = new mongoose.Schema({
   description: { type: String, trim: true },
   coupon: { type: String, trim: true },
   student_count: { type: Number, trim: true },
-  duration: { type: String, required: true, trim: true },
-  durationType: { type: String, enum: types, required: true, trim: true },
+  duration: { type: Number, required: true, trim: true },
+  durationType: {
+    type: String,
+    enum: DURATION_TYPES,
+    required: true,
+    trim: true,
+  },
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SuperAdmin",

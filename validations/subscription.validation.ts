@@ -32,4 +32,14 @@ function validateUpdateSubscription(subscription: any) {
   return schema.validate(subscription);
 }
 
-export { validateSubscription, validateUpdateSubscription };
+function validatePayment(payment: any) {
+  const schema = Joi.object({
+    planId: Joi.string().required(),
+    studentId: Joi.array().items(Joi.string().required()),
+    autoRenew: Joi.boolean(),
+  });
+
+  return schema.validate(payment);
+}
+
+export { validateSubscription, validateUpdateSubscription, validatePayment };
