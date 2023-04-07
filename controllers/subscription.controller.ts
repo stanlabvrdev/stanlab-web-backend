@@ -75,7 +75,8 @@ export const makePayment = async (req, res) => {
 
     const payment = await subscriptionService.makePayment(
       req.body,
-      req.school._id
+      req.school._id,
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress
     );
     ServerResponse(req, res, 200, payment.data, payment.message);
   } catch (error) {

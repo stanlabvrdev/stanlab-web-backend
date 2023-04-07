@@ -1,3 +1,4 @@
+import geoip from "geoip-lite";
 import { SuperAdmin } from "../../models/superAdmin";
 import { SubscriptionPlan } from "../../models/subscriptionPlan";
 import BadRequestError from "../exceptions/bad-request";
@@ -10,7 +11,7 @@ import { Payment } from "../../models/payment";
 import { UserPayment } from "../../models/userPayment";
 import { STATUS_TYPES } from "../../constants/statusTypes";
 import { addDaysToDate } from "../../helpers/dateHelper";
-import { promises } from "winston-daily-rotate-file";
+import { PAYSTACK } from "../../constants/locations";
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
@@ -69,9 +70,11 @@ class SubscriptionService {
     return await plan.save();
   }
 
-  async makePayment(body: any, schoolId: string) {
+  async makePayment(body: any, schoolId: string, location: string) {
     let { planId, studentId, autoRenew } = body;
 
+    const locate = geoip.lookup(location);
+    
     const plan = await SubscriptionPlan.findOne({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
 
@@ -97,15 +100,19 @@ class SubscriptionService {
       throw new BadRequestError("student has an active subscription");
     }
 
-    const response = await paymentService.initializePayment(
-      school.email,
-      plan.cost * 100 * count
-    );
+    let response: any;
 
-    if (!response || response.status !== true) {
-      throw new BadRequestError("unable to initialize payment");
+    if (locate.country in PAYSTACK) {
+      response = await paymentService.initializePayment(
+        school.email,
+        plan.cost * 100 * count
+      );
+
+      if (!response || response.status !== true) {
+        throw new BadRequestError("unable to initialize payment");
+      }
     }
-
+    
     studentId = studentId.filter((id: string) => {
       return !studentSub.some((sub: any) => sub.student.toString() === id);
     });
