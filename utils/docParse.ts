@@ -46,10 +46,8 @@ class Parser {
   private async parsePDF(buffer: Buffer): Promise<string[]> {
     try {
       const initialContent = await PDFParser(buffer);
-      console.log(initialContent.length);
       this.totalWords = initialContent.text.split(/\s+/).length;
       this.content = [initialContent.text];
-      console.log(this.totalWords);
       if (this.totalWords > 2000) throw new CustomError(400, "Word limit exceeded, file should not contain more than 2000 words");
       return this.content;
     } catch (err) {
@@ -64,7 +62,6 @@ class Parser {
           reject(error);
         } else {
           this.totalWords = initialContent.split(/\s+/).length;
-          console.log(this.totalWords);
           this.content = [initialContent];
           if (this.totalWords > 2000) reject(new CustomError(400, "Word limit exceeded, file should not contain more than 2000 words"));
           resolve(this.content);

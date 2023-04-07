@@ -10,7 +10,6 @@ const router = express.Router();
 function fileFilter(req, file, cb) {
   const allowedMimeTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    console.log(file);
     return cb(new Error("Please upload a PDF or docx file."));
   }
   cb(null, true);
