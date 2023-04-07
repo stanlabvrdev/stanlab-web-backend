@@ -33,6 +33,7 @@ class Env {
       aws_bucket: process.env.AWS_BUCKET,
       aws_access_key_id: process.env.AWS_S3_ACCESS_KEY,
       aws_s3_secret: process.env.AWS_S3_SECRET,
+      question_generation_model: process.env.QUESTION_GENERATION_MODEL,
     };
   }
   getProduction() {
