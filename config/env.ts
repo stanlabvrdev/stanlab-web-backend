@@ -33,6 +33,10 @@ class Env {
       aws_bucket: process.env.AWS_BUCKET,
       aws_access_key_id: process.env.AWS_S3_ACCESS_KEY,
       aws_s3_secret: process.env.AWS_S3_SECRET,
+      paystack_payment_URL: process.env.PAYSTACK_PAYMENT_URL,
+      paystack_secret_key: process.env.PAYSTACK_SECRET_KEY, 
+      paystack_verification_URL: process.env.PAYSTACK_VERIFICATION_URL,
+      paystack_recurring_payment_URL: process.env.PAYSTACK_RECURRING_PAYMENT_URL,
     };
   }
   getProduction() {
