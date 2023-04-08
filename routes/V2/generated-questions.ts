@@ -1,29 +1,15 @@
 import express from "express";
 import multer from "multer";
 
-import {
-  genFromFile,
-  genFromText,
-  saveQuestions,
-  getQuestions,
-  deleteQuestionGroup,
-  getAQuestionGroup,
-  editQuestionGroup,
-  assignNow,
-  assignLater,
-} from "../../controllers/V2/question-gen.controller";
+import { QuestionGeneratorController } from "../../controllers/V2/question-gen.controller";
 
 import { teacherAuth } from "../../middleware/auth";
 
 const router = express.Router();
 //File filter to check for file type
 function fileFilter(req, file, cb) {
-  const allowedMimeTypes = [
-    "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ];
+  const allowedMimeTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    console.log(file);
     return cb(new Error("Please upload a PDF or docx file."));
   }
   cb(null, true);
@@ -37,11 +23,11 @@ const upload = multer({
 
 router.use(teacherAuth);
 
-router.post("/file-generate", upload.single("pdfFile"), genFromFile);
-router.post("/text-generate", genFromText);
-router.post("/assign-now", assignNow);
-router.post("/assign-later", assignLater);
-router.route("/").post(saveQuestions).get(getQuestions);
-router.route("/:id").delete(deleteQuestionGroup).get(getAQuestionGroup).put(editQuestionGroup);
+router.post("/file-generate", upload.single("pdfFile"), QuestionGeneratorController.genFromFile);
+router.post("/text-generate", QuestionGeneratorController.genFromText);
+router.post("/assign-now", QuestionGeneratorController.assignNow);
+router.post("/assign-later", QuestionGeneratorController.assignLater);
+router.route("/").post(QuestionGeneratorController.saveQuestions).get(QuestionGeneratorController.getQuestions);
+router.route("/:id").delete(QuestionGeneratorController.deleteQuestionGroup).get(QuestionGeneratorController.getAQuestion).put(QuestionGeneratorController.editAQuestionGroup);
 
 export default router;
