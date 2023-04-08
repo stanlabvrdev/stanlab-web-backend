@@ -18,5 +18,6 @@ router.post("/students", loginController.studentLogin);
 router.post("/school-admin", loginController.schoolAdminLogin);
 
 router.post("/lab/students", loginController.studentLabLogin);
+router.post("/super-admin", loginController.superAdminLogin);
 
 export default router;
