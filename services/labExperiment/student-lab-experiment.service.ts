@@ -10,7 +10,6 @@ class StudentLabExperimentService {
     }
 
     return LabExperiment.find(conditions)
-      .populate({ path: "experiment", select: ["name", "_id", "subject", "icon"] })
       .populate({ path: "classId", select: ["title", "subject", "section", "_id"], alias: "class" })
       .populate({
         path: "teacher",
