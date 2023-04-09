@@ -18,7 +18,6 @@ if (!env.mailgun_API_KEY) {
 mongoDB
   .then(async (res) => {
     Logger.info("Connected to MongoDB...");
-    await internalScript.cleanUps();
   })
   .catch((err) => Logger.info("Could not connect to Database ", err));
 const port = env.port || 8000;
