@@ -5,7 +5,6 @@ import mongoDB from "./utils/db";
 import app from "./app";
 import envConfig from "./config/env";
 import Logger from "./utils/logger";
-import { internalScript } from "./services/lab-assignment/internal-scripts.service";
 
 const env = envConfig.getAll();
 
