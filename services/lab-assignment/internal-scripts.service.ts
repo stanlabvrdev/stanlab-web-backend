@@ -66,6 +66,27 @@ class InternalScript {
       count--;
     }
   }
+
+  async addIcon() {
+    const labs = await LabExperiment.find();
+    let count = labs.length;
+    for (let lab of labs) {
+      console.log(count);
+      const code = this.generateCode();
+
+      const experiment: SystemExperiment | null = await systemExperiments.findOne({ _id: lab.experiment._id });
+
+      if (experiment) {
+        lab.experiment.icon = experiment.icon || null;
+        lab.experiment.practicalName = experiment.practicalName || null;
+        lab.experiment.demoVideoUrl = experiment.demoVideoUrl || null;
+        // console.log(lab.experiment);
+        const result = await LabExperiment.updateOne({ _id: lab._id }, { experiment: lab.experiment });
+        console.log(result);
+      }
+      count--;
+    }
+  }
 }
 
 export const internalScript = new InternalScript();
