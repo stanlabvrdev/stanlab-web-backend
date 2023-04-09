@@ -1,169 +1,109 @@
-import {
-  genQuestions,
-  formatQuestions,
-  saveGeneratedQuestions,
-  assignQuestions,
-} from "../../services/questionGeneration";
-import { GeneratedQuestions, QuestionGroup } from "../../models/generated-questions";
-import studentMCQ from "../../models/studentMCQ";
-import teacherMCQ from "../../models/teacherMCQ";
-import { Teacher } from "../../models/teacher";
-import { TeacherClass } from "../../models/teacherClass";
-import { Student } from "../../models/student";
-import { createTopicalMcqNotification } from "../../services/student/notification";
-import axios from "axios";
+import { QuestionGenerator, GeneratedQuestionService } from "../../services/questionGeneration";
 import CustomError from "../../services/exceptions/custom";
 import { ServerErrorHandler, ServerResponse } from "../../services/response/serverResponse";
+import { Request, Response } from "express";
 
-//For general use in queries here reduce processing time, returns regular js docs instead of mongoose docs
-const populateOptions = {
-  path: "questions",
-  select: "-__v",
-  options: {
-    lean: true,
-  },
-};
-const models = {
-  Teacher,
-  TeacherClass,
-  QuestionGroup,
-  Student,
-  studentMCQ,
-  teacherMCQ,
-};
-
-async function genFromFile(req, res) {
-  try {
-    if (!req.file) throw new CustomError(400, "No file uploaded");
-    const questions = await genQuestions(req.file.mimetype, req.file.buffer);
-    if (questions && questions.length !== 0) {
-      const finalQuestions = formatQuestions(questions);
-      return ServerResponse(req, res, 200, finalQuestions, "Questions generated successfully");
-    } else throw new CustomError(500, "Question Generation unsuccessful");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
+interface ExtendedRequest extends Request {
+  file: any;
+  teacher: any;
 }
 
-async function genFromText(req, res) {
-  try {
-    if (!req.body.text) throw new CustomError(400, "Upload text to generate questions");
-    const questions = (
-      await axios.post("https://questiongen-tqzv2kz3qq-uc.a.run.app/getquestion", {
-        context: req.body.text,
-        option_set: "Wordnet", //Can be other or Wordnet
-      })
-    ).data;
-    if (questions && questions.length !== 0) {
-      const finalQuestions = formatQuestions([questions]);
-      return ServerResponse(req, res, 200, finalQuestions, "Questions generated successfully");
-    } else throw new CustomError(500, "Question Generation unsuccessful");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
+class QuestionGeneratorControllerClass {
+  private GeneratedQuestionService;
+  private QuestionGenerator;
+
+  constructor(GeneratedQuestionService, QuestionGenerator) {
+    this.GeneratedQuestionService = GeneratedQuestionService;
+    this.QuestionGenerator = QuestionGenerator;
   }
+
+  genFromFile = async (req: Request, res: Response) => {
+    const extendedReq = req as ExtendedRequest;
+    try {
+      if (!extendedReq.file) throw new CustomError(400, "No file uploaded");
+      const questions = await this.QuestionGenerator.genFromFile(extendedReq.file.mimetype, extendedReq.file.buffer);
+      return ServerResponse(extendedReq, res, 200, questions, "Questions generated successfully");
+    } catch (err) {
+      ServerErrorHandler(extendedReq, res, err);
+    }
+  };
+
+  genFromText = async (req: Request, res: Response) => {
+    try {
+      if (!req.body.text) throw new CustomError(400, "Upload text to generate questions");
+      const questions = await this.QuestionGenerator.genFromText(req.body.text);
+      return ServerResponse(req, res, 200, questions, "Questions generated successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  saveQuestions = async (req: Request, res: Response) => {
+    try {
+      const questGroup = await this.GeneratedQuestionService.saveQuestions(req);
+      return ServerResponse(req, res, 200, questGroup, "Questions saved to 'Question bank'");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  editAQuestionGroup = async (req: Request, res: Response) => {
+    try {
+      const updatedGroup = await this.GeneratedQuestionService.editQuestionGroup(req);
+      return ServerResponse(req, res, 200, updatedGroup, "Update successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  getQuestions = async (req: Request, res: Response) => {
+    const extendedReq = req as ExtendedRequest;
+    try {
+      const questions = await this.GeneratedQuestionService.getQuestions(extendedReq.teacher._id);
+      return ServerResponse(extendedReq, res, 200, questions, "Successful");
+    } catch (err) {
+      ServerErrorHandler(extendedReq, res, err);
+    }
+  };
+
+  getAQuestion = async (req: Request, res: Response) => {
+    const extendedReq = req as ExtendedRequest;
+    try {
+      const data = await this.GeneratedQuestionService.getAQuestionGroup(extendedReq.params.id, extendedReq.teacher._id);
+      return ServerResponse(extendedReq, res, data.code, data.data, data.message);
+    } catch (err) {
+      ServerErrorHandler(extendedReq, res, err);
+    }
+  };
+
+  deleteQuestionGroup = async (req: Request, res: Response) => {
+    try {
+      const data = await this.GeneratedQuestionService.deleteQuestionGroup(req.params.id);
+      return ServerResponse(req, res, data.code, null, data.message);
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  assignNow = async (req: Request, res: Response) => {
+    try {
+      const assignment = await this.GeneratedQuestionService.assignNow(req);
+      return ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  assignLater = async (req: Request, res: Response) => {
+    try {
+      const assignment = await this.GeneratedQuestionService.assignLater(req);
+      return ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
 }
 
-async function saveQuestions(req, res) {
-  try {
-    const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup);
-    return ServerResponse(req, res, 200, questGroup, "Questions saved to 'Question bank'");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
+const QuestionGeneratorController = new QuestionGeneratorControllerClass(GeneratedQuestionService, QuestionGenerator);
 
-async function getQuestions(req, res) {
-  try {
-    const questions = await QuestionGroup.find({
-      teacher: req.teacher._id,
-    }).populate(populateOptions);
-    ServerResponse(req, res, 200, questions, "Successful");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-async function deleteQuestionGroup(req, res) {
-  try {
-    const { id } = req.params;
-    const deletedGroup = await QuestionGroup.findByIdAndDelete(id);
-    if (deletedGroup) return ServerResponse(req, res, 200, undefined, "Deleted Successfully");
-    else return ServerResponse(req, res, 404, undefined, "Resource not found");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-async function getAQuestionGroup(req, res) {
-  try {
-    const { id } = req.params;
-    const questionGroup = await QuestionGroup.findOne({
-      _id: id,
-    }).populate(populateOptions);
-    if (questionGroup) return ServerResponse(req, res, 200, questionGroup, "Successful");
-    else return ServerResponse(req, res, 404, undefined, "Questions, Not found");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-async function editQuestionGroup(req, res) {
-  try {
-    const id = req.params.id;
-    const questions = req.body.questions;
-    const options = {
-      new: true,
-    };
-    const updatedQuestions: any = await Promise.allSettled(
-      questions.map((each) => GeneratedQuestions.findByIdAndUpdate(each._id, each, options))
-    );
-    const newQuestionsID = updatedQuestions.filter((each) => each.value).map((each: any) => each.value._id);
-    const update = {
-      subject: req.body.subject,
-      topic: req.body.topic,
-      questions: newQuestionsID,
-    };
-    const updated = await QuestionGroup.findByIdAndUpdate(
-      id,
-      {
-        $set: update,
-      },
-      options
-    ).populate(populateOptions);
-    ServerResponse(req, res, 200, updated, "Update successful");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-async function assignNow(req, res) {
-  try {
-    const questGroup = await saveGeneratedQuestions(req, GeneratedQuestions, QuestionGroup);
-    req.body.questGroupId = questGroup._id;
-    const assignment = await assignQuestions(req, models, createTopicalMcqNotification);
-    ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-async function assignLater(req, res) {
-  try {
-    const assignment = await assignQuestions(req, models, createTopicalMcqNotification);
-    ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-export {
-  genFromFile,
-  genFromText,
-  saveQuestions,
-  getQuestions,
-  deleteQuestionGroup,
-  getAQuestionGroup,
-  editQuestionGroup,
-  assignNow,
-  assignLater,
-};
+export { QuestionGeneratorController };
