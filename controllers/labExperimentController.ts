@@ -1,9 +1,12 @@
-import { Filter, validateAssignment, validateGetQuery } from "../models/labAssignment";
+import { Filter, LabExperiment, validateAssignment, validateGetQuery } from "../models/labAssignment";
 
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import BadRequestError from "../services/exceptions/bad-request";
 
 import { labAssignmentService } from "../services/lab-assignment/lab.service";
+import NotFoundError from "../services/exceptions/not-found";
+import { Teacher } from "../models/teacher";
+import { StudentScore } from "../models/studentScore";
 
 async function assignLab(req, res) {
   try {
@@ -32,6 +35,20 @@ async function getStudentLabs(req, res) {
     const labs = await labAssignmentService.getLabs({ student: req.student._id });
 
     ServerResponse(req, res, 200, labs, "experiment successfully fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+async function deleteAssignedLabsByTeacher(req, res) {
+  try {
+    const teacher = await Teacher.findOne({ email: req.body.email });
+
+    if (!teacher) throw new NotFoundError("teacher not found");
+
+    const result = await LabExperiment.deleteMany({ teacher: teacher._id });
+    const result2 = await StudentScore.deleteMany({ teacherId: teacher._id });
+
+    ServerResponse(req, res, 200, { result, result2 }, "successfully deleted!");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -79,4 +96,4 @@ async function getLabStudents(req, res) {
   }
 }
 
-export default { assignLab, getStudentLabs, getTeacherAssignedLabs, getLabStudents };
+export default { assignLab, getStudentLabs, getTeacherAssignedLabs, getLabStudents, deleteAssignedLabsByTeacher };
