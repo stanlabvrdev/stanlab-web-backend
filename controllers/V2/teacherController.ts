@@ -13,10 +13,10 @@ import { LabExperiment } from "../../models/labAssignment";
 
 import { StudentScore } from "../../models/studentScore";
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
-import NotFoundError from "../../services/exceptions/not-found";
+
 import studentService from "../../services/student/student.service";
 import BadRequestError from "../../services/exceptions/bad-request";
-import studentTeacherClassService from "../../services/teacherClass/teacher-student-class";
+
 import studentTeacherService from "../../services/teacherClass/teacher-student";
 import teacherClassService from "../../services/teacherClass/teacherClass.service";
 
