@@ -15,23 +15,10 @@ import { PAYSTACK } from "../../constants/locations";
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
-    let {
-      title,
-      cost,
-      vat,
-      description,
-      coupon,
-      student_count,
-      duration,
-      durationType,
-      is_active,
-    } = body;
+    let { title, cost, vat, description, coupon, student_count, duration, durationType, is_active } = body;
 
     let existingPlan = await SubscriptionPlan.findOne({ title });
-    if (existingPlan)
-      throw new BadRequestError(
-        "subscription plan with this title already exist"
-      );
+    if (existingPlan) throw new BadRequestError("subscription plan with this title already exist");
 
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
@@ -74,7 +61,7 @@ class SubscriptionService {
     let { planId, studentId, autoRenew } = body;
 
     const locate = geoip.lookup(location);
-    
+
     const plan = await SubscriptionPlan.findOne({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
 
@@ -103,16 +90,13 @@ class SubscriptionService {
     let response: any;
 
     if (locate.country in PAYSTACK) {
-      response = await paymentService.initializePayment(
-        school.email,
-        plan.cost * 100 * count
-      );
+      response = await paymentService.initializePayment(school.email, plan.cost * 100 * count);
 
       if (!response || response.status !== true) {
         throw new BadRequestError("unable to initialize payment");
       }
     }
-    
+
     studentId = studentId.filter((id: string) => {
       return !studentSub.some((sub: any) => sub.student.toString() === id);
     });
