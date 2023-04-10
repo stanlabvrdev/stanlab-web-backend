@@ -64,7 +64,7 @@ class LabAssignmentService {
   }
 
   async getLabs(conditions: Filter): Promise<ILabExperiment[]> {
-    return LabExperiment.find(conditions);
+    return LabExperiment.find(conditions).populate({ path: "teacher", select: ["name", "_id", "email"] });
   }
 
   private async createExperiment(data: CreateLabAssignment, experiment: SystemExperiment): Promise<ILabExperiment> {
