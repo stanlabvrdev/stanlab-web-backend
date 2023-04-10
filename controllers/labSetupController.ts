@@ -9,6 +9,7 @@ import { LabExperiment } from "../models/labAssignment";
 import NotFoundError from "../services/exceptions/not-found";
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import { submittedScoreNotification } from "../services/student/notification";
+import { labAssignmentService } from "../services/lab-assignment/lab.service";
 
 async function postCreateLab(req, res) {
   const { classId } = req.params;
@@ -64,15 +65,10 @@ async function getActiveExperiments(req, res) {
       experimentIds = experimentIds.concat(data.experiments);
     });
 
-    // const experiments = await LabSetup.find({ _id: { $in: experimentIds } })
-    //     .select("-students -__v")
-    //     .populate({ path: "teacher", select: ["name", "_id", "email"] });
-    const experiments = await LabExperiment.find({ student: req.student._id, isCompleted: false })
-      .populate({
-        path: "experiment",
-        select: ["name", "_id", "subject"],
-      })
-      .populate({ path: "teacher", select: ["name", "_id", "email"] });
+    const experiments = await labAssignmentService.getLabs({
+      student: req.student._id,
+      isCompleted: false,
+    });
 
     res.send(experiments);
   } catch (error) {
