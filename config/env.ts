@@ -38,6 +38,7 @@ class Env {
       paystack_secret_key: process.env.PAYSTACK_SECRET_KEY,
       paystack_verification_URL: process.env.PAYSTACK_VERIFICATION_URL,
       paystack_recurring_payment_URL: process.env.PAYSTACK_RECURRING_PAYMENT_URL,
+      redirect_URL: process.env.REDIRECT_URL,
     };
   }
   getProduction() {
