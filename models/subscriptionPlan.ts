@@ -50,7 +50,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
     ref: "SuperAdmin",
     required: true,
   },
-  is_active: { type: Boolean, trim: true },
+  is_active: { type: Boolean, trim: true, default: true },
 });
 
 const SubscriptionPlan = mongoose.model(
