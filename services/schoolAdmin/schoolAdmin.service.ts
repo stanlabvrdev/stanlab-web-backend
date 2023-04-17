@@ -17,7 +17,14 @@ import { Profile } from "../../models/profile";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
-    let { admin_name, school_name, password, admin_email, school_email } = body;
+    let {
+      admin_name,
+      school_name,
+      password,
+      admin_email,
+      school_email,
+      country,
+    } = body;
 
     let admin = await SchoolAdmin.findOne({ email: admin_email });
     if (admin)
@@ -37,6 +44,7 @@ class SchoolAdminService {
       schoolEmail: school_email,
       adminName: admin_name,
       schoolName: school_name,
+      country,
     });
 
     const token = admin.generateAuthToken();

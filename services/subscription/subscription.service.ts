@@ -87,10 +87,8 @@ class SubscriptionService {
     return await plan.save();
   }
 
-  async makePayment(body: any, schoolId: string, location: string) {
+  async makePayment(body: any, schoolId: string) {
     let { planId, studentId, coupon, autoRenew } = body;
-
-    const locate = geoip.lookup(location);
 
     const plan = await SubscriptionPlan.findOne({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
@@ -102,20 +100,20 @@ class SubscriptionService {
       school: school._id,
     });
 
-    if (!students) {
-      throw new BadRequestError("student not found");
-    }
+    let count: number;
 
     let studentSub = await StudentSubscription.find({
       student: studentId,
       school: school._id,
-      isActive: false,
+      isActive: true,
     });
 
-    const count = students.length - studentSub.length;
+    count = students.length - studentSub.length;
 
     if (count < 1) {
-      throw new BadRequestError("student has an active subscription");
+      throw new BadRequestError(
+        "student not found or student has an active subscription"
+      );
     }
 
     let totalCost = plan.cost * count;
@@ -130,7 +128,7 @@ class SubscriptionService {
 
     let response: any;
 
-    if (locate.country in PAYSTACK) {
+    if (school.country in PAYSTACK) {
       response = await paymentService.PaystackInitializePayment(
         school.email,
         totalCost * 100
@@ -162,96 +160,6 @@ class SubscriptionService {
     payment.save();
 
     return response;
-  }
-
-  async bulkMakePayment(
-    body: any,
-    schoolId: string,
-    location: string,
-    obj: any
-  ) {
-    let { planId, studentId, coupon, autoRenew } = body;
-
-    const locate = geoip.lookup(location);
-
-    const plan = await SubscriptionPlan.findOne({ _id: planId });
-    if (!plan) throw new NotFoundError("subscription plan not found");
-
-    let school = await SchoolAdmin.findById({ _id: schoolId });
-
-    const data: any[] = await excelParserService.convertToJSON(obj);
-
-    for (let item of data) {
-      let student = await Student.findOne({ userName: item.userName });
-      if (!student) {
-        continue;
-      }
-
-      const schoolStudent = await SchoolStudent.find({
-        school: school._id,
-        student: student._id,
-      });
-      if (!schoolStudent) {
-        continue;
-      }
-
-      let studentSub = await StudentSubscription.find({
-        student: studentId,
-        school: school._id,
-        isActive: false,
-      });
-
-      const count = schoolStudent.length - studentSub.length;
-
-      if (count < 1) {
-        throw new BadRequestError("student has an active subscription");
-      }
-
-      let totalCost = plan.cost * count;
-
-      if (coupon) {
-        let existingCoupon = await Coupon.findOne({ code: coupon });
-
-        if (existingCoupon) {
-          totalCost = totalCost - totalCost * existingCoupon.discount;
-        }
-      }
-
-      let response: any;
-
-      if (locate.country in PAYSTACK) {
-        response = await paymentService.PaystackInitializePayment(
-          school.email,
-          totalCost * 100
-        );
-
-        if (!response || response.status !== true) {
-          throw new BadRequestError("unable to initialize payment");
-        }
-      }
-
-      studentId = studentId.filter((id: string) => {
-        return !studentSub.some((sub: any) => sub.student.toString() === id);
-      });
-
-      let payment = new Payment({
-        email: school.email,
-        cost: plan.cost * count,
-        school: school._id,
-        student: studentId,
-        subscriptionPlanId: plan._id,
-        reference: response.data.reference,
-        accessCode: response.data.access_code,
-        authorizationUrl: response.data.authorization_url,
-        status: STATUS_TYPES.PENDING,
-        autoRenew,
-        endDate: addDaysToDate(plan.duration),
-      });
-
-      payment.save();
-
-      return response;
-    }
   }
 
   async verifyPayment(schoolId: string, reference: string) {
@@ -291,7 +199,7 @@ class SubscriptionService {
     }
 
     const promises: any[] = [];
-    payment.student.map(async (element) => {
+    payment.student.map(async (element: string) => {
       let sub = new StudentSubscription({
         student: element,
         school: schoolId,
@@ -305,11 +213,14 @@ class SubscriptionService {
 
     return studentSub;
   }
-}
 
-//check ip address
-//cron job
-//recurring payment
+  async getStudentsSubscription(schoolId: string) {
+    let studentSubscription = await StudentSubscription.find({
+      school: schoolId,
+    });
+    return studentSubscription;
+  }
+}
 
 export const subscriptionService = new SubscriptionService();
 export default subscriptionService;

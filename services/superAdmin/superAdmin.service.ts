@@ -53,6 +53,7 @@ class SuperAdminService {
     code = generator.generate({
       length: 6,
       numbers: true,
+      uppercase: true,
     });
 
     let coupon = new Coupon({

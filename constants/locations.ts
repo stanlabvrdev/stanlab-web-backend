@@ -1,10 +1,7 @@
 export enum PAYSTACK {
-  NG,
-  GH,
-}
-
-export enum STRIPE {
- 
+  "Nigeria",
+  "Ghana",
+  "South Africa"
 }
 
 export enum FLUTTERWAVE {
