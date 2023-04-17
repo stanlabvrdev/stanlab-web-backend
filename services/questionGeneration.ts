@@ -50,11 +50,9 @@ interface QuizQuestion {
 //An instance of this class can be used to generate and return formatted questions
 class QuestionGenerationClass {
   private parser: ParserInterface;
-  private finalQuestions: Questions[];
 
   constructor(parser: ParserInterface) {
     this.parser = parser;
-    this.finalQuestions = [];
   }
 
   private callToModel(context: string) {
@@ -88,6 +86,7 @@ class QuestionGenerationClass {
   }
 
   private async formatQuestions(arrayOfQuestions: QuizQuestion[]): Promise<Questions[]> {
+    const finalQuestions: Questions[] = [];
     //Loop through generated questions and extract the options - those that startwith 'Ans' are the correct ones while those that do not are false, classify accordingly
     arrayOfQuestions.forEach((each: QuizQuestion) => {
       const entries: [string, string[]][] = Object.entries(each);
@@ -105,13 +104,13 @@ class QuestionGenerationClass {
             };
           }
         });
-        this.finalQuestions.push({
+        finalQuestions.push({
           question,
           options: formattedOptions,
         });
       }
     });
-    return this.finalQuestions;
+    return finalQuestions;
   }
 }
 
