@@ -214,7 +214,7 @@ class SubscriptionService {
     return studentSub;
   }
 
-  async getStudentsSubscription(schoolId: string) {
+  async studentSubscription(schoolId: string) {
     let studentSubscription = await StudentSubscription.find({
       school: schoolId,
     });

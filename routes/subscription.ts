@@ -6,7 +6,7 @@ import {
   updatePlanById,
   makePayment,
   verifyPayment,
-  getStudentsSubscription,
+  studentSubscription,
 } from "../controllers/subscription.controller";
 import { superAdminAuth, schoolAuth } from "../middleware/auth";
 
@@ -17,6 +17,6 @@ router.get("/", getPlans);
 router.put("/:planId", superAdminAuth, updatePlanById);
 router.post("/make-payment", schoolAuth, makePayment);
 router.post("/verify-payment", schoolAuth, verifyPayment);
-router.get("/get-student-subscription", schoolAuth, getStudentsSubscription);
+router.get("/student-subscription", schoolAuth, studentSubscription);
 
 export default router;

@@ -51,7 +51,7 @@ class SuperAdminService {
     let { code, discount, endDate } = body;
 
     code = generator.generate({
-      length: 6,
+      length: 4,
       numbers: true,
       uppercase: true,
     });
@@ -80,7 +80,7 @@ class SuperAdminService {
     coupon.discount = discount * 0.01;
     coupon.endDate = endDate;
 
-    return await coupon.save();
+    return coupon.save();
   }
 }
 

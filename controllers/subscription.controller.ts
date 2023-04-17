@@ -95,10 +95,10 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
-export const getStudentsSubscription = async (req, res) => {
+export const studentSubscription = async (req, res) => {
   try {
     const studentSubscription =
-      await subscriptionService.getStudentsSubscription(req.school._id);
+      await subscriptionService.studentSubscription(req.school._id);
     ServerResponse(
       req,
       res,
