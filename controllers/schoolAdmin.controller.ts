@@ -19,6 +19,7 @@ export const createSchoolAdmin = async (req, res) => {
       teachers: data.admin.teachers,
       students: data.admin.students,
       _id: data.admin._id,
+      country: data.admin.country
     });
   } catch (error) {
     ServerErrorHandler(req, res, error);

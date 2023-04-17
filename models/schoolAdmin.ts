@@ -16,6 +16,7 @@ interface SchoolAttrs {
   teachers: any[];
   students: any[];
   activities: any[];
+  country: string;
   role: string;
 }
 
@@ -28,6 +29,7 @@ interface SchoolDoc extends mongoose.Document {
   teachers: any[];
   students: any[];
   activities: any[];
+  country: string;
   role: string;
 }
 
@@ -43,29 +45,9 @@ const schoolAdminSchema = new mongoose.Schema<SchoolDoc>({
   teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teacher" }],
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   activities: { type: Array },
+  country: { type: String, required: true },
   role: { type: String, default: "School" },
 });
-
-function validateSchoolAdmin(admin) {
-  const schema = Joi.object({
-    admin_name: Joi.string().min(3).max(255).required(),
-    school_name: Joi.string().min(3).max(255).required(),
-    admin_email: Joi.string().email().required(),
-    school_email: Joi.string().email().required(),
-    password: Joi.string().min(5).max(255).required(),
-  });
-
-  return schema.validate(admin);
-}
-
-function validateSchoolUser(user) {
-  const schema = Joi.object({
-    name: Joi.string().min(3).max(255).required(),
-    email: Joi.string().email().required(),
-  });
-
-  return schema.validate(user);
-}
 
 schoolAdminSchema.methods.generateAuthToken = function () {
   const token = jwt.sign({ _id: this._id, role: this.role }, env.jwtKey);
@@ -91,4 +73,4 @@ schoolAdminSchema.methods.addStudent = function (studentId) {
 };
 const SchoolAdmin = mongoose.model("SchoolAdmin", schoolAdminSchema);
 
-export { SchoolAdmin, validateSchoolAdmin, validateSchoolUser };
+export { SchoolAdmin };
