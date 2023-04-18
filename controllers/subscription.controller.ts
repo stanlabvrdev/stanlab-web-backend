@@ -75,10 +75,9 @@ export const makePayment = async (req, res) => {
 
     const payment = await subscriptionService.makePayment(
       req.body,
-      req.school._id,
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress
+      req.school._id
     );
-    ServerResponse(req, res, 200, payment.data, payment.message);
+    ServerResponse(req, res, 200, payment, "payment initialized successfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -91,6 +90,22 @@ export const verifyPayment = async (req, res) => {
       req.query.reference
     );
     ServerResponse(req, res, 200, studentSub, "payment successfully verified");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+export const studentSubscription = async (req, res) => {
+  try {
+    const studentSubscription =
+      await subscriptionService.studentSubscription(req.school._id);
+    ServerResponse(
+      req,
+      res,
+      200,
+      studentSubscription,
+      "student subscription successfully fetched"
+    );
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
