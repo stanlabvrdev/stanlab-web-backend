@@ -30,4 +30,21 @@ function validateStudent(admin) {
   return schema.validate(admin);
 }
 
-export { validateSchoolAdmin, validateSchoolUser, validateStudent };
+function validateUpdateSchoolAdmin(admin) {
+  const schema = Joi.object({
+    admin_name: Joi.string().min(3).max(255),
+    school_name: Joi.string().min(3).max(255),
+    admin_email: Joi.string().email(),
+    school_email: Joi.string().email(),
+    country: Joi.string(),
+  });
+
+  return schema.validate(admin);
+}
+
+export {
+  validateSchoolAdmin,
+  validateSchoolUser,
+  validateStudent,
+  validateUpdateSchoolAdmin,
+};
