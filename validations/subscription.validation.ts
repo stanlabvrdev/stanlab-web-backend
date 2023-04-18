@@ -10,7 +10,6 @@ function validateSubscription(subscription: any) {
     student_count: Joi.number(),
     duration: Joi.number().required(),
     durationType: Joi.string().required(),
-    is_active: Joi.boolean(),
   });
 
   return schema.validate(subscription);
@@ -37,6 +36,7 @@ function validatePayment(payment: any) {
     planId: Joi.string().required(),
     studentId: Joi.array().items(Joi.string().required()),
     autoRenew: Joi.boolean(),
+    coupon: Joi.string(),
   });
 
   return schema.validate(payment);
