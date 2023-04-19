@@ -14,6 +14,9 @@ import { TeacherClass } from "../../models/teacherClass";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
 import { csvUploaderService } from "../csv-uploader";
 import { Profile } from "../../models/profile";
+import { StudentSubscription } from "../../models/student-subscription";
+import subscriptionService from "../subscription/subscription.service";
+import { addDaysToDate } from "../../helpers/dateHelper";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -123,6 +126,17 @@ class SchoolAdminService {
       student: student._id,
     });
     await schoolStudent.save();
+
+    const freePlan = await subscriptionService.getFreePlan();
+
+    const studentSubscription = new StudentSubscription({
+      school: school._id,
+      student: student._id,
+      subscriptionPlanId: freePlan._id,
+      endDate: addDaysToDate(freePlan.duration),
+      autoRenew: false,
+    });
+    await studentSubscription.save();
 
     const response = {
       id: student._id,

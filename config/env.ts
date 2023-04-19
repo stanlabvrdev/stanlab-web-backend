@@ -39,6 +39,7 @@ class Env {
       paystack_verification_URL: process.env.PAYSTACK_VERIFICATION_URL,
       paystack_recurring_payment_URL: process.env.PAYSTACK_RECURRING_PAYMENT_URL,
       redirect_URL: process.env.REDIRECT_URL,
+      free_subscription_title: process.env.FREE_SUBSCRIPTION_TITLE,
     };
   }
   getProduction() {

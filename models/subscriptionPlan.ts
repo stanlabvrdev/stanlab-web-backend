@@ -48,7 +48,6 @@ const subscriptionPlanSchema = new mongoose.Schema({
   creator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SuperAdmin",
-    required: true,
   },
   is_active: { type: Boolean, trim: true, default: true },
 });

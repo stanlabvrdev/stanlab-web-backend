@@ -4,8 +4,9 @@ interface StudentSubscriptionAttrs {
   student: mongoose.Schema.Types.ObjectId;
   school: mongoose.Schema.Types.ObjectId;
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
+  extensionDate: Date;
   autoRenew?: boolean;
   isActive: boolean;
 }
@@ -14,8 +15,9 @@ interface StudentSubscriptionDoc extends mongoose.Document {
   student: mongoose.Schema.Types.ObjectId;
   school: mongoose.Schema.Types.ObjectId;
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
+  extensionDate: Date;
   autoRenew?: boolean;
   isActive: boolean;
 }
