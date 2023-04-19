@@ -47,6 +47,21 @@ export const getPlans = async (req, res) => {
   }
 };
 
+export const syncFreePlan = async (req, res) => {
+  try {
+    const subscribers = await subscriptionService.syncFreePlan(req.school._id);
+    ServerResponse(
+      req,
+      res,
+      200,
+      subscribers,
+      "subscription synced successfull"
+    );
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 export const updatePlanById = async (req, res) => {
   try {
     const { error } = validateUpdateSubscription(req.body);
@@ -97,8 +112,9 @@ export const verifyPayment = async (req, res) => {
 
 export const studentSubscription = async (req, res) => {
   try {
-    const studentSubscription =
-      await subscriptionService.studentSubscription(req.school._id);
+    const studentSubscription = await subscriptionService.studentSubscription(
+      req.school._id
+    );
     ServerResponse(
       req,
       res,
