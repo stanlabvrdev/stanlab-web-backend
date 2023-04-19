@@ -149,8 +149,11 @@ class SchoolAdminService {
   async bulkCreateStudents(obj, schoolId) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
     const data: any[] = await excelParserService.convertToJSON(obj);
+
     const promises: any[] = [];
     const schools: any[] = [];
+    const subscribers: any[] = [];
+
     for (let item of data) {
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
@@ -173,10 +176,22 @@ class SchoolAdminService {
         student: student._id,
       });
       schools.push(schoolStudent.save());
+
+      const freePlan = await subscriptionService.getFreePlan();
+
+      const studentSubscription = new StudentSubscription({
+        school: school._id,
+        student: student._id,
+        subscriptionPlanId: freePlan._id,
+        endDate: addDaysToDate(freePlan.duration),
+        autoRenew: false,
+      });
+      subscribers.push(studentSubscription.save());
     }
 
     const students = await Promise.all(promises);
     await Promise.all(schools);
+    await Promise.all(subscribers);
 
     const response = students.map((e) => {
       return {

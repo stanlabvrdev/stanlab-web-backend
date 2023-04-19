@@ -78,7 +78,7 @@ class SubscriptionService {
   async syncFreePlan(schoolId: string) {
     const students = await SchoolStudent.find({ school: schoolId });
     const freePlan = await this.getFreePlan();
-    
+
     const syncedPlan = await Promise.all(
       students.map(async (element: any) => {
         let subscriber = await StudentSubscription.findOne({
@@ -138,25 +138,32 @@ class SubscriptionService {
 
     let school = await SchoolAdmin.findById({ _id: schoolId });
 
-    const students = await SchoolStudent.find({
-      student: studentId,
-      school: school._id,
-    });
-
-    let count: number;
-
-    let studentSub = await StudentSubscription.find({
+    let subscribers = await StudentSubscription.find({
       student: studentId,
       school: school._id,
       isActive: true,
     });
 
-    count = students.length - studentSub.length;
+    const freePlan = await this.getFreePlan();
+    let count: number = 0;
+    studentId = [];
+
+    subscribers.map((subscriber: any) => {
+      if (
+        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+      ) {
+        return false;
+      }
+
+      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString()) {
+        count++;
+
+        studentId.push(subscriber.student);
+      }
+    });
 
     if (count < 1) {
-      throw new BadRequestError(
-        "student not found or student has an active subscription"
-      );
+      throw new BadRequestError("student has an active subscription");
     }
 
     let totalCost = plan.cost * count;
@@ -182,13 +189,9 @@ class SubscriptionService {
       }
     }
 
-    studentId = studentId.filter((id: string) => {
-      return !studentSub.some((sub: any) => sub.student.toString() === id);
-    });
-
     let payment = new Payment({
       email: school.email,
-      cost: plan.cost * count,
+      cost: totalCost,
       school: school._id,
       student: studentId,
       subscriptionPlanId: plan._id,
@@ -241,18 +244,16 @@ class SubscriptionService {
       userPayment.save();
     }
 
-    const promises: any[] = [];
-    payment.student.map(async (element: string) => {
-      let sub = new StudentSubscription({
-        student: element,
-        school: schoolId,
-        subscriptionPlanId: payment.subscriptionPlanId,
-        endDate: payment.endDate,
-        autoRenew: payment.autoRenew,
-      });
-      promises.push(sub.save());
-    });
-    const studentSub = await Promise.all(promises);
+    const studentSub = await Promise.all(
+      payment.student.map(async (element: string) => {
+        let subscribe = await StudentSubscription.findOne({ student: element });
+        subscribe.subscriptionPlanId = payment.subscriptionPlanId;
+        subscribe.endDate = payment.endDate;
+        subscribe.autoRenew = payment.autoRenew;
+
+        return subscribe.save();
+      })
+    );
 
     return studentSub;
   }
