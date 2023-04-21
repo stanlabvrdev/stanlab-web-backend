@@ -3,6 +3,7 @@ import express from "express";
 import {
   createPlan,
   getPlans,
+  syncFreePlan,
   updatePlanById,
   makePayment,
   verifyPayment,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", superAdminAuth, createPlan);
 router.get("/", getPlans);
+router.post("/sync-free-plan", schoolAuth, syncFreePlan);
 router.put("/:planId", superAdminAuth, updatePlanById);
 router.post("/make-payment", schoolAuth, makePayment);
 router.post("/verify-payment", schoolAuth, verifyPayment);

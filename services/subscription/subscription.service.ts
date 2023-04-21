@@ -1,4 +1,3 @@
-import geoip from "geoip-lite";
 import { SuperAdmin } from "../../models/superAdmin";
 import { SubscriptionPlan } from "../../models/subscriptionPlan";
 import BadRequestError from "../exceptions/bad-request";
@@ -13,8 +12,8 @@ import { STATUS_TYPES } from "../../constants/statusTypes";
 import { addDaysToDate } from "../../helpers/dateHelper";
 import { PAYSTACK } from "../../constants/locations";
 import { Coupon } from "../../models/coupon";
-import { excelParserService } from "../excelParserService";
-import { Student } from "../../models/student";
+import envConfig from "../../config/env";
+const env = envConfig.getAll();
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
@@ -58,6 +57,50 @@ class SubscriptionService {
     return plans;
   }
 
+  async getFreePlan() {
+    const freeSubscriptionPlanTitle = env.free_subscription_title;
+    const plan = await SubscriptionPlan.findOne({
+      title: freeSubscriptionPlanTitle,
+    });
+
+    if (plan) return plan;
+
+    const freePlanCreated = new SubscriptionPlan({
+      title: freeSubscriptionPlanTitle,
+      cost: 0,
+      duration: 30,
+      durationType: "month",
+      vat: 0,
+    });
+    return freePlanCreated.save();
+  }
+
+  async syncFreePlan(schoolId: string) {
+    const students = await SchoolStudent.find({ school: schoolId });
+    const freePlan = await this.getFreePlan();
+
+    const syncedPlan = await Promise.all(
+      students.map(async (element: any) => {
+        let subscriber = await StudentSubscription.findOne({
+          student: element.student,
+        });
+
+        if (!subscriber) {
+          let subscribe = new StudentSubscription({
+            student: element.student,
+            school: schoolId,
+            subscriptionPlanId: freePlan._id,
+            endDate: addDaysToDate(freePlan.duration),
+            autoRenew: false,
+          });
+          return subscribe.save();
+        }
+        return subscriber;
+      })
+    );
+    return syncedPlan;
+  }
+
   async updatePlanById(body: any, planId: string) {
     let {
       title,
@@ -95,25 +138,32 @@ class SubscriptionService {
 
     let school = await SchoolAdmin.findById({ _id: schoolId });
 
-    const students = await SchoolStudent.find({
-      student: studentId,
-      school: school._id,
-    });
-
-    let count: number;
-
-    let studentSub = await StudentSubscription.find({
+    let subscribers = await StudentSubscription.find({
       student: studentId,
       school: school._id,
       isActive: true,
     });
 
-    count = students.length - studentSub.length;
+    const freePlan = await this.getFreePlan();
+    let count: number = 0;
+    studentId = [];
+
+    subscribers.map((subscriber: any) => {
+      if (
+        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+      ) {
+        return false;
+      }
+
+      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString()) {
+        count++;
+
+        studentId.push(subscriber.student);
+      }
+    });
 
     if (count < 1) {
-      throw new BadRequestError(
-        "student not found or student has an active subscription"
-      );
+      throw new BadRequestError("student has an active subscription");
     }
 
     let totalCost = plan.cost * count;
@@ -121,7 +171,7 @@ class SubscriptionService {
     if (coupon) {
       let existingCoupon = await Coupon.findOne({ code: coupon });
 
-      if (existingCoupon) {
+      if (existingCoupon && existingCoupon.isActive === true) {
         totalCost = totalCost - totalCost * existingCoupon.discount;
       }
     }
@@ -139,13 +189,9 @@ class SubscriptionService {
       }
     }
 
-    studentId = studentId.filter((id: string) => {
-      return !studentSub.some((sub: any) => sub.student.toString() === id);
-    });
-
     let payment = new Payment({
       email: school.email,
-      cost: plan.cost * count,
+      cost: totalCost,
       school: school._id,
       student: studentId,
       subscriptionPlanId: plan._id,
@@ -198,18 +244,16 @@ class SubscriptionService {
       userPayment.save();
     }
 
-    const promises: any[] = [];
-    payment.student.map(async (element: string) => {
-      let sub = new StudentSubscription({
-        student: element,
-        school: schoolId,
-        subscriptionPlanId: payment.subscriptionPlanId,
-        endDate: payment.endDate,
-        autoRenew: payment.autoRenew,
-      });
-      promises.push(sub.save());
-    });
-    const studentSub = await Promise.all(promises);
+    const studentSub = await Promise.all(
+      payment.student.map(async (element: string) => {
+        let subscribe = await StudentSubscription.findOne({ student: element });
+        subscribe.subscriptionPlanId = payment.subscriptionPlanId;
+        subscribe.endDate = payment.endDate;
+        subscribe.autoRenew = payment.autoRenew;
+
+        return subscribe.save();
+      })
+    );
 
     return studentSub;
   }
@@ -219,6 +263,14 @@ class SubscriptionService {
       school: schoolId,
     });
     return studentSubscription;
+  }
+
+  async updateStudentSubscription(studentId: string) {
+    let studentSubscription = await StudentSubscription.findOne({
+      student: studentId,
+    });
+    studentSubscription.isActive = false;
+    studentSubscription.save();
   }
 }
 
