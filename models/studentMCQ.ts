@@ -22,6 +22,7 @@ const studentMCQSchema = new mongoose.Schema({
   },
   startDate: Date,
   dueDate: Date,
+  duration: Number,
   instruction: {
     type: String,
   },
@@ -55,7 +56,7 @@ const studentMCQSchema = new mongoose.Schema({
   },
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SchoolAdmin"
+    ref: "SchoolAdmin",
   },
 });
 

@@ -163,11 +163,14 @@ class GeneratedQuestionServiceClass {
   //Now, the student's copy are stored on the teacher's copy so the teacher can track each student's progress and submissions
   async assignQuestions(req: Request, createTopicalMcqNotification) {
     const extendedReq = req as ExtendedRequest;
-    const { questGroupId, classID, startDate, dueDate, type } = extendedReq.body;
+    const { questGroupId, classID, startDate, dueDate, type, duration } = extendedReq.body;
     // const { Teacher, TeacherClass, QuestionGroup, Student, studentMCQ, teacherMCQ } = models;
     try {
       let assignmentType = type || "Practice";
+      let testDuration: number | null = +duration;
       if (assignmentType !== "Practice" && assignmentType !== "Test") throw new BadRequestError("Assignment has to be of type Practice or Test");
+      if (assignmentType === "Test" && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
+      if (assignmentType === "Practice") testDuration = null;
       const teacher = await this.models.Teacher.findOne({
         _id: extendedReq.teacher._id,
       });
@@ -215,6 +218,7 @@ class GeneratedQuestionServiceClass {
           classId: classID,
           startDate,
           dueDate,
+          duration: testDuration,
           type: assignmentType,
           school: teacherCurrentSchool,
         });
@@ -229,6 +233,7 @@ class GeneratedQuestionServiceClass {
             classId: classID,
             startDate,
             dueDate,
+            duration: testDuration,
             student: studentId,
             teacher: teacher._id,
             type: assignmentType,
@@ -264,6 +269,7 @@ class GeneratedQuestionServiceClass {
           classId: classID,
           startDate,
           dueDate,
+          duration: testDuration,
           type: assignmentType,
         });
         //Notifications promise array
@@ -277,6 +283,7 @@ class GeneratedQuestionServiceClass {
             classId: classID,
             startDate,
             dueDate,
+            duration: testDuration,
             student: studentId,
             teacher: teacher._id,
             type: assignmentType,
