@@ -1,56 +1,48 @@
-import studentMCQ from "../../models/studentMCQ";
-import teacherMCQ from "../../models/teacherMCQ";
+import teacherService from "../../services/teacher/teacher.service";
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
-import NotFoundError from "../../services/exceptions/not-found";
+import { Request, Response } from "express";
 
-function updateAssignment(assignment, updates) {
-  assignment.startDate = updates.startDate;
-  assignment.dueDate = updates.dueDate;
-  assignment.instruction = updates.instruction;
-  assignment.type = updates.type;
-}
-async function editAssignment(req, res) {
-  try {
-    const { id } = req.params;
-    const assignment = await teacherMCQ.findOne({
-      teacher: req.teacher._id,
-      _id: id,
-    });
-    if (!assignment) throw new NotFoundError("Assignment not found");
-    const studentAssignments = await studentMCQ.find({
-      teacherAssignment: assignment._id,
-    });
-    const savePromises = studentAssignments.map((eachAssignment) => {
-      updateAssignment(eachAssignment, req.body);
-      return eachAssignment.save();
-    });
-    updateAssignment(assignment, req.body);
-    savePromises.push(assignment.save());
-    await Promise.all(savePromises);
-    ServerResponse(req, res, 200, assignment, "Assignment updated successfully");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
+class TeacherMCQControllerClass {
+  private teacherMCQService;
+  constructor(teacherMCQService) {
+    this.teacherMCQService = teacherMCQService;
   }
+
+  editAssignment = async (req: Request, res: Response) => {
+    try {
+      const assignment = await this.teacherMCQService.editAssignment(req);
+      ServerResponse(req, res, 200, assignment, "Topical assignment updated successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  deleteAssignment = async (req: Request, res: Response) => {
+    try {
+      await this.teacherMCQService.editAssignment(req);
+      ServerResponse(req, res, 200, null, "Assignment deleted successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  getAssignmentByClass = async (req: Request, res: Response) => {
+    try {
+      const assignments = await this.teacherMCQService.getAssignmentByClass(req);
+      ServerResponse(req, res, 200, assignments, "Assignments fetched successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  getAssignment = async (req: Request, res: Response) => {
+    try {
+      const assigment = await this.teacherMCQService.getAssignment(req);
+      ServerResponse(req, res, 200, assigment, "Assignment fetched successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
 }
 
-async function deleteAssignment(req, res) {
-  try {
-    const { id } = req.params;
-    const assignment = await teacherMCQ.findOne({
-      teacher: req.teacher._id,
-      _id: id,
-    });
-    if (!assignment) throw new NotFoundError("Assignment not found");
-    const studentAssigments = await studentMCQ.find({
-      teacherAssignment: assignment._id,
-    });
-    const deletePromises = studentAssigments.map((eachAssignment) => eachAssignment.deleteOne());
-    deletePromises.push(assignment.deleteOne());
-    await Promise.all(deletePromises);
-    ServerResponse(req, res, 200, null, "Assignment Deleted successfully");
-  } catch (err) {
-    ServerErrorHandler(req, res, err);
-  }
-}
-
-export { editAssignment, deleteAssignment };
+export const teacherMCQController = new TeacherMCQControllerClass(teacherService);
