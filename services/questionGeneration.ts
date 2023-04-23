@@ -10,11 +10,9 @@ import { Student } from "../models/student";
 import { Teacher } from "../models/teacher";
 import { TeacherClass } from "../models/teacherClass";
 import { GeneratedQuestions, QuestionGroup } from "../models/generated-questions";
-import studentMCQ from "../models/studentMCQ";
-import teacherMCQ from "../models/teacherMCQ";
 import { createTopicalMcqNotification } from "./student/notification";
 import { Request } from "express";
-import { Question } from "../models/question";
+import mcqAssignment from "../models/mcqAssignment";
 const QUESTION_GENERATION_MODEL = env.getAll().question_generation_model;
 
 //Extended request to account for multer and authentication
@@ -163,14 +161,13 @@ class GeneratedQuestionServiceClass {
   //Now, the student's copy are stored on the teacher's copy so the teacher can track each student's progress and submissions
   async assignQuestions(req: Request, createTopicalMcqNotification) {
     const extendedReq = req as ExtendedRequest;
-    const { questGroupId, classID, startDate, dueDate, type, duration } = extendedReq.body;
+    const { questGroupId, classID, startDate, dueDate, type, duration, instruction, comments } = extendedReq.body;
     // const { Teacher, TeacherClass, QuestionGroup, Student, studentMCQ, teacherMCQ } = models;
     try {
       let assignmentType = type || "Practice";
-      let testDuration: number | null = +duration;
+      let testDuration: number | undefined = +duration;
       if (assignmentType !== "Practice" && assignmentType !== "Test") throw new BadRequestError("Assignment has to be of type Practice or Test");
       if (assignmentType === "Test" && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
-      if (assignmentType === "Practice") testDuration = null;
       const teacher = await this.models.Teacher.findOne({
         _id: extendedReq.teacher._id,
       });
@@ -182,123 +179,59 @@ class GeneratedQuestionServiceClass {
       if (!questGroup) throw new NotFoundError("Questions not found");
 
       let teacherCurrentSchool;
-      let teacherClass;
       let teacherstudents;
-      const promises: any = [];
-      let teacherAssignment;
-      let studentAssigments: any;
 
       const profile = await this.models.Profile.findOne({ teacher: extendedReq.teacher._id });
 
       if (profile) {
         teacherCurrentSchool = profile.selectedSchool;
-
-        teacherClass = await this.models.TeacherClass.findOne({
+        let teacherClass = await this.models.TeacherClass.findOne({
           _id: classID,
           school: teacherCurrentSchool,
         });
-
+        if (!teacherClass) throw new NotFoundError("Class not found");
         teacherstudents = await this.models.StudentTeacherClass.find({ school: teacherCurrentSchool, class: teacherClass._id })
           .populate({ path: "student", select: ["_id"] })
           .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
 
-        if (!teacherstudents) {
-          throw new NotFoundError("No student found");
-        }
-
+        if (teacherstudents.length < 1) throw new NotFoundError("No student in this class");
         teacherstudents = teacherstudents.map((item) => item.student._id);
-
-        const students = teacherstudents;
-        if (students.length < 1) throw new NotFoundError("No student in this class");
-
-        //Create teacher's copy of assignment
-        teacherAssignment = await this.models.teacherMCQ.create({
-          teacher: teacher._id,
-          questions: questGroupId,
-          classId: classID,
-          startDate,
-          dueDate,
-          duration: testDuration,
-          type: assignmentType,
-          school: teacherCurrentSchool,
-        });
-        //Notifications promise array
-        studentAssigments = [];
-        for (let studentId of students) {
-          const student = await this.models.Student.findOne({
-            _id: studentId,
-          });
-          let studentAssignment: any = await this.models.studentMCQ.create({
-            questions: questGroupId,
-            classId: classID,
-            startDate,
-            dueDate,
-            duration: testDuration,
-            student: studentId,
-            teacher: teacher._id,
-            type: assignmentType,
-            teacherAssignment: teacherAssignment._id,
-            school: teacherCurrentSchool,
-          });
-          promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
-          studentAssigments.push(studentAssignment._id);
-        }
-      }
-
-      if (!profile) {
-        teacherClass = await this.models.TeacherClass.findOne({
+      } else if (!profile) {
+        let teacherClass = await this.models.TeacherClass.findOne({
           _id: classID,
           teacher: teacher._id,
         });
 
         if (!teacherClass) throw new NotFoundError("Class not found");
-
         teacherstudents = teacherClass.students;
-
-        if (teacherstudents.length < 1) {
-          throw new NotFoundError("No student found");
-        }
-
-        const students = teacherstudents;
-        if (students.length < 1) throw new NotFoundError("No student in this class");
-
-        //Create teacher's copy of assignment
-        teacherAssignment = await this.models.teacherMCQ.create({
-          teacher: teacher._id,
-          questions: questGroupId,
-          classId: classID,
-          startDate,
-          dueDate,
-          duration: testDuration,
-          type: assignmentType,
-        });
-        //Notifications promise array
-        studentAssigments = [];
-        for (let studentId of students) {
-          const student = await this.models.Student.findOne({
-            _id: studentId,
-          });
-          let studentAssignment: any = await this.models.studentMCQ.create({
-            questions: questGroupId,
-            classId: classID,
-            startDate,
-            dueDate,
-            duration: testDuration,
-            student: studentId,
-            teacher: teacher._id,
-            type: assignmentType,
-            teacherAssignment: teacherAssignment._id,
-          });
-          promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
-          studentAssigments.push(studentAssignment._id);
-        }
+        if (teacherstudents.length < 1) throw new NotFoundError("No student in this class found");
       }
 
+      const studentWork = teacherstudents.map((studentID: string) => {
+        return {
+          student: studentID,
+          scores: [],
+        };
+      });
+      //Create assignment
+      const mcqAssignment = await this.models.mcqAssignment.create({
+        teacher: teacher._id,
+        questions: questGroupId,
+        classId: classID,
+        startDate,
+        dueDate,
+        duration: testDuration,
+        type: assignmentType,
+        school: teacherCurrentSchool,
+        instruction,
+        comments,
+        students: studentWork,
+      });
+
+      const promises = teacherstudents.map((studentID: string) => createTopicalMcqNotification(studentID, mcqAssignment._id));
       await Promise.all(promises);
-      //Stores the students assignments id on the teacher's copy - will aid teacher tracking of student
-      teacherAssignment.studentsWork = studentAssigments;
-      await teacherAssignment.save();
-      return teacherAssignment;
+      mcqAssignment.students = undefined; //masking the students array since there is no need for it
+      return mcqAssignment;
     } catch (err) {
       throw err;
     }
@@ -368,7 +301,7 @@ class GeneratedQuestionServiceClass {
   }
 }
 
-const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, studentMCQ, teacherMCQ };
+const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, mcqAssignment };
 const GeneratedQuestionService = new GeneratedQuestionServiceClass(models);
 const QuestionGenerator = new QuestionGenerationClass(parser);
 
