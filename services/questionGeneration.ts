@@ -165,9 +165,9 @@ class GeneratedQuestionServiceClass {
     // const { Teacher, TeacherClass, QuestionGroup, Student, studentMCQ, teacherMCQ } = models;
     try {
       let assignmentType = type || "Practice";
-      let testDuration: number | undefined = +duration;
+      let testDuration: number | undefined = duration ? +duration : undefined;
       if (assignmentType !== "Practice" && assignmentType !== "Test") throw new BadRequestError("Assignment has to be of type Practice or Test");
-      if (assignmentType === "Test" && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
+      if (assignmentType === "Test" && testDuration !== undefined && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
       const teacher = await this.models.Teacher.findOne({
         _id: extendedReq.teacher._id,
       });
