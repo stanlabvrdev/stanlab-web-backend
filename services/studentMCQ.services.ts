@@ -35,9 +35,11 @@ class StudentMCQClass {
         .populate(populateOptions)
         .populate("classId", "title")
         .populate("teacher", "name")
-        .select("-__v, -students")
+        .select("-__v")
         .lean();
       if (!assignment) throw new NotFoundError("Assignment not found");
+      const studentWork = assignment.students.find((each) => each.student == extendedReq.student._id);
+      assignment.students = studentWork;
       return assignment;
     } catch (err) {
       throw err;
@@ -55,16 +57,17 @@ class StudentMCQClass {
         .populate("questions", "subject topic")
         .populate("classId", "title")
         .populate("teacher", "name")
-        .select("-__v, -students")
+        .select("-__v")
         .lean();
 
       const formattedAssignments = assignments.reduce(
         (acc, assignment) => {
+          const studentWork = assignment.students.find((each) => each.student == extendedReq.student._id).scores;
           if (assignment.type === "Practice" && currentDate < assignment.dueDate) {
             acc.pending.push(assignment);
-          } else if (assignment.type === "Practice" && assignment.scores.length > 0) {
+          } else if (assignment.type === "Practice" && studentWork.length > 0) {
             acc.submitted.push(assignment);
-          } else if (assignment.type === "Practice" && assignment.scores.length === 0) {
+          } else if (assignment.type === "Practice" && studentWork.length === 0) {
             acc.expired.push(assignment);
           } else if (assignment.type === "Test" && assignment.scores.length > 0) {
             acc.submitted.push(assignment);
@@ -73,6 +76,7 @@ class StudentMCQClass {
           } else if (assignment.type === "Test" && currentDate < assignment.dueDate) {
             acc.pending.push(assignment);
           }
+          assignment.students = undefined;
           return acc;
         },
         {
@@ -105,13 +109,12 @@ class StudentMCQClass {
 
       if (!assignment) throw new NotFoundError("Assigment not found");
       if (Date.now() > assignment.dueDate) throw new BadRequestError("Assignment expired, cannot make a submission");
-
+      let studentWork = assignment.students.find((each) => each.student == studentID);
       if (assignment.type === "Practice") {
-        assignment.students.find((each) => each.student === studentID).scores.push(score);
+        studentWork.scores.push({ score });
       } else if (assignment.type === "Test") {
-        const studentScore = assignment.students.find((each) => each.student === studentID);
-        if (studentScore.scores.length > 0) throw new BadRequestError("Already submitted");
-        studentScore.scores.push({
+        if (studentWork.scores.length > 0) throw new BadRequestError("Already submitted");
+        studentWork.scores.push({
           score,
         });
       }
@@ -119,7 +122,7 @@ class StudentMCQClass {
       assignment.markModified("students");
       await assignment.save();
 
-      return assignment;
+      return studentWork;
     } catch (err) {
       throw err;
     }
