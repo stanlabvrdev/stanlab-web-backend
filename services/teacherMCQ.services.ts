@@ -2,6 +2,14 @@ import { Request } from "express";
 import NotFoundError from "./exceptions/not-found";
 import mcqAssignment from "../models/mcqAssignment";
 
+const populateOptions = {
+  path: "students.student",
+  select: "name -_id",
+  options: {
+    lean: true,
+  },
+};
+
 interface ExtendedRequest extends Request {
   teacher: any;
 }
@@ -52,7 +60,8 @@ class TeacherMCQStudentClass {
         teacher: extendedReq.teacher._id,
         _id: id,
       });
-      if (!assignment) throw new NotFoundError("Assignment not found");
+      if (assignment) throw new NotFoundError("Assignment not found");
+      return;
     } catch (err) {
       throw err;
     }
@@ -67,13 +76,15 @@ class TeacherMCQStudentClass {
           teacher: extendedReq.teacher._id,
           classId: classID,
         })
-        .select("-__v -student");
+        .select("-__v -students");
 
+      if (assignments.length < 1) throw new NotFoundError("Assignments not found");
       const currentDate = Date.now();
       const formattedAssignments = assignments.reduce(
         (acc, assignment) => {
           if (assignment.dueDate > currentDate) acc.pending.push(assignment);
           else acc.expired.push(assignment);
+          return acc;
         },
         {
           pending: [],
@@ -89,13 +100,24 @@ class TeacherMCQStudentClass {
   async getAssignment(req: Request) {
     try {
       const extendedReq = req as ExtendedRequest;
-      const { assignmentID } = extendedReq.params;
-      const assignment = await this.mcqAssignmentModel.findOne({
-        _id: assignmentID,
+      const { id } = extendedReq.params;
+
+      let assignment = await this.mcqAssignmentModel.findOne({
+        _id: id,
         teacher: extendedReq.teacher._id,
-      }); //Will have to populate based on the requirements
-      //If assignment is pending, return students the assignment was assigned to, if the assignment has expired, return the students and their grades
-      return assignment;
+      });
+      if (!assignment) throw new NotFoundError("Assignment not found");
+      const currentDate = Date.now();
+      if (currentDate > assignment.dueDate) {
+        //If assignment has expired - return the students and thier scores
+        await assignment.populate(populateOptions).execPopulate();
+      } else if (currentDate < assignment.dueDate) {
+        //assignment has not expired, return students but mask their scores
+        await assignment.populate(populateOptions).execPopulate();
+        assignment.students.forEach((each) => (each.scores = undefined));
+      }
+
+      return assignment.students;
     } catch (err) {
       throw err;
     }
