@@ -1,4 +1,4 @@
-import teacherService from "../../services/teacher/teacher.service";
+import { teacherMCQService } from "../../services/teacherMCQ.services";
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
 import { Request, Response } from "express";
 
@@ -19,16 +19,16 @@ class TeacherMCQControllerClass {
 
   deleteAssignment = async (req: Request, res: Response) => {
     try {
-      await this.teacherMCQService.editAssignment(req);
+      await this.teacherMCQService.deleteAssignment(req);
       ServerResponse(req, res, 200, null, "Assignment deleted successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   };
 
-  getAssignmentByClass = async (req: Request, res: Response) => {
+  getAssignmentsByClass = async (req: Request, res: Response) => {
     try {
-      const assignments = await this.teacherMCQService.getAssignmentByClass(req);
+      const assignments = await this.teacherMCQService.getAssignmentsByClass(req);
       ServerResponse(req, res, 200, assignments, "Assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -45,4 +45,4 @@ class TeacherMCQControllerClass {
   };
 }
 
-export const teacherMCQController = new TeacherMCQControllerClass(teacherService);
+export const teacherMCQController = new TeacherMCQControllerClass(teacherMCQService);
