@@ -101,10 +101,12 @@ router.post("/invite-student", teacherAuth, teachersController.sendInviteToStude
 // teacher accept student invitation
 router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
 
+router.get("/mcq-assignments", teacherAuth, teacherMCQController.getAssignments);
 // get a teacher
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
 
 router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getAssignment);
+
 router.route("/:classID/mcq-assignments").get(teacherAuth, teacherMCQController.getAssignmentsByClass);
 export default router;
