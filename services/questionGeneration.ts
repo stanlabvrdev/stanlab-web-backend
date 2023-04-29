@@ -190,6 +190,7 @@ class GeneratedQuestionServiceClass {
 
       if (!questGroup) throw new NotFoundError("Questions not found");
 
+      //To ensure the questions are stored on the assignment object directly, this function extracts the questions from the questGroup document
       const foundQuestions = questGroup.questions.map((each) => {
         return {
           question: each.question,
@@ -225,6 +226,7 @@ class GeneratedQuestionServiceClass {
         if (teacherstudents.length < 1) throw new NotFoundError("No student in this class found");
       }
 
+      //This creates the array that stores each student's work.
       const studentWork = teacherstudents.map((studentID: string) => {
         return {
           student: studentID,
@@ -248,6 +250,7 @@ class GeneratedQuestionServiceClass {
         students: studentWork,
       });
 
+      //For notifications
       const promises = teacherstudents.map((studentID: string) => createTopicalMcqNotification(studentID, mcqAssignment._id));
       await Promise.all(promises);
       mcqAssignment.students = undefined; //masking the students array since there is no need for it
