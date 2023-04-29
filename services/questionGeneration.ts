@@ -1,4 +1,5 @@
 import axios from "axios";
+const { isValid } = require("mongoose").Types.ObjectId; // Used to check validity of a mongoose id in the edit question Group endpoint
 import { parser, ParserInterface } from "../utils/docParse";
 import CustomError from "../services/exceptions/custom";
 import NotFoundError from "../services/exceptions/not-found";
@@ -38,6 +39,15 @@ interface Questions {
 interface Option {
   answer: string;
   isCorrect: boolean;
+}
+
+//Function to check if a question structure confirms to the Questions interface
+function isQuestions(obj: unknown): obj is Questions {
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
+  const { question, options } = obj as Questions;
+  return typeof question === "string" && Array.isArray(options) && options.every((option) => typeof option.answer === "string" && typeof option.isCorrect === "boolean");
 }
 
 //Interface for defining the expected format of incoming generated questions - from the model
@@ -113,7 +123,7 @@ class QuestionGenerationClass {
 }
 
 //models is an object containing the models the class will utilize
-//For now - GeneratedQuestions, Profile, QuestionGroup, Teacher, StudentTeacherClass, TeacherClass, studentMCQ, teacherMCQ, Student
+//For now - GeneratedQuestions, Profile, QuestionGroup, Teacher, StudentTeacherClass, TeacherClass, mcqAssignments, Student
 class GeneratedQuestionServiceClass {
   private models;
   constructor(models) {
@@ -171,13 +181,21 @@ class GeneratedQuestionServiceClass {
       const teacher = await this.models.Teacher.findOne({
         _id: extendedReq.teacher._id,
       });
+
       // Check if question group exists
       let questGroup = await this.models.QuestionGroup.findOne({
         _id: questGroupId,
         teacher: extendedReq.teacher._id,
-      });
+      }).populate(populateOptions);
+
       if (!questGroup) throw new NotFoundError("Questions not found");
 
+      const foundQuestions = questGroup.questions.map((each) => {
+        return {
+          question: each.question,
+          options: each.options,
+        };
+      });
       let teacherCurrentSchool;
       let teacherstudents;
 
@@ -216,7 +234,9 @@ class GeneratedQuestionServiceClass {
       //Create assignment
       const mcqAssignment = await this.models.mcqAssignment.create({
         teacher: teacher._id,
-        questions: questGroupId,
+        questions: foundQuestions,
+        subject: questGroup.subject,
+        topic: questGroup.topic,
         classId: classID,
         startDate,
         dueDate,
@@ -271,12 +291,25 @@ class GeneratedQuestionServiceClass {
     //To check if the question group the user is trying to edit exists and was created by the user
     const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
     if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
-    const updatedQuestions: any = await Promise.allSettled(questions.map((each) => GeneratedQuestions.findByIdAndUpdate(each._id, each, options)));
-    const newQuestionsID = updatedQuestions.filter((each) => each.value).map((each: any) => each.value._id);
+
+    //Array to store IDs of the updated questions, this also allows for the addition of a new question by the user
+    const updatedIDs: string[] = [];
+    for (const question of questions) {
+      //Checks if the question has an id and is a valid mongodb id - this implies that it is a potentially existing question that needs to be updated
+      if (question._id && isValid(question._id)) {
+        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, question, options);
+        //Next line is a simple check to ensure the update was succesful - I assume only a successful op will return an object with an id - same with line 296
+        if (updatedQuestion && updatedQuestion._id) updatedIDs.push(updatedQuestion._id);
+      } else if (isQuestions(question)) {
+        const savedQuestion = await GeneratedQuestions.create(question);
+        if (savedQuestion && savedQuestion._id) updatedIDs.push(savedQuestion._id);
+      }
+    }
+
     const update = {
       subject,
       topic,
-      questions: newQuestionsID,
+      questions: updatedIDs,
     };
     const updated = await QuestionGroup.findByIdAndUpdate(
       id,
