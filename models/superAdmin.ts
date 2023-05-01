@@ -1,20 +1,43 @@
 import mongoose from "mongoose";
-import Joi from "joi";
+import jwt from "jsonwebtoken";
+import envConfig from "../config/env";
 
-const superAdminSchema = new mongoose.Schema({
-  userName: { type: String, required: true, minLength: 3, maxlength: 255 },
-  password: { type: String, required: true, minLength: 255 },
-});
+const env = envConfig.getAll();
 
-function validateSuperAdmin(admin) {
-  const schema = Joi.object({
-    userName: Joi.string().min(3).max(255).required(),
-    password: Joi.string().min(5).max(255).required(),
-  });
-
-  return schema.validate(admin);
+interface SuperAdminAttrs {
+  name: string;
+  userName: string;
+  password: string;
+  email: string;
+  role: string;
 }
 
-const SchoolAdmin = mongoose.model("SuperAdmin", superAdminSchema);
+interface SuperAdminDoc extends mongoose.Document {
+  name: string;
+  userName: string;
+  password: string;
+  email: string;
+  role: string;
+}
 
-export { SchoolAdmin, validateSuperAdmin };
+interface SuperAdminModel extends mongoose.Model<SuperAdminDoc> {
+  build(attrs: SuperAdminAttrs): SuperAdminDoc;
+}
+
+const superAdminSchema = new mongoose.Schema<SuperAdminDoc>({
+  name: { type: String, required: true, minLength: 3, maxlength: 255 },
+  userName: { type: String, required: true, minLength: 3, maxlength: 255 },
+  password: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  role: { type: String, default: "SuperAdmin" },
+});
+
+superAdminSchema.methods.generateAuthToken = function () {
+  const token = jwt.sign({ _id: this._id, role: this.role }, env.jwtKey);
+  return token;
+};
+
+
+const SuperAdmin = mongoose.model("SuperAdmin", superAdminSchema);
+
+export { SuperAdmin };
