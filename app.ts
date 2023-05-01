@@ -24,6 +24,8 @@ import labExperimentRoute from "./routes/lab";
 import authRoutes from "./routes/auth";
 import notificationRoutes from "./routes/V2/notification";
 import generatedQuestionRoutes from "./routes/V2/generated-questions";
+import superAdminRouter from "./routes/superAdmin";
+import subscriptionRouter from "./routes/subscription";
 
 import { teacherPassport } from "./services/initPassport";
 import { studentPassport } from "./services/initPassport";
@@ -85,6 +87,8 @@ app.use("/api/classes", teacherClassRoute);
 app.use("/api/questions", questionsRoute);
 app.use("/api/system-experiments", systemExperimentRoute);
 app.use("/api/system-experiments/lab", labExperimentRoute);
+app.use("/api/super-admin", superAdminRouter);
+app.use("/api/subscriptions", subscriptionRouter);
 
 // V2
 app.use("/api/v2/teachers", teachersV2Route);
