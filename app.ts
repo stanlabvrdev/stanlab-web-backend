@@ -70,6 +70,10 @@ app.use(
 );
 app.use(cors());
 
+app.get("/", (req, res) => {
+  res.send("Welcome to Stanlab Backend");
+});
+
 app.use("/api/lab", labsetupRoute);
 app.use("/api/login", loginRoute);
 app.use("/api/auth", authRoutes);
