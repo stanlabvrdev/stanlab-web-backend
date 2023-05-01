@@ -11,7 +11,7 @@ import teachersClassControllerV2 from "../../controllers/V2/teacherClassControll
 import { teacherAuth } from "../../middleware/auth";
 import teachersController from "../../controllers/V2/teacherController";
 
-import { deleteAssignment, editAssignment } from "../../controllers/V2/teacherMCQ.controller";
+import { teacherMCQController } from "../../controllers/V2/teacherMCQ.controller";
 // const info;
 // login via google oauth
 
@@ -63,17 +63,11 @@ const upload = multer({
 });
 // get published quiz
 
-router.post(
-  "/avatar",
-  teacherAuth,
-  upload.single("avatar"),
-  teachersController.createAvatar,
-  (error, req, res, next) => {
-    res.status(400).send({
-      error: error.message,
-    });
-  }
-);
+router.post("/avatar", teacherAuth, upload.single("avatar"), teachersController.createAvatar, (error, req, res, next) => {
+  res.status(400).send({
+    error: error.message,
+  });
+});
 
 // get teacher avatar
 router.get("/:id/avatar", teachersController.getAvatar);
@@ -107,9 +101,12 @@ router.post("/invite-student", teacherAuth, teachersController.sendInviteToStude
 // teacher accept student invitation
 router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
 
+router.get("/mcq-assignments", teacherAuth, teacherMCQController.getAssignments);
 // get a teacher
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
 
-router.route("/mcq-assignments/:id").put(teacherAuth, editAssignment).delete(teacherAuth, deleteAssignment);
+router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getAssignment);
+
+router.route("/:classID/mcq-assignments").get(teacherAuth, teacherMCQController.getAssignmentsByClass);
 export default router;
