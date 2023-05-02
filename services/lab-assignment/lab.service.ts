@@ -81,6 +81,7 @@ class LabAssignmentService {
         practicalName: experiment.practicalName,
         class: experiment.class,
         demoVideoUrl: experiment.demoVideoUrl,
+        label: experiment.name,
       },
       startDate: data.start_date,
       classId: data.class_id,

@@ -1,4 +1,4 @@
-import mongoDB from "./utils/db";
+import mongoDB, { runSeeds } from "./utils/db";
 
 // import passport from "passport"
 
@@ -17,6 +17,8 @@ if (!env.mailgun_API_KEY) {
 mongoDB
   .then(async (res) => {
     Logger.info("Connected to MongoDB...");
+
+    await runSeeds();
   })
   .catch((err) => Logger.info("Could not connect to Database ", err));
 const port = env.port || 8000;
