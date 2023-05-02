@@ -6,6 +6,7 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  Image: String,
   options: {
     type: [
       {
@@ -48,7 +49,7 @@ const questionGroupSchema = new mongoose.Schema({
   ],
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SchoolAdmin"
+    ref: "SchoolAdmin",
   },
 });
 
