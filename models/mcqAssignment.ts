@@ -28,6 +28,7 @@ const studentsWork: Schema<StudentWork> = new mongoose.Schema({
 //To store questions for each
 const questionSchema = new mongoose.Schema({
   question: { type: String, required: true },
+  image: String,
   options: { type: [{ answer: String, isCorrect: { type: Boolean, default: false } }], required: true },
 });
 
