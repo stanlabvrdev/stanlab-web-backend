@@ -53,13 +53,15 @@ class GeneratedQuestionServiceClass {
     const questionsWithIds = questions.filter((question) => question._id);
 
     // Create an array of promises to update each question with the updated draft field set to false
-    const questionsUpdatePromises = questionsWithIds.map((question) => this.models.GeneratedQuestion.findByIdAndUpdate(question._id, { ...question, draft: false }, { runValidators: true, new: true }));
+    const questionsUpdatePromises = questionsWithIds.map((question) => this.models.GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, { runValidators: true, new: true }));
 
     // Wait for all the promises to settle - I do not want failed operations (maybe question not found et all) to be included, hence my choice of 'allSettled'
     const updatedQuestions = await Promise.allSettled(questionsUpdatePromises);
 
     // Extract the ids of the updated questions from the fulfilled promises
     const savedQuestionsID = updatedQuestions.filter((each) => each.status === "fulfilled").map((each: any) => each.value.id); //Extracts the id of the updated questions from the fulfilled promises
+
+    if (savedQuestionsID.length < 1) throw new BadRequestError("Cannot save questions"); //if the incoming question format is wrong and for some reason no question is saved, this error is important because it is pointless to save an empty question group
 
     // Find the teacher's profile to get their selected school
     const profile = await this.models.Profile.findOne({ teacher: extendedReq.teacher._id });
@@ -254,6 +256,7 @@ class GeneratedQuestionServiceClass {
   }
 
   async assignNow(req: Request) {
+    //There is a potential issue here - saveQuestions can modify the database while assign questions can fail - Possible solution, database transaction and a corresponding rollback incase of an error
     const questGroup = await this.saveQuestions(req);
     req.body.questGroupId = questGroup._id;
     const assignment = await this.assignQuestions(req, createTopicalMcqNotification);
@@ -273,9 +276,7 @@ class GeneratedQuestionServiceClass {
     if (!question) throw new CustomError(401, "Operation not allowed");
     const imageURL = await uploadImageToS3(extendedReq.file);
     if (!imageURL) throw new CustomError(500, "Operation not successful");
-    console.log(imageURL);
     question.image = imageURL;
-    console.log(question);
     await question.save();
 
     return { image: question.image };

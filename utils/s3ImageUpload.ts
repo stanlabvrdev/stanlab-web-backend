@@ -2,9 +2,8 @@ import S3 from "aws-sdk/clients/s3";
 import ENV from "../config/env";
 const env = ENV.getAll();
 import CustomError from "../services/exceptions/custom";
-import { MulterFile } from "multer";
 
-export async function uploadImageToS3(file: MulterFile) {
+export async function uploadImageToS3(file: Express.Multer.File) {
   const s3 = new S3({
     accessKeyId: env.aws_access_key_id,
     secretAccessKey: env.aws_s3_secret,
