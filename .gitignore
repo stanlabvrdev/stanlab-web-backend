@@ -4,3 +4,4 @@ logs/
 public/
 dist/
 in-memory-cache.json
+.DS_Store
