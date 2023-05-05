@@ -1,4 +1,5 @@
 import axios from "axios";
+const { isValid } = require("mongoose").Types.ObjectId; // Used to check validity of a mongoose id in the edit question Group endpoint
 import { parser, ParserInterface } from "../utils/docParse";
 import CustomError from "../services/exceptions/custom";
 import NotFoundError from "../services/exceptions/not-found";
@@ -10,11 +11,9 @@ import { Student } from "../models/student";
 import { Teacher } from "../models/teacher";
 import { TeacherClass } from "../models/teacherClass";
 import { GeneratedQuestions, QuestionGroup } from "../models/generated-questions";
-import studentMCQ from "../models/studentMCQ";
-import teacherMCQ from "../models/teacherMCQ";
 import { createTopicalMcqNotification } from "./student/notification";
 import { Request } from "express";
-import { Question } from "../models/question";
+import mcqAssignment from "../models/mcqAssignment";
 const QUESTION_GENERATION_MODEL = env.getAll().question_generation_model;
 
 //Extended request to account for multer and authentication
@@ -42,6 +41,15 @@ interface Option {
   isCorrect: boolean;
 }
 
+//Function to check if a question structure confirms to the Questions interface
+function isQuestions(obj: unknown): obj is Questions {
+  if (!obj || typeof obj !== "object") {
+    return false;
+  }
+  const { question, options } = obj as Questions;
+  return typeof question === "string" && Array.isArray(options) && options.every((option) => typeof option.answer === "string" && typeof option.isCorrect === "boolean");
+}
+
 //Interface for defining the expected format of incoming generated questions - from the model
 interface QuizQuestion {
   [question: string]: string[];
@@ -50,11 +58,9 @@ interface QuizQuestion {
 //An instance of this class can be used to generate and return formatted questions
 class QuestionGenerationClass {
   private parser: ParserInterface;
-  private finalQuestions: Questions[];
 
   constructor(parser: ParserInterface) {
     this.parser = parser;
-    this.finalQuestions = [];
   }
 
   private callToModel(context: string) {
@@ -88,6 +94,7 @@ class QuestionGenerationClass {
   }
 
   private async formatQuestions(arrayOfQuestions: QuizQuestion[]): Promise<Questions[]> {
+    const finalQuestions: Questions[] = [];
     //Loop through generated questions and extract the options - those that startwith 'Ans' are the correct ones while those that do not are false, classify accordingly
     arrayOfQuestions.forEach((each: QuizQuestion) => {
       const entries: [string, string[]][] = Object.entries(each);
@@ -105,18 +112,18 @@ class QuestionGenerationClass {
             };
           }
         });
-        this.finalQuestions.push({
+        finalQuestions.push({
           question,
           options: formattedOptions,
         });
       }
     });
-    return this.finalQuestions;
+    return finalQuestions;
   }
 }
 
 //models is an object containing the models the class will utilize
-//For now - GeneratedQuestions, Profile, QuestionGroup, Teacher, StudentTeacherClass, TeacherClass, studentMCQ, teacherMCQ, Student
+//For now - GeneratedQuestions, Profile, QuestionGroup, Teacher, StudentTeacherClass, TeacherClass, mcqAssignments, Student
 class GeneratedQuestionServiceClass {
   private models;
   constructor(models) {
@@ -164,135 +171,90 @@ class GeneratedQuestionServiceClass {
   //Now, the student's copy are stored on the teacher's copy so the teacher can track each student's progress and submissions
   async assignQuestions(req: Request, createTopicalMcqNotification) {
     const extendedReq = req as ExtendedRequest;
-    const { questGroupId, classID, startDate, dueDate, type } = extendedReq.body;
+    const { questGroupId, classID, startDate, dueDate, type, duration, instruction, comments } = extendedReq.body;
     // const { Teacher, TeacherClass, QuestionGroup, Student, studentMCQ, teacherMCQ } = models;
     try {
       let assignmentType = type || "Practice";
+      let testDuration: number | undefined = duration ? +duration : undefined;
       if (assignmentType !== "Practice" && assignmentType !== "Test") throw new BadRequestError("Assignment has to be of type Practice or Test");
+      if (assignmentType === "Test" && testDuration !== undefined && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
       const teacher = await this.models.Teacher.findOne({
         _id: extendedReq.teacher._id,
       });
+
       // Check if question group exists
       let questGroup = await this.models.QuestionGroup.findOne({
         _id: questGroupId,
         teacher: extendedReq.teacher._id,
-      });
+      }).populate(populateOptions);
+
       if (!questGroup) throw new NotFoundError("Questions not found");
 
+      //To ensure the questions are stored on the assignment object directly, this function extracts the questions from the questGroup document
+      const foundQuestions = questGroup.questions.map((each) => {
+        return {
+          question: each.question,
+          options: each.options,
+        };
+      });
       let teacherCurrentSchool;
-      let teacherClass;
       let teacherstudents;
-      const promises: any = [];
-      let teacherAssignment;
-      let studentAssigments: any;
 
       const profile = await this.models.Profile.findOne({ teacher: extendedReq.teacher._id });
 
       if (profile) {
         teacherCurrentSchool = profile.selectedSchool;
-
-        teacherClass = await this.models.TeacherClass.findOne({
+        let teacherClass = await this.models.TeacherClass.findOne({
           _id: classID,
           school: teacherCurrentSchool,
         });
-
+        if (!teacherClass) throw new NotFoundError("Class not found");
         teacherstudents = await this.models.StudentTeacherClass.find({ school: teacherCurrentSchool, class: teacherClass._id })
           .populate({ path: "student", select: ["_id"] })
           .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
 
-        if (!teacherstudents) {
-          throw new NotFoundError("No student found");
-        }
-
+        if (teacherstudents.length < 1) throw new NotFoundError("No student in this class");
         teacherstudents = teacherstudents.map((item) => item.student._id);
-
-        const students = teacherstudents;
-        if (students.length < 1) throw new NotFoundError("No student in this class");
-
-        //Create teacher's copy of assignment
-        teacherAssignment = await this.models.teacherMCQ.create({
-          teacher: teacher._id,
-          questions: questGroupId,
-          classId: classID,
-          startDate,
-          dueDate,
-          type: assignmentType,
-          school: teacherCurrentSchool,
-        });
-        //Notifications promise array
-        studentAssigments = [];
-        for (let studentId of students) {
-          const student = await this.models.Student.findOne({
-            _id: studentId,
-          });
-          let studentAssignment: any = await this.models.studentMCQ.create({
-            questions: questGroupId,
-            classId: classID,
-            startDate,
-            dueDate,
-            student: studentId,
-            teacher: teacher._id,
-            type: assignmentType,
-            teacherAssignment: teacherAssignment._id,
-            school: teacherCurrentSchool,
-          });
-          promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
-          studentAssigments.push(studentAssignment._id);
-        }
-      }
-
-      if (!profile) {
-        teacherClass = await this.models.TeacherClass.findOne({
+      } else if (!profile) {
+        let teacherClass = await this.models.TeacherClass.findOne({
           _id: classID,
           teacher: teacher._id,
         });
 
         if (!teacherClass) throw new NotFoundError("Class not found");
-
         teacherstudents = teacherClass.students;
-
-        if (teacherstudents.length < 1) {
-          throw new NotFoundError("No student found");
-        }
-
-        const students = teacherstudents;
-        if (students.length < 1) throw new NotFoundError("No student in this class");
-
-        //Create teacher's copy of assignment
-        teacherAssignment = await this.models.teacherMCQ.create({
-          teacher: teacher._id,
-          questions: questGroupId,
-          classId: classID,
-          startDate,
-          dueDate,
-          type: assignmentType,
-        });
-        //Notifications promise array
-        studentAssigments = [];
-        for (let studentId of students) {
-          const student = await this.models.Student.findOne({
-            _id: studentId,
-          });
-          let studentAssignment: any = await this.models.studentMCQ.create({
-            questions: questGroupId,
-            classId: classID,
-            startDate,
-            dueDate,
-            student: studentId,
-            teacher: teacher._id,
-            type: assignmentType,
-            teacherAssignment: teacherAssignment._id,
-          });
-          promises.push(createTopicalMcqNotification(student._id, studentAssignment._id));
-          studentAssigments.push(studentAssignment._id);
-        }
+        if (teacherstudents.length < 1) throw new NotFoundError("No student in this class found");
       }
 
+      //This creates the array that stores each student's work.
+      const studentWork = teacherstudents.map((studentID: string) => {
+        return {
+          student: studentID,
+          scores: [],
+        };
+      });
+      //Create assignment
+      const mcqAssignment = await this.models.mcqAssignment.create({
+        teacher: teacher._id,
+        questions: foundQuestions,
+        subject: questGroup.subject,
+        topic: questGroup.topic,
+        classId: classID,
+        startDate,
+        dueDate,
+        duration: testDuration,
+        type: assignmentType,
+        school: teacherCurrentSchool,
+        instruction,
+        comments,
+        students: studentWork,
+      });
+
+      //For notifications
+      const promises = teacherstudents.map((studentID: string) => createTopicalMcqNotification(studentID, mcqAssignment._id));
       await Promise.all(promises);
-      //Stores the students assignments id on the teacher's copy - will aid teacher tracking of student
-      teacherAssignment.studentsWork = studentAssigments;
-      await teacherAssignment.save();
-      return teacherAssignment;
+      mcqAssignment.students = undefined; //masking the students array since there is no need for it
+      return mcqAssignment;
     } catch (err) {
       throw err;
     }
@@ -332,12 +294,25 @@ class GeneratedQuestionServiceClass {
     //To check if the question group the user is trying to edit exists and was created by the user
     const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
     if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
-    const updatedQuestions: any = await Promise.allSettled(questions.map((each) => GeneratedQuestions.findByIdAndUpdate(each._id, each, options)));
-    const newQuestionsID = updatedQuestions.filter((each) => each.value).map((each: any) => each.value._id);
+
+    //Array to store IDs of the updated questions, this also allows for the addition of a new question by the user
+    const updatedIDs: string[] = [];
+    for (const question of questions) {
+      //Checks if the question has an id and is a valid mongodb id - this implies that it is a potentially existing question that needs to be updated
+      if (question._id && isValid(question._id)) {
+        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, question, options);
+        //Next line is a simple check to ensure the update was succesful - I assume only a successful op will return an object with an id - same with line 296
+        if (updatedQuestion && updatedQuestion._id) updatedIDs.push(updatedQuestion._id);
+      } else if (isQuestions(question)) {
+        const savedQuestion = await GeneratedQuestions.create(question);
+        if (savedQuestion && savedQuestion._id) updatedIDs.push(savedQuestion._id);
+      }
+    }
+
     const update = {
       subject,
       topic,
-      questions: newQuestionsID,
+      questions: updatedIDs,
     };
     const updated = await QuestionGroup.findByIdAndUpdate(
       id,
@@ -362,7 +337,7 @@ class GeneratedQuestionServiceClass {
   }
 }
 
-const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, studentMCQ, teacherMCQ };
+const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, mcqAssignment };
 const GeneratedQuestionService = new GeneratedQuestionServiceClass(models);
 const QuestionGenerator = new QuestionGenerationClass(parser);
 
