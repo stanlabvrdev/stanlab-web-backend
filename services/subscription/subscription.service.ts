@@ -1,4 +1,3 @@
-import geoip from "geoip-lite";
 import { SuperAdmin } from "../../models/superAdmin";
 import { SubscriptionPlan } from "../../models/subscriptionPlan";
 import BadRequestError from "../exceptions/bad-request";
@@ -12,13 +11,28 @@ import { UserPayment } from "../../models/userPayment";
 import { STATUS_TYPES } from "../../constants/statusTypes";
 import { addDaysToDate } from "../../helpers/dateHelper";
 import { PAYSTACK } from "../../constants/locations";
+import { Coupon } from "../../models/coupon";
+import envConfig from "../../config/env";
+const env = envConfig.getAll();
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
-    let { title, cost, vat, description, coupon, student_count, duration, durationType, is_active } = body;
+    let {
+      title,
+      cost,
+      vat,
+      description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+    } = body;
 
     let existingPlan = await SubscriptionPlan.findOne({ title });
-    if (existingPlan) throw new BadRequestError("subscription plan with this title already exist");
+    if (existingPlan)
+      throw new BadRequestError(
+        "subscription plan with this title already exist"
+      );
 
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
@@ -33,7 +47,6 @@ class SubscriptionService {
       duration,
       durationType,
       creator: admin._id,
-      is_active,
     });
 
     return await plan.save();
@@ -44,66 +57,141 @@ class SubscriptionService {
     return plans;
   }
 
+  async getFreePlan() {
+    const freeSubscriptionPlanTitle = env.free_subscription_title;
+    const plan = await SubscriptionPlan.findOne({
+      title: freeSubscriptionPlanTitle,
+    });
+
+    if (plan) return plan;
+
+    const freePlanCreated = new SubscriptionPlan({
+      title: freeSubscriptionPlanTitle,
+      cost: 0,
+      duration: 30,
+      durationType: "month",
+      vat: 0,
+    });
+    return freePlanCreated.save();
+  }
+
+  async syncFreePlan(schoolId: string) {
+    const students = await SchoolStudent.find({ school: schoolId });
+    const freePlan = await this.getFreePlan();
+
+    const syncedPlan = await Promise.all(
+      students.map(async (element: any) => {
+        let subscriber = await StudentSubscription.findOne({
+          student: element.student,
+        });
+
+        if (!subscriber) {
+          let subscribe = new StudentSubscription({
+            student: element.student,
+            school: schoolId,
+            subscriptionPlanId: freePlan._id,
+            endDate: addDaysToDate(freePlan.duration),
+            autoRenew: false,
+          });
+          return subscribe.save();
+        }
+        return subscriber;
+      })
+    );
+    return syncedPlan;
+  }
+
   async updatePlanById(body: any, planId: string) {
-    let { title, cost, description } = body;
+    let {
+      title,
+      cost,
+      vat,
+      description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+      is_active,
+    } = body;
 
     let plan = await SubscriptionPlan.findById({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
 
     plan.title = title;
     plan.cost = cost;
+    plan.vat = vat * 0.01;
     plan.description = description;
+    plan.coupon = coupon;
+    plan.student_count = student_count;
+    plan.duration = duration;
+    plan.durationType = durationType;
+    plan.is_active = is_active;
 
     return await plan.save();
   }
 
-  async makePayment(body: any, schoolId: string, location: string) {
-    let { planId, studentId, autoRenew } = body;
-
-    const locate = geoip.lookup(location);
+  async makePayment(body: any, schoolId: string) {
+    let { planId, studentId, coupon, autoRenew } = body;
 
     const plan = await SubscriptionPlan.findOne({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
 
     let school = await SchoolAdmin.findById({ _id: schoolId });
 
-    const students = await SchoolStudent.find({
+    let subscribers = await StudentSubscription.find({
       student: studentId,
       school: school._id,
+      isActive: true,
     });
 
-    if (!students) {
-      throw new BadRequestError("student not found");
-    }
+    const freePlan = await this.getFreePlan();
+    let count: number = 0;
+    studentId = [];
 
-    let studentSub = await StudentSubscription.find({
-      student: studentId,
-      school: school._id,
+    subscribers.map((subscriber: any) => {
+      if (
+        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+      ) {
+        return false;
+      }
+
+      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString()) {
+        count++;
+
+        studentId.push(subscriber.student);
+      }
     });
-
-    const count = students.length - studentSub.length;
 
     if (count < 1) {
       throw new BadRequestError("student has an active subscription");
     }
 
+    let totalCost = plan.cost * count;
+
+    if (coupon) {
+      let existingCoupon = await Coupon.findOne({ code: coupon });
+
+      if (existingCoupon && existingCoupon.isActive === true) {
+        totalCost = totalCost - totalCost * existingCoupon.discount;
+      }
+    }
+
     let response: any;
 
-    if (locate.country in PAYSTACK) {
-      response = await paymentService.initializePayment(school.email, plan.cost * 100 * count);
+    if (school.country in PAYSTACK) {
+      response = await paymentService.PaystackInitializePayment(
+        school.email,
+        totalCost * 100
+      );
 
       if (!response || response.status !== true) {
         throw new BadRequestError("unable to initialize payment");
       }
     }
 
-    studentId = studentId.filter((id: string) => {
-      return !studentSub.some((sub: any) => sub.student.toString() === id);
-    });
-
     let payment = new Payment({
       email: school.email,
-      cost: plan.cost * count,
+      cost: totalCost,
       school: school._id,
       student: studentId,
       subscriptionPlanId: plan._id,
@@ -127,7 +215,7 @@ class SubscriptionService {
       throw new NotFoundError("reference not found");
     }
 
-    const response = await paymentService.verifyPayment(reference);
+    const response = await paymentService.PaystackVerifyPayment(reference);
 
     if (response.data.status.toLowerCase() !== "success") {
       throw new BadRequestError(response.data.gateway_response);
@@ -156,26 +244,35 @@ class SubscriptionService {
       userPayment.save();
     }
 
-    const promises: any[] = [];
-    payment.student.map(async (element) => {
-      let sub = new StudentSubscription({
-        student: element,
-        school: schoolId,
-        subscriptionPlanId: payment.subscriptionPlanId,
-        endDate: payment.endDate,
-        autoRenew: payment.autoRenew,
-      });
-      promises.push(sub.save());
-    });
-    const studentSub = await Promise.all(promises);
+    const studentSub = await Promise.all(
+      payment.student.map(async (element: string) => {
+        let subscribe = await StudentSubscription.findOne({ student: element });
+        subscribe.subscriptionPlanId = payment.subscriptionPlanId;
+        subscribe.endDate = payment.endDate;
+        subscribe.autoRenew = payment.autoRenew;
+
+        return subscribe.save();
+      })
+    );
 
     return studentSub;
   }
-}
 
-//check ip address
-//cron job
-//recurring payment
+  async studentSubscription(schoolId: string) {
+    let studentSubscription = await StudentSubscription.find({
+      school: schoolId,
+    });
+    return studentSubscription;
+  }
+
+  async updateStudentSubscription(studentId: string) {
+    let studentSubscription = await StudentSubscription.findOne({
+      student: studentId,
+    });
+    studentSubscription.isActive = false;
+    studentSubscription.save();
+  }
+}
 
 export const subscriptionService = new SubscriptionService();
 export default subscriptionService;
