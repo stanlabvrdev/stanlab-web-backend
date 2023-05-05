@@ -1,6 +1,6 @@
 //This class exposes methods that handle contracts that involve the MCQs - may later be extended to also handle true/false questions when they are available
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
-import { studentMCQInstance } from "../../services/studentMCQ.services";
+import { studentMCQInstance } from "../../services/QuestionGeneration/studentMCQ.services";
 import { Request, Response } from "express";
 
 class StudentMCQControllerClass {
