@@ -2,6 +2,8 @@ import { SuperAdmin } from "../../models/superAdmin";
 import BadRequestError from "../exceptions/bad-request";
 import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
+import { Coupon } from "../../models/coupon";
+import generator from "generate-password";
 
 class SuperAdminService {
   async createSuperAdmin(body: any) {
@@ -43,6 +45,42 @@ class SuperAdminService {
 
     await admin.save();
     return admin;
+  }
+
+  async createCoupon(body: any, adminId: string) {
+    let { code, discount, endDate } = body;
+
+    code = generator.generate({
+      length: 4,
+      numbers: true,
+      uppercase: true,
+    });
+
+    let coupon = new Coupon({
+      code,
+      discount: discount * 0.01,
+      creator: adminId,
+      endDate,
+    });
+
+    return await coupon.save();
+  }
+
+  async getCoupon() {
+    const coupon = await Coupon.find();
+    return coupon;
+  }
+
+  async updateCoupon(body: any, couponId: string) {
+    let coupon = await Coupon.findById({ _id: couponId });
+    if (!coupon) throw new NotFoundError("coupon was not found");
+
+    let { discount, endDate } = body;
+
+    coupon.discount = discount * 0.01;
+    coupon.endDate = endDate;
+
+    return coupon.save();
   }
 }
 

@@ -3,7 +3,7 @@ import envConfig from "../../config/env";
 const env = envConfig.getAll();
 
 class PaymentService {
-  async initializePayment(email: string, amount: number) {
+  async PaystackInitializePayment(email: string, amount: number) {
     const body = {
       email: email,
       amount: amount,
@@ -19,7 +19,7 @@ class PaymentService {
     return data;
   }
 
-  async verifyPayment(reference: string) {
+  async PaystackVerifyPayment(reference: string) {
     const { data } = await axios.get(
       `${env.paystack_verification_URL}/${reference}`,
       {
@@ -32,7 +32,7 @@ class PaymentService {
     return data;
   }
 
-  async recurringPayment(
+  async PaystackRecurringPayment(
     authorizationCode: string,
     email: string,
     amount: number
