@@ -6,7 +6,7 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  Image: String,
+  image: String,
   options: {
     type: [
       {
@@ -17,6 +17,11 @@ const questionSchema = new mongoose.Schema({
         },
       },
     ],
+    required: true,
+  },
+  draft: {
+    type: Boolean,
+    default: true,
     required: true,
   },
   createdAt: {
