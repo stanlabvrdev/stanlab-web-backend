@@ -20,6 +20,7 @@ import {
   getClasses,
   getClassById,
   updateClass,
+  updateSchoolAdmin,
 } from "../controllers/schoolAdmin.controller";
 import { schoolAuth } from "../middleware/auth";
 import { uploadFile } from "../middleware/fileUpload";
@@ -44,5 +45,6 @@ router.get("/classes/teacher/:classId", schoolAuth, getTeacherClasses);
 router.get("/classes", schoolAuth, getClasses);
 router.get("/classes/:classId", schoolAuth, getClassById);
 router.put("/classes/:classId", schoolAuth, updateClass);
+router.put("/", schoolAuth, updateSchoolAdmin);
 
 export default router;

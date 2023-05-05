@@ -14,10 +14,20 @@ import { TeacherClass } from "../../models/teacherClass";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
 import { csvUploaderService } from "../csv-uploader";
 import { Profile } from "../../models/profile";
+import { StudentSubscription } from "../../models/student-subscription";
+import subscriptionService from "../subscription/subscription.service";
+import { addDaysToDate } from "../../helpers/dateHelper";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
-    let { admin_name, school_name, password, admin_email, school_email } = body;
+    let {
+      admin_name,
+      school_name,
+      password,
+      admin_email,
+      school_email,
+      country,
+    } = body;
 
     let admin = await SchoolAdmin.findOne({ email: admin_email });
     if (admin)
@@ -37,6 +47,7 @@ class SchoolAdminService {
       schoolEmail: school_email,
       adminName: admin_name,
       schoolName: school_name,
+      country,
     });
 
     const token = admin.generateAuthToken();
@@ -116,6 +127,17 @@ class SchoolAdminService {
     });
     await schoolStudent.save();
 
+    const freePlan = await subscriptionService.getFreePlan();
+
+    const studentSubscription = new StudentSubscription({
+      school: school._id,
+      student: student._id,
+      subscriptionPlanId: freePlan._id,
+      endDate: addDaysToDate(freePlan.duration),
+      autoRenew: false,
+    });
+    await studentSubscription.save();
+
     const response = {
       id: student._id,
       name: student.name,
@@ -127,8 +149,11 @@ class SchoolAdminService {
   async bulkCreateStudents(obj, schoolId) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
     const data: any[] = await excelParserService.convertToJSON(obj);
+
     const promises: any[] = [];
     const schools: any[] = [];
+    const subscribers: any[] = [];
+
     for (let item of data) {
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
@@ -151,10 +176,22 @@ class SchoolAdminService {
         student: student._id,
       });
       schools.push(schoolStudent.save());
+
+      const freePlan = await subscriptionService.getFreePlan();
+
+      const studentSubscription = new StudentSubscription({
+        school: school._id,
+        student: student._id,
+        subscriptionPlanId: freePlan._id,
+        endDate: addDaysToDate(freePlan.duration),
+        autoRenew: false,
+      });
+      subscribers.push(studentSubscription.save());
     }
 
     const students = await Promise.all(promises);
     await Promise.all(schools);
+    await Promise.all(subscribers);
 
     const response = students.map((e) => {
       return {
@@ -555,6 +592,21 @@ class SchoolAdminService {
     teacherClass.colour = colour;
 
     await teacherClass.save();
+  }
+
+  async updateSchoolAdmin(body: any, schoolId: string) {
+    let { admin_name, school_name, admin_email, school_email, country } = body;
+
+    let admin = await SchoolAdmin.findById({ _id: schoolId });
+    if (!admin) throw new BadRequestError("admin not found");
+
+    admin.email = admin_email;
+    admin.schoolEmail = school_email;
+    admin.adminName = admin_name;
+    admin.schoolName = school_name;
+    admin.country = country;
+
+    return admin.save();
   }
 }
 

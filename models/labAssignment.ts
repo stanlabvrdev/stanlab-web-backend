@@ -6,6 +6,7 @@ interface IExperiment
   extends Pick<SystemExperiment, "name" | "icon" | "class" | "subject" | "practicalName" | "demoVideoUrl"> {
   code: string;
   _id: string;
+  label: string;
 }
 
 export interface CreateLabAssignment {
@@ -72,6 +73,7 @@ const labExperimentSchema = new mongoose.Schema({
       icon: { type: String },
       practicalName: { type: String },
       demoVideoUrl: { type: String },
+      label: { type: String, default: null },
     }),
     required: true,
   },

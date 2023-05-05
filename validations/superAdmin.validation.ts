@@ -21,4 +21,26 @@ function validateUpdateSuperAdmin(admin: any) {
   return schema.validate(admin);
 }
 
-export { validateSuperAdmin, validateUpdateSuperAdmin };
+function validateCoupon(coupon: any) {
+  const schema = Joi.object({
+    discount: Joi.number().required(),
+    endDate: Joi.date().required(),
+  });
+
+  return schema.validate(coupon);
+}
+
+function validateUpdateCoupon(coupon: any) {
+  const schema = Joi.object({
+    discount: Joi.number(),
+    endDate: Joi.date(),
+  });
+
+  return schema.validate(coupon);
+}
+export {
+  validateSuperAdmin,
+  validateUpdateSuperAdmin,
+  validateCoupon,
+  validateUpdateCoupon,
+};
