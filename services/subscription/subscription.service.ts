@@ -141,7 +141,6 @@ class SubscriptionService {
     let subscribers = await StudentSubscription.find({
       student: studentId,
       school: school._id,
-      isActive: true,
     });
 
     const freePlan = await this.getFreePlan();
@@ -150,12 +149,9 @@ class SubscriptionService {
 
     subscribers.map((subscriber: any) => {
       if (
-        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+        subscriber.subscriptionPlanId.toString() == freePlan._id.toString() ||
+        subscriber.isActive == false
       ) {
-        return false;
-      }
-
-      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString()) {
         count++;
 
         studentId.push(subscriber.student);
@@ -250,6 +246,7 @@ class SubscriptionService {
         subscribe.subscriptionPlanId = payment.subscriptionPlanId;
         subscribe.endDate = payment.endDate;
         subscribe.autoRenew = payment.autoRenew;
+        subscribe.isActive = true;
 
         return subscribe.save();
       })
