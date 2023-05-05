@@ -1,4 +1,5 @@
-import { QuestionGenerator, GeneratedQuestionService } from "../../services/questionGeneration";
+import { QuestionGenerator } from "../../services/QuestionGeneration/questionGeneration";
+import { GeneratedQuestionService } from "../../services/QuestionGeneration/generated-question-service";
 import CustomError from "../../services/exceptions/custom";
 import { ServerErrorHandler, ServerResponse } from "../../services/response/serverResponse";
 import { Request, Response } from "express";
@@ -98,6 +99,17 @@ class QuestionGeneratorControllerClass {
     try {
       const assignment = await this.GeneratedQuestionService.assignLater(req);
       return ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  addImage = async (req: Request, res: Response) => {
+    try {
+      const extendedReq = req as ExtendedRequest;
+      if (!extendedReq.file) throw new CustomError(400, "No, Image uploaded");
+      const imageURL = await this.GeneratedQuestionService.addImageToQuestion(req);
+      return ServerResponse(req, res, 200, imageURL, "Image added successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

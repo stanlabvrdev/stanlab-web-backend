@@ -1,4 +1,4 @@
-import { teacherMCQService } from "../../services/teacherMCQ.services";
+import { teacherMCQService } from "../../services/QuestionGeneration/teacherMCQ.services";
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
 import { Request, Response } from "express";
 
