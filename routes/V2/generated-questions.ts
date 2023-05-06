@@ -47,5 +47,5 @@ router.post("/assign-now", QuestionGeneratorController.assignNow);
 router.post("/assign-later", QuestionGeneratorController.assignLater);
 router.route("/").post(QuestionGeneratorController.saveQuestions).get(QuestionGeneratorController.getQuestions);
 router.route("/:id").delete(QuestionGeneratorController.deleteQuestionGroup).get(QuestionGeneratorController.getAQuestion).put(QuestionGeneratorController.editAQuestionGroup);
-router.put("/image", uploadImage.single("image"), QuestionGeneratorController.addImage);
+router.post("/image", uploadImage.single("image"), QuestionGeneratorController.addImage);
 export default router;
