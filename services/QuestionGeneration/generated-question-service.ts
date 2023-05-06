@@ -25,11 +25,6 @@ const populateOptions = {
   },
 };
 
-function getFileExtension(mimeType) {
-  const parts = mimeType.split("/");
-  return parts[1];
-}
-
 class GeneratedQuestionServiceClass {
   private models;
   constructor(models) {
@@ -209,9 +204,8 @@ class GeneratedQuestionServiceClass {
 
   async addImageToQuestion(req: Request) {
     const extendedReq = req as ExtendedRequest;
-    const fileExtension = getFileExtension(extendedReq.file.mimeType);
-    const key = `${new Date()}-${extendedReq.file.originalname}.${fileExtension}`;
-    const imageData = await csvUploaderService.doUpload(extendedReq.file, key, extendedReq.file.mimetype);
+    const key = `${new Date()}-${extendedReq.file.originalname}`;
+    const imageData = await csvUploaderService.doUpload(extendedReq.file.buffer, key, extendedReq.file.mimetype);
     if (!imageData) throw new CustomError(500, "Image upload not successful");
 
     return { image: imageData.Location };
