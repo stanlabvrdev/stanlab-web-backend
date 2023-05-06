@@ -15,4 +15,5 @@ router.get("/classes/:classId/teachers", studentAuth, studentsController.getTeac
 router.get("/classes/:classId/scores", studentAuth, studentsController.getScores);
 router.get("/mcq-assignments", studentAuth, studentMCQController.getAssignments);
 router.route("/mcq-assignments/:id").get(studentAuth, studentMCQController.getAssignment).post(studentAuth, studentMCQController.makeSubmission);
+router.get("/mcq-assignments/:assignmentID/scores", studentAuth, studentMCQController.getAssignmentScore);
 export default router;
