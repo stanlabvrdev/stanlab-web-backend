@@ -25,9 +25,7 @@ export class StudentMCQClass {
       .select("-__v")
       .lean();
     if (!assignment) throw new NotFoundError("Assignment not found");
-    //This maps out the score of the student making the request
-    const studentWork = assignment.students.find((each) => each.student == extendedReq.student._id);
-    assignment.students = studentWork;
+    assignment.students = undefined;
     return assignment;
   }
 
