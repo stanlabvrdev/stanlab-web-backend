@@ -44,9 +44,9 @@ class TeacherMCQControllerClass {
     }
   };
 
-  getAssignment = async (req: Request, res: Response) => {
+  getStudentsWorkForAnAssignment = async (req: Request, res: Response) => {
     try {
-      const assigment = await this.teacherMCQService.getAssignment(req);
+      const assigment = await this.teacherMCQService.getStudentsWorkForAnAssignment(req);
       ServerResponse(req, res, 200, assigment, "Assignment fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
