@@ -95,8 +95,12 @@ class TeacherMCQStudentClass {
       })
       .populate({ path: "students.student", select: "name" });
     if (!assignment) throw new NotFoundError("Assignment not found");
-    const assignmentsCompleted = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length > 1);
-    const assignmentAssigned = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length < 1);
+
+    const studentAndScores = (eachStudentWork) => {
+      return { student: eachStudentWork.student, scores: eachStudentWork.scores };
+    };
+    const assignmentsCompleted = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length > 1).map(studentAndScores);
+    const assignmentAssigned = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length < 1).map(studentAndScores);
     return {
       assignmentAssigned,
       assignmentsCompleted,
