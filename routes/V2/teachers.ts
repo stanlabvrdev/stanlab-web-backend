@@ -106,7 +106,7 @@ router.get("/mcq-assignments", teacherAuth, teacherMCQController.getAssignments)
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
 
-router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getAssignment);
+router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getStudentsWorkForAnAssignment);
 
 router.route("/:classID/mcq-assignments").get(teacherAuth, teacherMCQController.getAssignmentsByClass);
 export default router;

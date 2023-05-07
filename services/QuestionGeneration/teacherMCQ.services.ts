@@ -84,7 +84,7 @@ class TeacherMCQStudentClass {
     return formattedAssignments;
   }
 
-  async getAssignment(req: Request) {
+  async getStudentsWorkForAnAssignment(req: Request) {
     const extendedReq = req as ExtendedRequest;
     const { id } = extendedReq.params;
 
@@ -95,11 +95,12 @@ class TeacherMCQStudentClass {
       })
       .populate({ path: "students.student", select: "name" });
     if (!assignment) throw new NotFoundError("Assignment not found");
-    const currentDate = Date.now();
-    //If assignment has expired - return the students and their scores
-    if (currentDate < assignment.dueDate) assignment.students.forEach((each) => (each.scores = undefined));
-    //assignment has not expired, return students but mask their scores
-    return assignment.students;
+    const assignmentsCompleted = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length > 1);
+    const assignmentAssigned = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length < 1);
+    return {
+      assignmentAssigned,
+      assignmentsCompleted,
+    };
   }
 }
 
