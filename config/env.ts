@@ -40,6 +40,10 @@ class Env {
       paystack_recurring_payment_URL: process.env.PAYSTACK_RECURRING_PAYMENT_URL,
       redirect_URL: process.env.REDIRECT_URL,
       free_subscription_title: process.env.FREE_SUBSCRIPTION_TITLE,
+      flutterwave_payment_URL: process.env.FLUTTERWAVE_PAYMENT_URL,
+      flutterwave_secret_key: process.env.FLUTTERWAVE_SECRET_KEY, 
+      flutterwave_public_key: process.env.FLUTTERWAVE_PUBLIC_KEY,
+      flutterwave_secret_hash: process.env.FLUTTERWAVE_SECRET_HASH,
     };
   }
   getProduction() {

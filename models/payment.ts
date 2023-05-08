@@ -11,6 +11,7 @@ interface PaymentAttrs {
   authorizationUrl: string;
   status: string;
   autoRenew: boolean;
+  type: string;
   createdAt: Date;
   endDate: Date;
 }
@@ -26,6 +27,7 @@ interface PaymentDoc extends mongoose.Document {
   authorizationUrl: string;
   status: string;
   autoRenew: boolean;
+  type: string;
   createdAt: Date;
   endDate: Date;
 }
@@ -55,6 +57,7 @@ const paymentSchema = new mongoose.Schema({
   authorizationUrl: { type: String },
   status: { type: String },
   autoRenew: { type: Boolean },
+  type: {type: String},
   createdAt: { type: Date, default: Date.now },
   endDate: { type: Date },
 });

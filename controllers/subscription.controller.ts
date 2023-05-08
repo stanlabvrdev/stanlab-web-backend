@@ -110,6 +110,16 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
+export const webhook = async (req, res) => {
+  try {
+    await subscriptionService.webhook(req.body, req.headers["verif-hash"]);
+
+    return res.status(200).end();
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 export const studentSubscription = async (req, res) => {
   try {
     const studentSubscription = await subscriptionService.studentSubscription(
@@ -121,6 +131,21 @@ export const studentSubscription = async (req, res) => {
       200,
       studentSubscription,
       "student subscription successfully fetched"
+    );
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+export const cancelSubscription = async (req, res) => {
+  try {
+    await subscriptionService.cancelSubscription(req.school._id, req.body);
+    ServerResponse(
+      req,
+      res,
+      200,
+      null,
+      "student subscription successfully cancelled"
     );
   } catch (error) {
     ServerErrorHandler(req, res, error);
