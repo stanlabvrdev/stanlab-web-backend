@@ -8,6 +8,8 @@ import {
   makePayment,
   verifyPayment,
   studentSubscription,
+  webhook,
+  cancelSubscription,
 } from "../controllers/subscription.controller";
 import { superAdminAuth, schoolAuth } from "../middleware/auth";
 
@@ -20,5 +22,7 @@ router.put("/:planId", superAdminAuth, updatePlanById);
 router.post("/make-payment", schoolAuth, makePayment);
 router.post("/verify-payment", schoolAuth, verifyPayment);
 router.get("/student-subscription", schoolAuth, studentSubscription);
+router.post("/webhook-notification", webhook);
+router.post("/cancel-subscription", schoolAuth, cancelSubscription);
 
 export default router;

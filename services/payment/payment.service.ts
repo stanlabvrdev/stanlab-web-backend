@@ -56,6 +56,33 @@ class PaymentService {
 
     return data;
   }
+
+  async FlutterwaveInitializePayment(
+    tx_ref: string,
+    amount: number,
+    redirect_url: string,
+    customer: any
+  ) {
+    const body = {
+      tx_ref: tx_ref,
+      amount: amount,
+      currency: "NGN",
+      redirect_url: redirect_url,
+      customer: {
+        email: customer,
+      },
+    };
+
+    const { data } = await axios.post(`${env.flutterwave_payment_URL}`, body, {
+      headers: {
+        Authorization: `Bearer ${env.flutterwave_secret_key}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return data;
+  }
+
 }
 
 export const paymentService = new PaymentService();
