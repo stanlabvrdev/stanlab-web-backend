@@ -10,7 +10,7 @@ import {
   verifyPayment,
   studentSubscription,
   webhook,
-  cancelSubscription,
+  doCancel,
 } from "../controllers/subscription.controller";
 import { superAdminAuth, schoolAuth } from "../middleware/auth";
 
@@ -25,6 +25,6 @@ router.post("/make-payment", schoolAuth, makePayment);
 router.post("/verify-payment", schoolAuth, verifyPayment);
 router.get("/student-subscription", schoolAuth, studentSubscription);
 router.post("/webhook-notification", webhook);
-router.put("/cancel-subscription", schoolAuth, cancelSubscription);
+router.post("/doCancel", schoolAuth, doCancel);
 
 export default router;

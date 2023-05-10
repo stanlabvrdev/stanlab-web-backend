@@ -152,9 +152,9 @@ export const studentSubscription = async (req, res) => {
   }
 };
 
-export const cancelSubscription = async (req, res) => {
+export const doCancel = async (req, res) => {
   try {
-    await subscriptionService.cancel(req.school._id, req.body);
+    await subscriptionService.doCancel(req.school._id, req.body);
     ServerResponse(
       req,
       res,

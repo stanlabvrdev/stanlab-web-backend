@@ -196,7 +196,8 @@ class SubscriptionService {
       response = await paymentService.PaystackInitializePayment(
         school.email,
         totalCost * 100,
-        plan.currency
+        plan.currency,
+        `${env.redirect_URL}`,
       );
 
       if (!response || response.status !== true) {
@@ -314,6 +315,7 @@ class SubscriptionService {
           authorizationCode: response.data.authorization.authorization_code,
           signature: response.data.authorization.signature,
           email: payment.email,
+          currency: payment.currency,
           school: payment.school,
           type: "Paystack",
         });
@@ -355,6 +357,7 @@ class SubscriptionService {
         userPayment = new UserPayment({
           token: response.data.card.token,
           email: payment.email,
+          currency: payment.currency,
           school: payment.school,
         });
         userPayment.save();
@@ -419,6 +422,7 @@ class SubscriptionService {
         userPayment.token,
         userPayment.email,
         totalCost,
+        userPayment.currency,
         generatedReference
       );
 
@@ -456,7 +460,7 @@ class SubscriptionService {
     return studentSubscription;
   }
 
-  async cancel(schoolId: string, body: any) {
+  async doCancel(schoolId: string, body: any) {
     let { studentId } = body;
     const freePlan = await this.getFreePlan();
 
@@ -475,7 +479,7 @@ class SubscriptionService {
     });
   }
 
-  async deactivateStudentSubscription(studentId: string) {
+  async deactivate(studentId: string) {
     let studentSubscription = await StudentSubscription.findOne({
       student: studentId,
     });

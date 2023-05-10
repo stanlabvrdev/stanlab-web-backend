@@ -5,6 +5,7 @@ interface UserPaymentAttrs {
   signature: string;
   token: string;
   email: string;
+  currency: string;
   school: mongoose.Schema.Types.ObjectId;
   type: string;
   createdAt: Date;
@@ -15,6 +16,7 @@ interface UserPaymentDoc extends mongoose.Document {
   signature: string;
   token: string;
   email: string;
+  currency: string;
   school: mongoose.Schema.Types.ObjectId;
   type: string;
   createdAt: Date;
@@ -29,6 +31,7 @@ const userPaymentSchema = new mongoose.Schema({
   signature: { type: String, trim: true, immutable: true },
   token: { type: String, trim: true, immutable: true },
   email: { type: String, trim: true, immutable: true },
+  currency: { type: String, trim: true, immutable: true },
   school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SchoolAdmin",
