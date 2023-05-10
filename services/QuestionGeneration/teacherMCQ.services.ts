@@ -83,29 +83,6 @@ class TeacherMCQStudentClass {
     const formattedAssignments = await this.getAssignmentsByQuery({ teacher: extendedReq.teacher._id, classId: classID });
     return formattedAssignments;
   }
-
-  async getStudentsWorkForAnAssignment(req: Request) {
-    const extendedReq = req as ExtendedRequest;
-    const { id } = extendedReq.params;
-
-    let assignment = await this.mcqAssignmentModel
-      .findOne({
-        _id: id,
-        teacher: extendedReq.teacher._id,
-      })
-      .populate({ path: "students.student", select: "name" });
-    if (!assignment) throw new NotFoundError("Assignment not found");
-
-    const studentAndScores = (eachStudentWork) => {
-      return { student: eachStudentWork.student, scores: eachStudentWork.scores };
-    };
-    const assignmentsCompleted = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length > 1).map(studentAndScores);
-    const assignmentAssigned = assignment.students.filter((eachStudentWork) => eachStudentWork.scores.length < 1).map(studentAndScores);
-    return {
-      assignmentAssigned,
-      assignmentsCompleted,
-    };
-  }
 }
 
 export const teacherMCQService = new TeacherMCQStudentClass(mcqAssignment);

@@ -106,8 +106,8 @@ export class StudentMCQClass {
   async getAssignmentScore(req: Request) {
     const extendedReq = req as ExtendedRequest;
     const studentID = extendedReq.student._id;
-    const { assignmentID } = req.params;
-    const assignment = await this.mcqAssignemntModel.findOne({ _id: assignmentID, students: { $elemMatch: { student: studentID } } }).select("-__v -questions");
+    const { id } = req.params;
+    const assignment = await this.mcqAssignemntModel.findOne({ _id: id, students: { $elemMatch: { student: studentID } } }).select("-__v -questions");
     if (!assignment) throw new NotFoundError("Assignment not found");
     const studentWork = assignment.students.find((eachStudentWork) => eachStudentWork.student == studentID);
     if (studentWork.scores.length < 1) return "No submissions for this assignment";
