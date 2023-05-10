@@ -197,7 +197,7 @@ class SubscriptionService {
         school.email,
         totalCost * 100,
         plan.currency,
-        `${env.redirect_URL}`,
+        `${env.redirect_URL}`
       );
 
       if (!response || response.status !== true) {
@@ -385,8 +385,7 @@ class SubscriptionService {
   async recurringSubscriptionPayment(
     schoolId: string,
     studentId: string,
-    planId: string,
-    count: number
+    planId: string
   ) {
     const userPayment = await UserPayment.findOne({ school: schoolId });
 
@@ -394,13 +393,12 @@ class SubscriptionService {
     if (!plan) throw new NotFoundError("subscription plan not found");
 
     let response: any;
-    let totalCost = plan.cost * count;
 
     if (userPayment.type === "Paystack") {
       response = await paymentService.PaystackRecurringPayment(
         userPayment.authorizationCode,
         userPayment.email,
-        totalCost * 100
+        plan.cost * 100
       );
 
       if (
@@ -421,7 +419,7 @@ class SubscriptionService {
       response = await paymentService.FlutterwaveRecurringPayment(
         userPayment.token,
         userPayment.email,
-        totalCost,
+        plan.cost,
         userPayment.currency,
         generatedReference
       );
@@ -435,7 +433,7 @@ class SubscriptionService {
       }
     }
 
-    let subscriber = await StudentSubscription.find({
+    let subscriber = await StudentSubscription.findOne({
       student: studentId,
       school: schoolId,
     });
@@ -450,7 +448,7 @@ class SubscriptionService {
     subscriber.autoRenew = true;
     subscriber.isActive = true;
 
-    return subscriber.save();
+    await subscriber.save();
   }
 
   async studentSubscription(schoolId: string) {
