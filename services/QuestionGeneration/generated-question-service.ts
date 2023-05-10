@@ -1,6 +1,5 @@
 const { isValid } = require("mongoose").Types.ObjectId;
 import CustomError from "../exceptions/custom";
-import NotFoundError from "../exceptions/not-found";
 import BadRequestError from "../exceptions/bad-request";
 import { Profile } from "../../models/profile";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
@@ -12,6 +11,7 @@ import { createTopicalMcqNotification } from "../student/notification";
 import { Request } from "express";
 import mcqAssignment from "../../models/mcqAssignment";
 import { csvUploaderService } from "../csv-uploader";
+import { GeneratedQuestionHelperService } from "../QuestionGeneration/generatedQuestionHelper";
 
 interface ExtendedRequest extends Request {
   file: any;
@@ -27,8 +27,10 @@ const populateOptions = {
 
 class GeneratedQuestionServiceClass {
   private models;
-  constructor(models) {
+  private GeneratedQuestionHelperService;
+  constructor(models, GeneratedQuestionHelperService) {
     this.models = models;
+    this.GeneratedQuestionHelperService = GeneratedQuestionHelperService;
   }
 
   async saveQuestions(req: Request) {
@@ -52,61 +54,26 @@ class GeneratedQuestionServiceClass {
     return questGroup;
   }
 
+  private validateAssignmentDetails(type: string, duration: string | number) {
+    let assignmentType = type === "Test" ? type : "Practice";
+    let testDuration = duration ? +duration : undefined;
+    if (assignmentType === "Test" && testDuration !== undefined && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
+    return { assignmentType, testDuration };
+  }
+
   async assignQuestions(req: Request, createTopicalMcqNotification) {
     const extendedReq = req as ExtendedRequest;
     const { questGroupId, classID, startDate, dueDate, type, duration, instruction, comments } = extendedReq.body;
 
-    let assignmentType = type === "Test" ? type : "Practice";
-    let testDuration = duration ? +duration : undefined;
-    if (assignmentType === "Test" && testDuration !== undefined && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
+    const { assignmentType, testDuration } = this.validateAssignmentDetails(type, duration);
 
-    // Find teacher by ID
-    const teacher = await this.models.Teacher.findOne({
-      _id: extendedReq.teacher._id,
-    });
+    const teacher = await this.models.Teacher.findOne({ _id: extendedReq.teacher._id });
 
-    // Check if question group exists and get its questions
-    let questGroup = await this.models.QuestionGroup.findOne({ _id: questGroupId, teacher: extendedReq.teacher._id }).populate(populateOptions);
-    if (!questGroup) throw new NotFoundError("Questions not found");
+    const { questGroup, foundQuestions } = await this.GeneratedQuestionHelperService.extractQuestions(questGroupId, extendedReq.teacher._id);
 
-    const foundQuestions = questGroup.questions.map((eachQuestionGroup) => {
-      return { question: eachQuestionGroup.question, image: eachQuestionGroup.image, options: eachQuestionGroup.options };
-    });
+    const { school, students } = await this.GeneratedQuestionHelperService.getTeacherStudentsAndSchool(classID, extendedReq.teacher._id);
 
-    let teacherCurrentSchool;
-    let teacherstudents;
-
-    // Find teacher's selected school if any
-    const profile = await this.models.Profile.findOne({ teacher: extendedReq.teacher._id });
-
-    if (profile) {
-      teacherCurrentSchool = profile.selectedSchool;
-
-      let teacherClass = await this.models.TeacherClass.findOne({
-        _id: classID,
-        school: teacherCurrentSchool,
-      });
-      if (!teacherClass) throw new NotFoundError("Class not found");
-
-      teacherstudents = await this.models.StudentTeacherClass.find({ school: teacherCurrentSchool, class: teacherClass._id })
-        .populate({ path: "student", select: ["_id"] })
-        .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
-
-      if (teacherstudents.length < 1) throw new NotFoundError("No student in this class");
-
-      teacherstudents = teacherstudents.map((item) => item.student._id);
-    } else if (!profile) {
-      let teacherClass = await this.models.TeacherClass.findOne({
-        _id: classID,
-        teacher: teacher._id,
-      });
-      if (!teacherClass) throw new NotFoundError("Class not found");
-
-      teacherstudents = teacherClass.students;
-      if (teacherstudents.length < 1) throw new NotFoundError("No student in this class found");
-    }
-
-    const studentWork = teacherstudents.map((studentID: string) => {
+    const studentWork = students.map((studentID: string) => {
       return {
         student: studentID,
         scores: [],
@@ -123,31 +90,31 @@ class GeneratedQuestionServiceClass {
       dueDate,
       duration: testDuration,
       type: assignmentType,
-      school: teacherCurrentSchool,
+      school: school,
       instruction,
       comments,
       students: studentWork,
     });
 
-    const promises = teacherstudents.map((studentID: string) => createTopicalMcqNotification(studentID, mcqAssignment._id));
+    const promises = students.map((studentID: string) => createTopicalMcqNotification(studentID, mcqAssignment._id));
     await Promise.all(promises);
     mcqAssignment.students = undefined;
     return mcqAssignment;
   }
 
-  async getQuestions(teacherID) {
+  async getQuestions(teacherID: string) {
     return await QuestionGroup.find({
       teacher: teacherID,
     }).populate(populateOptions);
   }
 
-  async deleteQuestionGroup(id) {
+  async deleteQuestionGroup(id: string) {
     const deletedGroup = await QuestionGroup.findByIdAndDelete(id);
     if (deletedGroup) return { code: 200, message: "Deleted Successfully" };
     else return { code: 404, message: "Resource not found" };
   }
 
-  async getAQuestionGroup(questionGroupID, teacherID) {
+  async getAQuestionGroup(questionGroupID: string, teacherID: string) {
     const questionGroup = await QuestionGroup.findOne({
       _id: questionGroupID,
       teacher: teacherID,
@@ -171,7 +138,7 @@ class GeneratedQuestionServiceClass {
     for (const question of questions) {
       if (question._id && isValid(question._id)) {
         const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
-        if (updatedQuestion && updatedQuestion._id) updatedIDs.push(updatedQuestion._id);
+        if (updatedQuestion?._id) updatedIDs.push(updatedQuestion._id);
       }
     }
 
@@ -180,14 +147,8 @@ class GeneratedQuestionServiceClass {
       topic,
       questions: updatedIDs,
     };
-    const updated = await QuestionGroup.findByIdAndUpdate(
-      id,
-      {
-        $set: update,
-      },
-      options
-    ).populate(populateOptions);
-    return updated;
+    const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
+    return updatedQuestionGroup;
   }
 
   async assignNow(req: Request) {
@@ -213,6 +174,6 @@ class GeneratedQuestionServiceClass {
 }
 
 const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, mcqAssignment };
-const GeneratedQuestionService = new GeneratedQuestionServiceClass(models);
+const GeneratedQuestionService = new GeneratedQuestionServiceClass(models, GeneratedQuestionHelperService);
 
 export { GeneratedQuestionService };
