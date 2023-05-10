@@ -7,7 +7,7 @@ import paymentAuth from "../middleware/paymentAuth";
 import { isFreelanceStudent } from "../middleware/isFreelance";
 import studentsController from "../controllers/studentsController";
 import studentTrialPeriodChecker from "../middleware/studentTrialPeriodChecker";
-import { uploadFile } from "../middleware/fileUpload";
+import { createFileFilter, uploadFile } from "../middleware/fileUpload";
 
 const router = express.Router();
 
@@ -28,9 +28,11 @@ router.post("/invite-teacher", [studentAuth, isFreelanceStudent, paymentAuth], s
 
 // Post: Register a new Student
 
+const fileFilter = createFileFilter();
+
 router.post("/", studentsController.createStudent);
-router.post("/bulk", uploadFile("student-file"), studentsController.bulkCreate);
-router.post("/sign-up/bulk", uploadFile("student-file"), studentsController.bulkSignup);
+router.post("/bulk", uploadFile("student-file", fileFilter), studentsController.bulkCreate);
+router.post("/sign-up/bulk", uploadFile("student-file", fileFilter), studentsController.bulkSignup);
 router.post("/sign-up/bulk/download", studentsController.downloadStudents);
 router.post("/password/reset", studentsController.createStudent);
 
