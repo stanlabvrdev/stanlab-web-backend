@@ -1,7 +1,5 @@
 export enum PAYSTACK {
   "Nigeria",
-  "Ghana",
-  "South Africa"
 }
 
 export enum FLUTTERWAVE {
@@ -12,4 +10,6 @@ export enum FLUTTERWAVE {
   "Rwanda",
   "Cameroon",
   "Zambia",
+  "Ghana",
+  "South Africa",
 }
