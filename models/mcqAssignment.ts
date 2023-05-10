@@ -15,7 +15,7 @@ export interface MCQAssignment extends Document {
   type: "Practice" | "Test";
   teacher: Schema.Types.ObjectId;
   comments?: string;
-  students: StudentWork[];
+  students: StudentWork[] | undefined;
   school?: Schema.Types.ObjectId;
 }
 
