@@ -6,12 +6,14 @@ class PaymentService {
   async PaystackInitializePayment(
     email: string,
     amount: number,
-    currency: string
+    currency: string,
+    redirect_url: string
   ) {
     const body = {
       email: email,
       amount: amount,
-      currency: currency
+      currency: currency,
+      callback_url: redirect_url,
     };
 
     const { data } = await axios.post(`${env.paystack_payment_URL}`, body, {
@@ -93,12 +95,13 @@ class PaymentService {
     token: string,
     email: string,
     amount: number,
+    currency: string,
     tx_ref: string
   ) {
     const body = {
       token: token,
       email: email,
-      currency: "NGN",
+      currency: currency,
       amount: amount,
       tx_ref: tx_ref,
     };
