@@ -2,50 +2,24 @@ import express from "express";
 import multer from "multer";
 
 import { QuestionGeneratorController } from "../../controllers/V2/question-gen.controller";
+import { AssignmentController } from "../../controllers/V2/assignment-controller";
+import { GeneratedQuestionManagementController } from "../../controllers/V2/generatedQuestions-management";
+import { uploadFile, createFileFilter } from "../../middleware/fileUpload";
 
 import { teacherAuth } from "../../middleware/auth";
 
 const router = express.Router();
 //File filter to check for file type
-function pdfFileFilter(req, file, cb) {
-  const allowedMimeTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-  if (!allowedMimeTypes.includes(file.mimetype)) {
-    return cb(new Error("Please upload a PDF or docx file."));
-  }
-  cb(null, true);
-}
+const pdfFileFilter = createFileFilter(["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
+const imageFileFilter = createFileFilter(["image/jpeg", "image/png", "image/jpg"]);
 
-const imageFileFilter = (req, file, cb) => {
-  // Check file type
-  const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
-  if (!allowedTypes.includes(file.mimetype)) {
-    const error = new Error("Invalid file type. Only JPEG, JPG, and PNG image files are allowed.");
-    return cb(error, false);
-  }
-
-  // If file type is allowed, continue with upload
-  cb(null, true);
-};
-const uploadPdf = multer({
-  limits: {
-    fileSize: 5000000,
-  },
-  fileFilter: pdfFileFilter,
-});
-
-const uploadImage = multer({
-  limits: {
-    fileSize: 1000000,
-  },
-  fileFilter: imageFileFilter,
-});
 router.use(teacherAuth);
 
-router.post("/file-generate", uploadPdf.single("pdfFile"), QuestionGeneratorController.genFromFile);
+router.post("/file-generate", uploadFile("pdfFile", pdfFileFilter), QuestionGeneratorController.genFromFile);
 router.post("/text-generate", QuestionGeneratorController.genFromText);
-router.post("/assign-now", QuestionGeneratorController.assignNow);
-router.post("/assign-later", QuestionGeneratorController.assignLater);
-router.route("/").post(QuestionGeneratorController.saveQuestions).get(QuestionGeneratorController.getQuestions);
-router.route("/:id").delete(QuestionGeneratorController.deleteQuestionGroup).get(QuestionGeneratorController.getAQuestion).put(QuestionGeneratorController.editAQuestionGroup);
-router.post("/image", uploadImage.single("image"), QuestionGeneratorController.addImage);
+router.post("/assign-now", AssignmentController.assignNow);
+router.post("/assign-later", AssignmentController.assignLater);
+router.route("/").post(GeneratedQuestionManagementController.saveQuestions).get(GeneratedQuestionManagementController.getQuestions);
+router.route("/:id").delete(GeneratedQuestionManagementController.deleteQuestionGroup).get(GeneratedQuestionManagementController.getAQuestion).put(GeneratedQuestionManagementController.editAQuestionGroup);
+router.post("/image", uploadFile("image", imageFileFilter), QuestionGeneratorController.addImage);
 export default router;

@@ -20,16 +20,14 @@ const storage = multer.diskStorage({
   },
 });
 
-export const uploadFile = (fileName) => {
+export const uploadFile = (fileName, fileFilter) => {
   return (req, res, next) => {
     const multerUploader = multer({
       storage,
       limits: {
         fileSize: 10 * 1000 * 1000,
       },
-      fileFilter: function (req, file, cb) {
-        return cb(null, true);
-      },
+      fileFilter,
     }).single(fileName);
 
     multerUploader(req, res, (err) => {
@@ -39,5 +37,15 @@ export const uploadFile = (fileName) => {
     });
   };
 };
+
+export function createFileFilter(allowedTypes?: string[]) {
+  return function (req, file, cb) {
+    if (allowedTypes && !allowedTypes.includes(file.mimetype)) {
+      const error = new Error("Invalid file type.");
+      return cb(error, false);
+    }
+    cb(null, true);
+  };
+}
 
 export default uploadFile;

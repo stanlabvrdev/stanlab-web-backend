@@ -23,14 +23,16 @@ import {
   updateSchoolAdmin,
 } from "../controllers/schoolAdmin.controller";
 import { schoolAuth } from "../middleware/auth";
-import { uploadFile } from "../middleware/fileUpload";
+import { uploadFile, createFileFilter } from "../middleware/fileUpload";
+
+const fileFilter = createFileFilter();
 
 const router = express.Router();
 router.post("/", createSchoolAdmin);
 router.post("/teachers", schoolAuth, createTeacher);
 router.post("/students", schoolAuth, createStudent);
-router.post("/students/bulk", schoolAuth, uploadFile("student-file"), bulkCreateStudents);
-router.post("/teachers/bulk", schoolAuth, uploadFile("teacher-file"), bulkCreateTeachers);
+router.post("/students/bulk", schoolAuth, uploadFile("student-file", fileFilter), bulkCreateStudents);
+router.post("/teachers/bulk", schoolAuth, uploadFile("teacher-file", fileFilter), bulkCreateTeachers);
 router.get("/", schoolAuth, getSchoolAdmin);
 router.get("/students", schoolAuth, getStudents);
 router.get("/teachers", schoolAuth, getTeachers);
@@ -39,7 +41,7 @@ router.put("/classes/:classId/teacher", schoolAuth, addTeacherToClass);
 router.put("/classes/:classId/student", schoolAuth, addStudentToClass);
 router.post("/bulk/download", schoolAuth, downloadStudents);
 router.post("/bulk/download/:classId", schoolAuth, downloadStudentsByClass);
-router.post("/classes/:classId/student/bulk", schoolAuth, uploadFile("student-file"), addStudentsToClassInBulk);
+router.post("/classes/:classId/student/bulk", schoolAuth, uploadFile("student-file", fileFilter), addStudentsToClassInBulk);
 router.get("/classes/student/:classId", schoolAuth, getStudentsByClass);
 router.get("/classes/teacher/:classId", schoolAuth, getTeacherClasses);
 router.get("/classes", schoolAuth, getClasses);
