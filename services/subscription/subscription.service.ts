@@ -16,6 +16,7 @@ import { Coupon } from "../../models/coupon";
 import { Webhook } from "../../models/webhook";
 import generator from "generate-password";
 import envConfig from "../../config/env";
+import { SETTINGS_CONSTANTS } from "../../constants/settings";
 const env = envConfig.getAll();
 
 class SubscriptionService {
@@ -23,6 +24,8 @@ class SubscriptionService {
     let {
       title,
       cost,
+      currency,
+      country,
       vat,
       description,
       coupon,
@@ -31,18 +34,14 @@ class SubscriptionService {
       durationType,
     } = body;
 
-    let existingPlan = await SubscriptionPlan.findOne({ title });
-    if (existingPlan)
-      throw new BadRequestError(
-        "subscription plan with this title already exist"
-      );
-
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
 
     let plan = new SubscriptionPlan({
       title,
       cost,
+      currency,
+      country,
       vat: vat * 0.01,
       description,
       coupon,
@@ -60,8 +59,16 @@ class SubscriptionService {
     return plans;
   }
 
+  async getPlansBySchool(schoolId: string) {
+    let school = await SchoolAdmin.findById({ _id: schoolId });
+
+    let plans = await SubscriptionPlan.find({ country: school.country });
+    return plans;
+  }
+
   async getFreePlan() {
-    const freeSubscriptionPlanTitle = env.free_subscription_title;
+    const freeSubscriptionPlanTitle =
+      SETTINGS_CONSTANTS.FREE_SUBSCRIPTION_TITLE;
     const plan = await SubscriptionPlan.findOne({
       title: freeSubscriptionPlanTitle,
     });
@@ -72,7 +79,7 @@ class SubscriptionService {
       title: freeSubscriptionPlanTitle,
       cost: 0,
       duration: 30,
-      durationType: "month",
+      durationType: "months",
       vat: 0,
     });
     return freePlanCreated.save();
@@ -94,6 +101,7 @@ class SubscriptionService {
             school: schoolId,
             subscriptionPlanId: freePlan._id,
             endDate: addDaysToDate(freePlan.duration),
+            extensionDate: addDaysToDate(freePlan.duration),
             autoRenew: false,
           });
           return subscribe.save();
@@ -108,6 +116,8 @@ class SubscriptionService {
     let {
       title,
       cost,
+      currency,
+      country,
       vat,
       description,
       coupon,
@@ -122,6 +132,8 @@ class SubscriptionService {
 
     plan.title = title;
     plan.cost = cost;
+    plan.currency = currency;
+    plan.country = country;
     plan.vat = vat * 0.01;
     plan.description = description;
     plan.coupon = coupon;
@@ -177,11 +189,14 @@ class SubscriptionService {
 
     let response: any;
     let payment: any;
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
     if (school.country in PAYSTACK) {
       response = await paymentService.PaystackInitializePayment(
         school.email,
-        totalCost * 100
+        totalCost * 100,
+        plan.currency
       );
 
       if (!response || response.status !== true) {
@@ -191,6 +206,8 @@ class SubscriptionService {
       payment = new Payment({
         email: school.email,
         cost: totalCost,
+        currency: plan.currency,
+        country: plan.country,
         school: school._id,
         student: studentId,
         subscriptionPlanId: plan._id,
@@ -201,6 +218,7 @@ class SubscriptionService {
         autoRenew,
         type: "Paystack",
         endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
       });
 
       payment.save();
@@ -217,6 +235,7 @@ class SubscriptionService {
       response = await paymentService.FlutterwaveInitializePayment(
         generatedReference,
         totalCost,
+        plan.currency,
         `${env.redirect_URL}`,
         school.email
       );
@@ -228,6 +247,8 @@ class SubscriptionService {
       payment = new Payment({
         email: school.email,
         cost: totalCost,
+        currency: plan.currency,
+        country: plan.country,
         school: school._id,
         student: studentId,
         subscriptionPlanId: plan._id,
@@ -237,6 +258,7 @@ class SubscriptionService {
         autoRenew,
         type: "Flutterwave",
         endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
       });
 
       payment.save();
@@ -289,9 +311,11 @@ class SubscriptionService {
 
       if (!userPayment) {
         userPayment = new UserPayment({
+          authorizationCode: response.data.authorization.authorization_code,
           signature: response.data.authorization.signature,
           email: payment.email,
           school: payment.school,
+          type: "Paystack",
         });
         userPayment.save();
       }
@@ -315,7 +339,8 @@ class SubscriptionService {
 
       if (
         response.data.status !== "successful" &&
-        response.data.amount !== payment.cost
+        response.data.amount !== payment.cost &&
+        response.data.currency !== payment.currency
       ) {
         throw new BadRequestError(response.data.status);
       }
@@ -328,7 +353,7 @@ class SubscriptionService {
 
       if (!userPayment) {
         userPayment = new UserPayment({
-          signature: response.data.card.token,
+          token: response.data.card.token,
           email: payment.email,
           school: payment.school,
         });
@@ -343,6 +368,7 @@ class SubscriptionService {
         let subscribe = await StudentSubscription.findOne({ student: element });
         subscribe.subscriptionPlanId = payment.subscriptionPlanId;
         subscribe.endDate = payment.endDate;
+        subscribe.extensionDate = payment.extensionDate;
         subscribe.autoRenew = payment.autoRenew;
         subscribe.isActive = true;
 
@@ -353,6 +379,76 @@ class SubscriptionService {
     return studentSub;
   }
 
+  async recurringSubscriptionPayment(
+    schoolId: string,
+    studentId: string,
+    planId: string,
+    count: number
+  ) {
+    const userPayment = await UserPayment.findOne({ school: schoolId });
+
+    let plan = await SubscriptionPlan.findById({ _id: planId });
+    if (!plan) throw new NotFoundError("subscription plan not found");
+
+    let response: any;
+    let totalCost = plan.cost * count;
+
+    if (userPayment.type === "Paystack") {
+      response = await paymentService.PaystackRecurringPayment(
+        userPayment.authorizationCode,
+        userPayment.email,
+        totalCost * 100
+      );
+
+      if (
+        !response ||
+        response.status !== true ||
+        response.data.gateway_response.toLowerCase() !== "approved"
+      ) {
+        throw new BadRequestError("unable to initialize payment");
+      }
+    }
+
+    if (userPayment.type === "Flutterwave") {
+      let generatedReference = generator.generate({
+        length: 15,
+        numbers: true,
+      });
+
+      response = await paymentService.FlutterwaveRecurringPayment(
+        userPayment.token,
+        userPayment.email,
+        totalCost,
+        generatedReference
+      );
+
+      if (
+        !response ||
+        response.status.toLowerCase() !== "success" ||
+        response.data.processor_response.toLowerCase() !== "approved"
+      ) {
+        throw new BadRequestError("unable to initialize payment");
+      }
+    }
+
+    let subscriber = await StudentSubscription.find({
+      student: studentId,
+      school: schoolId,
+    });
+
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
+
+    subscriber.subscriptionPlanId = plan._id;
+    subscriber.startDate = Date.now();
+    subscriber.endDate = addDaysToDate(plan.duration);
+    subscriber.extensionDate = addDaysToDate(extension);
+    subscriber.autoRenew = true;
+    subscriber.isActive = true;
+
+    return subscriber.save();
+  }
+
   async studentSubscription(schoolId: string) {
     let studentSubscription = await StudentSubscription.find({
       school: schoolId,
@@ -360,7 +456,7 @@ class SubscriptionService {
     return studentSubscription;
   }
 
-  async cancelSubscription(schoolId: string, body: any) {
+  async cancel(schoolId: string, body: any) {
     let { studentId } = body;
     const freePlan = await this.getFreePlan();
 
@@ -379,7 +475,7 @@ class SubscriptionService {
     });
   }
 
-  async updateStudentSubscription(studentId: string) {
+  async deactivateStudentSubscription(studentId: string) {
     let studentSubscription = await StudentSubscription.findOne({
       student: studentId,
     });

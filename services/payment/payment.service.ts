@@ -3,10 +3,15 @@ import envConfig from "../../config/env";
 const env = envConfig.getAll();
 
 class PaymentService {
-  async PaystackInitializePayment(email: string, amount: number) {
+  async PaystackInitializePayment(
+    email: string,
+    amount: number,
+    currency: string
+  ) {
     const body = {
       email: email,
       amount: amount,
+      currency: currency
     };
 
     const { data } = await axios.post(`${env.paystack_payment_URL}`, body, {
@@ -60,13 +65,14 @@ class PaymentService {
   async FlutterwaveInitializePayment(
     tx_ref: string,
     amount: number,
+    currency: string,
     redirect_url: string,
     customer: any
   ) {
     const body = {
       tx_ref: tx_ref,
       amount: amount,
-      currency: "NGN",
+      currency: currency,
       redirect_url: redirect_url,
       customer: {
         email: customer,
@@ -83,6 +89,33 @@ class PaymentService {
     return data;
   }
 
+  async FlutterwaveRecurringPayment(
+    token: string,
+    email: string,
+    amount: number,
+    tx_ref: string
+  ) {
+    const body = {
+      token: token,
+      email: email,
+      currency: "NGN",
+      amount: amount,
+      tx_ref: tx_ref,
+    };
+
+    const { data } = await axios.post(
+      `${env.flutterwave_recurring_payment_URL}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${env.flutterwave_secret_key}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return data;
+  }
 }
 
 export const paymentService = new PaymentService();

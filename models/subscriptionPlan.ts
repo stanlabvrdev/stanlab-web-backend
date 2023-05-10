@@ -4,6 +4,8 @@ import { DURATION_TYPES } from "../enums/duration-types";
 interface SubscriptionPlanAttrs {
   title: string;
   cost: number;
+  currency: string;
+  country: string;
   vat: number;
   description: string;
   coupon: string;
@@ -17,6 +19,8 @@ interface SubscriptionPlanAttrs {
 interface SubscriptionPlanDoc extends mongoose.Document {
   title: string;
   cost: number;
+  currency: string;
+  country: string;
   vat: number;
   description: string;
   coupon: string;
@@ -32,8 +36,10 @@ interface SubscriptionPlanModel extends mongoose.Model<SubscriptionPlanDoc> {
 }
 
 const subscriptionPlanSchema = new mongoose.Schema({
-  title: { type: String, required: true, trim: true, unique: true },
+  title: { type: String, required: true, trim: true },
   cost: { type: Number, required: true, min: 0, trim: true },
+  currency: { type: String },
+  country: { type: String },
   vat: { type: Number, required: true, min: 0, trim: true },
   description: { type: String, trim: true },
   coupon: { type: String, trim: true },

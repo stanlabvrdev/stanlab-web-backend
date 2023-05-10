@@ -4,6 +4,8 @@ function validateSubscription(subscription: any) {
   const schema = Joi.object({
     title: Joi.string().required(),
     cost: Joi.number().min(0).required(),
+    currency: Joi.string().required(),
+    country: Joi.string().required(),
     vat: Joi.number().min(0).required(),
     description: Joi.string(),
     coupon: Joi.string(),
@@ -20,6 +22,8 @@ function validateUpdateSubscription(subscription: any) {
   const schema = Joi.object({
     title: Joi.string(),
     cost: Joi.number().min(0),
+    currency: Joi.string(),
+    country: Joi.string(),
     vat: Joi.number().min(0),
     description: Joi.string(),
     coupon: Joi.string(),

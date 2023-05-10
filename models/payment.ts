@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 interface PaymentAttrs {
   email: string;
   cost: number;
+  currency: string;
+  country: string;
   school: mongoose.Schema.Types.ObjectId;
   student: mongoose.Schema.Types.ObjectId[];
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
@@ -14,11 +16,14 @@ interface PaymentAttrs {
   type: string;
   createdAt: Date;
   endDate: Date;
+  extensionDate: Date;
 }
 
 interface PaymentDoc extends mongoose.Document {
   email: string;
   cost: number;
+  currency: string;
+  country: string;
   school: mongoose.Schema.Types.ObjectId;
   student: mongoose.Schema.Types.ObjectId[];
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
@@ -30,6 +35,7 @@ interface PaymentDoc extends mongoose.Document {
   type: string;
   createdAt: Date;
   endDate: Date;
+  extensionDate: Date;
 }
 
 interface PaymentModel extends mongoose.Model<PaymentDoc> {
@@ -39,14 +45,18 @@ interface PaymentModel extends mongoose.Model<PaymentDoc> {
 const paymentSchema = new mongoose.Schema({
   email: { type: String, required: true },
   cost: { type: Number, required: true, immutable: true },
+  currency: { type: String, required: true },
+  country: { type: String, required: true },
   school: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SchoolAdmin",
   },
-  student: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Student",
-  }],
+  student: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+    },
+  ],
 
   subscriptionPlanId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -57,9 +67,10 @@ const paymentSchema = new mongoose.Schema({
   authorizationUrl: { type: String },
   status: { type: String },
   autoRenew: { type: Boolean },
-  type: {type: String},
+  type: { type: String },
   createdAt: { type: Date, default: Date.now },
   endDate: { type: Date },
+  extensionDate: { type: Date },
 });
 
 const Payment = mongoose.model("Payment", paymentSchema);
