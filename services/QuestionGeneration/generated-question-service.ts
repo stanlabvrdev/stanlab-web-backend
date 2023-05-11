@@ -10,6 +10,7 @@ import { GeneratedQuestions, QuestionGroup } from "../../models/generated-questi
 import { Request } from "express";
 import mcqAssignment from "../../models/mcqAssignment";
 import { csvUploaderService } from "../csv-uploader";
+import { string } from "joi";
 
 interface ExtendedRequest extends Request {
   file: any;
@@ -101,9 +102,9 @@ class GeneratedQuestionManagementServiceClass {
   }
 
   async addImageToQuestion(req: Request) {
-    const extendedReq = req as ExtendedRequest;
-    const key = `${new Date()}-${extendedReq.file.originalname}`;
-    const imageData = await csvUploaderService.doUpload(extendedReq.file.buffer, key, extendedReq.file.mimetype);
+    if (!req.file) throw new CustomError(400, "No, Image uploaded");
+    const key = `${new Date()}-${req.file.originalname}`;
+    const imageData = await csvUploaderService.doUpload(req.file.buffer, key, req.file.mimetype);
     if (!imageData) throw new CustomError(500, "Image upload not successful");
 
     return { image: imageData.Location };

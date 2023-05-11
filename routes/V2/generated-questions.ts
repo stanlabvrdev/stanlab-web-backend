@@ -21,5 +21,5 @@ router.post("/assign-now", AssignmentController.assignNow);
 router.post("/assign-later", AssignmentController.assignLater);
 router.route("/").post(GeneratedQuestionManagementController.saveQuestions).get(GeneratedQuestionManagementController.getQuestions);
 router.route("/:id").delete(GeneratedQuestionManagementController.deleteQuestionGroup).get(GeneratedQuestionManagementController.getAQuestion).put(GeneratedQuestionManagementController.editAQuestionGroup);
-router.post("/image", uploadFile("image", imageFileFilter), QuestionGeneratorController.addImage);
+router.post("/image", uploadFile("image", imageFileFilter), GeneratedQuestionManagementController.addImage);
 export default router;

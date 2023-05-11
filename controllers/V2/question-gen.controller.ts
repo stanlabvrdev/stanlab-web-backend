@@ -29,17 +29,6 @@ class QuestionGeneratorControllerClass {
       ServerErrorHandler(req, res, err);
     }
   };
-
-  addImage = async (req: Request, res: Response) => {
-    // try {
-    //   const extendedReq = req as ExtendedRequest;
-    //   if (!extendedReq.file) throw new CustomError(400, "No, Image uploaded");
-    //   const imageURL = await this.GeneratedQuestionService.addImageToQuestion(req);
-    //   return ServerResponse(req, res, 200, imageURL, "Image added successfully");
-    // } catch (err) {
-    //   ServerErrorHandler(req, res, err);
-    // }
-  };
 }
 
 const QuestionGeneratorController = new QuestionGeneratorControllerClass(QuestionGenerator);

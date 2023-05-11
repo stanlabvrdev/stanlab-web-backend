@@ -1,5 +1,3 @@
-import NotFoundError from "./exceptions/not-found";
-
 import AWS from "aws-sdk";
 
 import envConfig from "../config/env";
