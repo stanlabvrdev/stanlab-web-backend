@@ -26,19 +26,28 @@ class TeacherMCQControllerClass {
     }
   };
 
-  getAssignmentsByClass = async (req: Request, res: Response) => {
+  getAssignmentAssigned = async (req: Request, res: Response) => {
     try {
-      const assignments = await this.teacherMCQService.getAssignmentsByClass(req);
-      ServerResponse(req, res, 200, assignments, "Assignments fetched successfully");
+      const assigments = await this.teacherMCQService.getAssignmentAssigned(req);
+      ServerResponse(req, res, 200, assigments, "Assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   };
 
-  getAssignments = async (req: Request, res: Response) => {
+  getAssignmentCompleted = async (req: Request, res: Response) => {
     try {
-      const assigments = await this.teacherMCQService.getAssignments(req);
+      const assigments = await this.teacherMCQService.getAssignmentCompleted(req);
       ServerResponse(req, res, 200, assigments, "Assignments fetched successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  getAssignment = async (req: Request, res: Response) => {
+    try {
+      const data = await this.teacherMCQService.getAssignment(req);
+      ServerResponse(req, res, 200, data, "Operation successful");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

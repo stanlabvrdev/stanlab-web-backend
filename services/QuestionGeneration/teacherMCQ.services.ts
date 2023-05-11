@@ -1,6 +1,7 @@
 import { Request } from "express";
 import NotFoundError from "../exceptions/not-found";
 import mcqAssignment from "../../models/mcqAssignment";
+import BadRequestError from "../exceptions/bad-request";
 
 interface ExtendedRequest extends Request {
   teacher: any;
@@ -51,37 +52,56 @@ class TeacherMCQStudentClass {
     if (!assignment) throw new NotFoundError("Assignment not found");
     return;
   }
-
-  private async getAssignmentsByQuery(query: object) {
-    const assignments = await this.mcqAssignmentModel.find(query).select("-__v -students, -questions");
-    if (assignments.length < 1) throw new NotFoundError("Assignments not found");
-    const currentDate = Date.now();
-    const formattedAssignments = assignments.reduce(
-      (acc, assignment) => {
-        assignment.students = undefined;
-        if (assignment.dueDate > currentDate) acc.pending.push(assignment);
-        else acc.expired.push(assignment);
-        return acc;
-      },
-      {
-        pending: [],
-        expired: [],
-      }
-    );
-    return formattedAssignments;
+  async getAssignmentsByCriteria(req: Request, criteria: object) {
+    const extendedReq = req as ExtendedRequest;
+    const assignments = await this.mcqAssignmentModel.find({ teacher: extendedReq.teacher._id, ...criteria }).select("-__id -questions -students");
+    return assignments;
   }
 
-  async getAssignments(req: Request) {
-    const extendedReq = req as ExtendedRequest;
-    const formattedAssignments = await this.getAssignmentsByQuery({ teacher: extendedReq.teacher._id });
-    return formattedAssignments;
+  async getAssignmentAssigned(req: Request) {
+    const assignmentsAssigned = await this.getAssignmentsByCriteria(req, {
+      "students.scores": { $size: 0 },
+    });
+    return assignmentsAssigned;
   }
 
-  async getAssignmentsByClass(req: Request) {
+  async getAssignmentCompleted(req: Request) {
+    const assignmentsCompleted = await this.getAssignmentsByCriteria(req, {
+      "students.scores": { $ne: [], $exists: true },
+    });
+    console.log(req.originalUrl);
+    return assignmentsCompleted;
+  }
+
+  private assigmnentFilter(studentsArr, status: string) {
+    if (status === "assigned") {
+      const studentNames = studentsArr.filter((each) => each.scores.length < 1).map((each) => each.student.name);
+      if (studentNames.length < 1) return "No students currently doing this assignment";
+      return studentNames;
+    } else if (status === "completed") {
+      const studentWork = studentsArr
+        .filter((each) => each.scores.length > 0)
+        .map((each) => {
+          return {
+            name: each.student.name,
+            scores: each.scores,
+          };
+        });
+      if (studentWork.length < 1) return "No submissions yet for this assignment";
+      return studentWork;
+    }
+  }
+
+  async getAssignment(req: Request) {
     const extendedReq = req as ExtendedRequest;
-    const { classID } = req.params;
-    const formattedAssignments = await this.getAssignmentsByQuery({ teacher: extendedReq.teacher._id, classId: classID });
-    return formattedAssignments;
+    const { id } = req.params;
+    const { status } = req.query;
+    const validQueries = ["assigned", "completed"];
+    if (!status || !validQueries.includes(status as string)) throw new BadRequestError("Invalid Request");
+    const assigment = await this.mcqAssignmentModel.findOne({ teacher: extendedReq.teacher._id, _id: id }, { _id: 0, students: 1 }).populate({ path: "students.student", select: "name" });
+    const students = assigment.students;
+    const result = this.assigmnentFilter(students, status as string);
+    return result;
   }
 }
 
