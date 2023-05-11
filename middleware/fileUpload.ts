@@ -1,6 +1,7 @@
 import multer from "multer";
 import fs from "fs";
 import NotFoundError from "../services/exceptions/not-found";
+import path from "node:path";
 
 function getFileName(file) {
   const uniqueSuffix = `${Date.now()}`;
@@ -31,8 +32,8 @@ export const uploadFile = (fileName, fileFilter) => {
     }).single(fileName);
 
     multerUploader(req, res, (err) => {
-      if (!req.file) throw new NotFoundError("no file found");
-
+      if (!req.file) throw new NotFoundError("No file found");
+      req.file.buffer = fs.readFileSync(path.resolve(req.file.path));
       next();
     });
   };
