@@ -3,10 +3,17 @@ import envConfig from "../../config/env";
 const env = envConfig.getAll();
 
 class PaymentService {
-  async PaystackInitializePayment(email: string, amount: number) {
+  async PaystackInitializePayment(
+    email: string,
+    amount: number,
+    currency: string,
+    redirect_url: string
+  ) {
     const body = {
       email: email,
       amount: amount,
+      currency: currency,
+      callback_url: redirect_url,
     };
 
     const { data } = await axios.post(`${env.paystack_payment_URL}`, body, {
@@ -49,6 +56,62 @@ class PaymentService {
       {
         headers: {
           Authorization: `Bearer ${env.paystack_secret_key}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return data;
+  }
+
+  async FlutterwaveInitializePayment(
+    tx_ref: string,
+    amount: number,
+    currency: string,
+    redirect_url: string,
+    customer: any
+  ) {
+    const body = {
+      tx_ref: tx_ref,
+      amount: amount,
+      currency: currency,
+      redirect_url: redirect_url,
+      customer: {
+        email: customer,
+      },
+    };
+
+    const { data } = await axios.post(`${env.flutterwave_payment_URL}`, body, {
+      headers: {
+        Authorization: `Bearer ${env.flutterwave_secret_key}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return data;
+  }
+
+  async FlutterwaveRecurringPayment(
+    token: string,
+    email: string,
+    amount: number,
+    currency: string,
+    tx_ref: string
+  ) {
+    const body = {
+      token: token,
+      email: email,
+      currency: currency,
+      amount: amount,
+      tx_ref: tx_ref,
+    };
+
+    const { data } = await axios.post(
+      `${env.flutterwave_recurring_payment_URL}`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${env.flutterwave_secret_key}`,
           "Content-Type": "application/json",
         },
       }

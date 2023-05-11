@@ -10,9 +10,13 @@ import { Payment } from "../../models/payment";
 import { UserPayment } from "../../models/userPayment";
 import { STATUS_TYPES } from "../../constants/statusTypes";
 import { addDaysToDate } from "../../helpers/dateHelper";
-import { PAYSTACK } from "../../constants/locations";
+import { PAYSTACK, FLUTTERWAVE } from "../../constants/locations";
+import Flutterwave from "flutterwave-node-v3";
 import { Coupon } from "../../models/coupon";
+import { Webhook } from "../../models/webhook";
+import generator from "generate-password";
 import envConfig from "../../config/env";
+import { SETTINGS_CONSTANTS } from "../../constants/settings";
 const env = envConfig.getAll();
 
 class SubscriptionService {
@@ -20,6 +24,8 @@ class SubscriptionService {
     let {
       title,
       cost,
+      currency,
+      country,
       vat,
       description,
       coupon,
@@ -28,18 +34,14 @@ class SubscriptionService {
       durationType,
     } = body;
 
-    let existingPlan = await SubscriptionPlan.findOne({ title });
-    if (existingPlan)
-      throw new BadRequestError(
-        "subscription plan with this title already exist"
-      );
-
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
 
     let plan = new SubscriptionPlan({
       title,
       cost,
+      currency,
+      country,
       vat: vat * 0.01,
       description,
       coupon,
@@ -57,8 +59,16 @@ class SubscriptionService {
     return plans;
   }
 
+  async getPlansBySchool(schoolId: string) {
+    let school = await SchoolAdmin.findById({ _id: schoolId });
+
+    let plans = await SubscriptionPlan.find({ country: school.country });
+    return plans;
+  }
+
   async getFreePlan() {
-    const freeSubscriptionPlanTitle = env.free_subscription_title;
+    const freeSubscriptionPlanTitle =
+      SETTINGS_CONSTANTS.FREE_SUBSCRIPTION_TITLE;
     const plan = await SubscriptionPlan.findOne({
       title: freeSubscriptionPlanTitle,
     });
@@ -69,7 +79,7 @@ class SubscriptionService {
       title: freeSubscriptionPlanTitle,
       cost: 0,
       duration: 30,
-      durationType: "month",
+      durationType: "months",
       vat: 0,
     });
     return freePlanCreated.save();
@@ -91,6 +101,7 @@ class SubscriptionService {
             school: schoolId,
             subscriptionPlanId: freePlan._id,
             endDate: addDaysToDate(freePlan.duration),
+            extensionDate: addDaysToDate(freePlan.duration),
             autoRenew: false,
           });
           return subscribe.save();
@@ -105,6 +116,8 @@ class SubscriptionService {
     let {
       title,
       cost,
+      currency,
+      country,
       vat,
       description,
       coupon,
@@ -119,6 +132,8 @@ class SubscriptionService {
 
     plan.title = title;
     plan.cost = cost;
+    plan.currency = currency;
+    plan.country = country;
     plan.vat = vat * 0.01;
     plan.description = description;
     plan.coupon = coupon;
@@ -141,7 +156,6 @@ class SubscriptionService {
     let subscribers = await StudentSubscription.find({
       student: studentId,
       school: school._id,
-      isActive: true,
     });
 
     const freePlan = await this.getFreePlan();
@@ -150,12 +164,9 @@ class SubscriptionService {
 
     subscribers.map((subscriber: any) => {
       if (
-        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+        subscriber.subscriptionPlanId.toString() == freePlan._id.toString() ||
+        subscriber.isActive == false
       ) {
-        return false;
-      }
-
-      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString()) {
         count++;
 
         studentId.push(subscriber.student);
@@ -177,35 +188,103 @@ class SubscriptionService {
     }
 
     let response: any;
+    let payment: any;
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
     if (school.country in PAYSTACK) {
       response = await paymentService.PaystackInitializePayment(
         school.email,
-        totalCost * 100
+        totalCost * 100,
+        plan.currency,
+        `${env.redirect_URL}`
       );
 
       if (!response || response.status !== true) {
         throw new BadRequestError("unable to initialize payment");
       }
+
+      payment = new Payment({
+        email: school.email,
+        cost: totalCost,
+        currency: plan.currency,
+        country: plan.country,
+        school: school._id,
+        student: studentId,
+        subscriptionPlanId: plan._id,
+        reference: response.data.reference,
+        accessCode: response.data.access_code,
+        authorizationUrl: response.data.authorization_url,
+        status: STATUS_TYPES.PENDING,
+        autoRenew,
+        type: "Paystack",
+        endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
+      });
+
+      payment.save();
+
+      return response;
     }
 
-    let payment = new Payment({
-      email: school.email,
-      cost: totalCost,
-      school: school._id,
-      student: studentId,
-      subscriptionPlanId: plan._id,
-      reference: response.data.reference,
-      accessCode: response.data.access_code,
-      authorizationUrl: response.data.authorization_url,
-      status: STATUS_TYPES.PENDING,
-      autoRenew,
-      endDate: addDaysToDate(plan.duration),
+    if (school.country in FLUTTERWAVE) {
+      let generatedReference = generator.generate({
+        length: 15,
+        numbers: true,
+      });
+
+      response = await paymentService.FlutterwaveInitializePayment(
+        generatedReference,
+        totalCost,
+        plan.currency,
+        `${env.redirect_URL}`,
+        school.email
+      );
+
+      if (!response || response.status !== "success") {
+        throw new BadRequestError("unable to initialize payment");
+      }
+
+      payment = new Payment({
+        email: school.email,
+        cost: totalCost,
+        currency: plan.currency,
+        country: plan.country,
+        school: school._id,
+        student: studentId,
+        subscriptionPlanId: plan._id,
+        reference: generatedReference,
+        authorizationUrl: response.data.link,
+        status: STATUS_TYPES.PENDING,
+        autoRenew,
+        type: "Flutterwave",
+        endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
+      });
+
+      payment.save();
+
+      return { response, reference: payment.reference };
+    }
+  }
+
+  async webhook(body: any, hash: string) {
+    const secretHash = env.flutterwave_secret_hash;
+    const signature = hash;
+
+    if (!signature || signature !== secretHash) {
+      throw new BadRequestError("this request isn't from Flutterwave; discard");
+    }
+
+    const payload = body;
+
+    let webhookpayload = new Webhook({
+      txId: payload.id,
+      reference: payload.txRef,
     });
+    webhookpayload.save();
 
-    payment.save();
-
-    return response;
+    return payload;
   }
 
   async verifyPayment(schoolId: string, reference: string) {
@@ -215,47 +294,161 @@ class SubscriptionService {
       throw new NotFoundError("reference not found");
     }
 
-    const response = await paymentService.PaystackVerifyPayment(reference);
+    let response: any;
+    let userPayment: any;
 
-    if (response.data.status.toLowerCase() !== "success") {
-      throw new BadRequestError(response.data.gateway_response);
-    }
+    if (payment.type === "Paystack") {
+      response = await paymentService.PaystackVerifyPayment(reference);
 
-    payment.status = response.data.gateway_response;
-    await payment.save();
+      if (response.data.status.toLowerCase() !== "success") {
+        throw new BadRequestError(response.data.gateway_response);
+      }
+      payment.status = response.data.gateway_response;
 
-    let userPayment = await UserPayment.findOne({
-      school: schoolId,
-      signature: response.data.authorization.signature,
-    });
-
-    if (!userPayment) {
-      userPayment = new UserPayment({
-        authorizationCode: response.data.authorization.authorization_code,
-        cardType: response.data.authorization.card_type,
-        cardLastFourDigits: response.data.authorization.last4,
-        expiryMonth: response.data.authorization.exp_month,
-        expiryYear: response.data.authorization.exp_year,
-        bank: response.data.authorization.bank,
+      userPayment = await UserPayment.findOne({
+        school: schoolId,
         signature: response.data.authorization.signature,
-        email: payment.email,
-        school: payment.school,
       });
-      userPayment.save();
+
+      if (!userPayment) {
+        userPayment = new UserPayment({
+          authorizationCode: response.data.authorization.authorization_code,
+          signature: response.data.authorization.signature,
+          email: payment.email,
+          currency: payment.currency,
+          school: payment.school,
+          type: "Paystack",
+        });
+        userPayment.save();
+      }
     }
+
+    if (payment.type === "Flutterwave") {
+      const flw = new Flutterwave(
+        env.flutterwave_public_key,
+        env.flutterwave_secret_key
+      );
+
+      const payload = await Webhook.findOne({ reference, isActive: true });
+      if (!payload) {
+        throw new BadRequestError("cannot process this transaction");
+      }
+
+      response = await flw.Transaction.verify({ id: payload.txId });
+
+      payload.isActive = false;
+      await payload.save();
+
+      if (
+        response.data.status !== "successful" &&
+        response.data.amount !== payment.cost &&
+        response.data.currency !== payment.currency
+      ) {
+        throw new BadRequestError(response.data.status);
+      }
+      payment.status = response.data.status;
+
+      userPayment = await UserPayment.findOne({
+        school: schoolId,
+        signature: response.data.card.token,
+      });
+
+      if (!userPayment) {
+        userPayment = new UserPayment({
+          token: response.data.card.token,
+          email: payment.email,
+          currency: payment.currency,
+          school: payment.school,
+        });
+        userPayment.save();
+      }
+    }
+
+    await payment.save();
 
     const studentSub = await Promise.all(
       payment.student.map(async (element: string) => {
         let subscribe = await StudentSubscription.findOne({ student: element });
         subscribe.subscriptionPlanId = payment.subscriptionPlanId;
         subscribe.endDate = payment.endDate;
+        subscribe.extensionDate = payment.extensionDate;
         subscribe.autoRenew = payment.autoRenew;
+        subscribe.isActive = true;
 
         return subscribe.save();
       })
     );
 
     return studentSub;
+  }
+
+  async recurringSubscriptionPayment(
+    schoolId: string,
+    studentId: string,
+    planId: string
+  ) {
+    const userPayment = await UserPayment.findOne({ school: schoolId });
+
+    let plan = await SubscriptionPlan.findById({ _id: planId });
+    if (!plan) throw new NotFoundError("subscription plan not found");
+
+    let response: any;
+
+    if (userPayment.type === "Paystack") {
+      response = await paymentService.PaystackRecurringPayment(
+        userPayment.authorizationCode,
+        userPayment.email,
+        plan.cost * 100
+      );
+
+      if (
+        !response ||
+        response.status !== true ||
+        response.data.gateway_response.toLowerCase() !== "approved"
+      ) {
+        throw new BadRequestError("unable to initialize payment");
+      }
+    }
+
+    if (userPayment.type === "Flutterwave") {
+      let generatedReference = generator.generate({
+        length: 15,
+        numbers: true,
+      });
+
+      response = await paymentService.FlutterwaveRecurringPayment(
+        userPayment.token,
+        userPayment.email,
+        plan.cost,
+        userPayment.currency,
+        generatedReference
+      );
+
+      if (
+        !response ||
+        response.status.toLowerCase() !== "success" ||
+        response.data.processor_response.toLowerCase() !== "approved"
+      ) {
+        throw new BadRequestError("unable to initialize payment");
+      }
+    }
+
+    let subscriber = await StudentSubscription.findOne({
+      student: studentId,
+      school: schoolId,
+    });
+
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
+
+    subscriber.subscriptionPlanId = plan._id;
+    subscriber.startDate = Date.now();
+    subscriber.endDate = addDaysToDate(plan.duration);
+    subscriber.extensionDate = addDaysToDate(extension);
+    subscriber.autoRenew = true;
+    subscriber.isActive = true;
+
+    await subscriber.save();
   }
 
   async studentSubscription(schoolId: string) {
@@ -265,7 +458,26 @@ class SubscriptionService {
     return studentSubscription;
   }
 
-  async updateStudentSubscription(studentId: string) {
+  async doCancel(schoolId: string, body: any) {
+    let { studentId } = body;
+    const freePlan = await this.getFreePlan();
+
+    let subscribers = await StudentSubscription.find({
+      student: studentId,
+      school: schoolId,
+    });
+
+    subscribers.map((subscriber: any) => {
+      if (
+        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+      ) {
+        subscriber.autoRenew = false;
+        subscriber.save();
+      }
+    });
+  }
+
+  async deactivate(studentId: string) {
     let studentSubscription = await StudentSubscription.findOne({
       student: studentId,
     });
