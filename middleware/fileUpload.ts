@@ -2,26 +2,42 @@ import multer from "multer";
 import fs from "fs";
 import NotFoundError from "../services/exceptions/not-found";
 import path from "node:path";
+import multerS3 from "multer-s3";
+import AWS from "aws-sdk";
+
+import envConfig from "../config/env";
+const env = envConfig.getAll();
+
+const bucket = env.aws_bucket;
+const accessKeyId = env.aws_access_key_id;
+const secretKey = env.aws_s3_secret;
+
+const s3 = new AWS.S3({
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretKey,
+});
 
 function getFileName(file) {
   const uniqueSuffix = `${Date.now()}`;
   return `${file.fieldname}-${uniqueSuffix}-${file.originalname.split(".")[0]}`;
 }
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const path = "./public/files";
-    fs.mkdirSync(path, { recursive: true });
+export function diskStorage() {
+  return multer.diskStorage({
+    destination: function (req, file, cb) {
+      const path = "./public/files";
+      fs.mkdirSync(path, { recursive: true });
 
-    cb(null, path);
-  },
+      cb(null, path);
+    },
 
-  filename: function (req, file, cb) {
-    cb(null, getFileName(file));
-  },
-});
+    filename: function (req, file, cb) {
+      cb(null, getFileName(file));
+    },
+  });
+}
 
-export const uploadFile = (fileName, fileFilter) => {
+export const uploadFile = (fileName, fileFilter, storage) => {
   return (req, res, next) => {
     const multerUploader = multer({
       storage,
@@ -47,6 +63,17 @@ export function createFileFilter(allowedTypes?: string[]) {
     }
     cb(null, true);
   };
+}
+
+export function awsStorage() {
+  return multerS3({
+    s3: s3,
+    bucket: bucket,
+    acl: "public-read",
+    key: function (req, file, cb) {
+      cb(null, Date.now().toString());
+    },
+  });
 }
 
 export default uploadFile;
