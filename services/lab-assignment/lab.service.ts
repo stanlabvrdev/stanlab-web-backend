@@ -67,6 +67,13 @@ class LabAssignmentService {
     return LabExperiment.find(conditions).populate({ path: "teacher", select: ["name", "_id", "email"] });
   }
 
+  async getByExperimentId(id: string, conditions = {}): Promise<ILabExperiment | null> {
+    return LabExperiment.find({ "experiment._id": id, ...conditions }).populate({
+      path: "teacher",
+      select: ["name", "_id", "email"],
+    });
+  }
+
   private async createExperiment(data: CreateLabAssignment, experiment: SystemExperiment): Promise<ILabExperiment> {
     const code = this.generateCode();
     const labData: ILabExperiment = {

@@ -21,6 +21,7 @@ import studentService from "../services/student/student.service";
 import { Profile } from "../models/profile";
 import NotFoundError from "../services/exceptions/not-found";
 import teacherProfileService from "../services/teacher/profile.service";
+import { Request, Response } from "express";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -336,9 +337,9 @@ async function getTeacher(req, res) {
   }
 }
 
-async function getStudents(req, res) {
+async function getStudents(req: Request, res: Response) {
   try {
-    const students = await studentTeacherService.getTeacherStudents(req.teacher._id);
+    const students = await studentTeacherService.getTeacherStudents(req);
 
     ServerResponse(req, res, 200, students, "student fetched successfully");
     res.send(students);
