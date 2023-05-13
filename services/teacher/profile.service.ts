@@ -12,8 +12,7 @@ import { SchoolAdmin } from "../../models/schoolAdmin";
 class TeacherProfileService {
   async update(teacherId: string, data: { school_id: string }) {
     let profile = await Profile.findOne({ teacher: teacherId });
-
-    await this.checkIsSchoolValid(data.school_id);
+    if (data.school_id) await this.checkIsSchoolValid(data.school_id);
 
     if (!profile) {
       profile = await this.create(teacherId);
