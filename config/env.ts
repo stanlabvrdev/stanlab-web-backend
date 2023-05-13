@@ -81,7 +81,16 @@ class Env {
     return { ...this.getDefault() };
   }
   getTest(): IEnv {
-    return { ...this.getDefault(), jwtKey: "test-key", mailgun_API_KEY: "MG.test", sendGrid_API_KEY: "SG.test" };
+    return {
+      ...this.getDefault(),
+      jwtKey: "test-key",
+      mailgun_API_KEY: "MG.test",
+      sendGrid_API_KEY: "SG.test",
+      student_google_CLIENT_ID: "student-test-id",
+      student_google_CLIENT_SECRET: "student-test-secret",
+      teacher_google_CLIENT_ID: "teacher-test-id",
+      teacher_google_CLIENT_SECRET: "teacher-secret",
+    };
   }
 }
 
