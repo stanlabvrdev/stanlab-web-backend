@@ -8,6 +8,9 @@ class Env {
     const env = process.env.NODE_ENV || development;
 
     if (env == "production") return this.getProduction();
+    if (env == "test") {
+      return this.getTest();
+    }
     if (env == development) return this.getDevelopment();
 
     return this.getDefault();
@@ -47,6 +50,9 @@ class Env {
   }
   getDevelopment() {
     return { ...this.getDefault() };
+  }
+  getTest() {
+    return { ...this.getDefault(), jwtKey: "test-key" };
   }
 }
 

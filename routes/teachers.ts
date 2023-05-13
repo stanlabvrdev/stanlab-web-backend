@@ -24,7 +24,9 @@ router.post("/", teachersController.createTeacher);
 
 // get teacher students
 
+router.get("/schools", teacherAuth, teachersController.getSchools);
 router.get("/students", teacherAuth, teachersController.getStudents);
+router.patch("/profile", teacherAuth, teachersController.updateProfile);
 
 // delete only teacher student
 /**

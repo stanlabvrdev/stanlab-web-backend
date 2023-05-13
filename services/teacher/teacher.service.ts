@@ -6,6 +6,8 @@ import { StudentTeacher } from "../../models/teacherStudent";
 import Logger from "../../utils/logger";
 import { Student } from "../../models/student";
 
+import { SchoolTeacher } from "../../models/schoolTeacher";
+
 class TeacherService {
   async findOne(conditions) {
     return Teacher.findOne(conditions);
@@ -39,6 +41,13 @@ class TeacherService {
       throw new NotFoundError(`teacher  not found`);
     }
     return teacher;
+  }
+
+  async getSchools(teacherId: string) {
+    return SchoolTeacher.find({ teacher: teacherId }).populate({
+      path: "school",
+      select: ["schoolName", "adminName", "schoolEmail", "country", "_id"],
+    });
   }
 }
 

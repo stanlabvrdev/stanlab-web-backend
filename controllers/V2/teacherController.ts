@@ -19,6 +19,7 @@ import BadRequestError from "../../services/exceptions/bad-request";
 
 import studentTeacherService from "../../services/teacherClass/teacher-student";
 import teacherClassService from "../../services/teacherClass/teacherClass.service";
+import teacherService from "../../services/teacher/teacher.service";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
