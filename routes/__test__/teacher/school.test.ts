@@ -10,7 +10,7 @@ it("can only be accessed if teacher is signed in", async () => {
 });
 
 it("should return schools", async () => {
-  const teacher = global.loginTeacher();
+  const teacher = await global.loginTeacher();
   await createTeacherSchool(teacher._id);
 
   const res = await request(app).get(url).set("x-auth-token", teacher.token).send({});
@@ -18,6 +18,6 @@ it("should return schools", async () => {
   expect(res.statusCode).toBe(200);
   const data = res.body.data;
   expect(data).toBeDefined();
-  expect(data[0].teacher).toBe(teacher._id);
+  expect(data[0].teacher.toString()).toBe(teacher._id.toString());
   expect(data[0].school).toBeDefined();
 });
