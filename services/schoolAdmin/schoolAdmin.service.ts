@@ -134,6 +134,7 @@ class SchoolAdminService {
       student: student._id,
       subscriptionPlanId: freePlan._id,
       endDate: addDaysToDate(freePlan.duration),
+      extensionDate: addDaysToDate(freePlan.duration),
       autoRenew: false,
     });
     await studentSubscription.save();

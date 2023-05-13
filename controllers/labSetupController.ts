@@ -4,8 +4,7 @@ import LabSetup from "../models/labSetup";
 import Experiment from "../models/experiment";
 import { TeacherClass } from "../models/teacherClass";
 import { Student } from "../models/student";
-import { StudentScore } from "../models/studentScore";
-import { LabExperiment } from "../models/labAssignment";
+
 import NotFoundError from "../services/exceptions/not-found";
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import { submittedScoreNotification } from "../services/student/notification";
