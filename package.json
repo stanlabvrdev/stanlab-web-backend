@@ -8,7 +8,7 @@
     "start": "npm run build && node ./dist/index.js",
     "build": "npm run clean && tsc -p tsconfig.json",
     "test": "node --max_old_space_size=8096 ./node_modules/.bin/jest --logHeapUsage --watchAll --no-cache --verbose",
-    "test:ci": "node --max_old_space_size=8096 ./node_modules/.bin/jest  --watchAll --no-cache --silent --logHeapUsage --forceExit",
+    "test:ci": "node --max_old_space_size=8096 ./node_modules/.bin/jest  --runInBand --no-cache --silent --logHeapUsage --forceExit",
     "clean": "rm -rf ./dist"
   },
   "jest": {
