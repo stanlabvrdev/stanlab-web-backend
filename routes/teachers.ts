@@ -10,6 +10,7 @@ import { teacherAuth } from "../middleware/auth";
 import teachersController from "../controllers/teachersController";
 
 import teachersClassControllerV2 from "../controllers/V2/teacherClassController";
+import { techerProfileMiddleware } from "../middleware/profile";
 // const info;
 // login via google oauth
 
@@ -24,7 +25,9 @@ router.post("/", teachersController.createTeacher);
 
 // get teacher students
 
-router.get("/students", teacherAuth, teachersController.getStudents);
+router.get("/schools", teacherAuth, teachersController.getSchools);
+router.get("/students", techerProfileMiddleware.build(), teacherAuth, teachersController.getStudents);
+router.patch("/profile", teacherAuth, teachersController.updateProfile);
 
 // delete only teacher student
 /**
@@ -42,7 +45,7 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // get teacher classes
 
-router.get("/classes", teacherAuth, teachersController.getClass);
+router.get("/classes", techerProfileMiddleware.build(), teacherAuth, teachersController.getClass);
 
 // post: Teacher avatar
 
