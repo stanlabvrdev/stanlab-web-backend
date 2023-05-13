@@ -130,6 +130,7 @@ class AssignmentServiceClass {
     const promises = students.map((studentID: string) => createTopicalMcqNotification(studentID, newAssignment._id));
     await Promise.all(promises);
     newAssignment.students = undefined;
+    newAssignment.questions = undefined;
     return newAssignment;
   }
 

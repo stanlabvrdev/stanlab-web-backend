@@ -13,22 +13,23 @@ const s3 = new AWS.S3({
   secretAccessKey: secretKey,
 });
 
+const CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const CONTENT_READ = "public-read";
 
 class CSVUploaderService {
   getCsv(data, key, sheetName) {
     const file = excelParserService.generateReport(data, sheetName);
-    const CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
     const _key = `${new Date()}-${key}.xlsx`;
 
-    return this.doUpload(file, _key, CONTENT_TYPE);
+    return this.doUpload(file, _key);
   }
-  doUpload(data, key, ContentType: string) {
+  doUpload(data, key) {
     const config: any = {
       Bucket: bucket,
       Key: key,
       Body: data,
-      ContentType,
+      ContentType: CONTENT_TYPE,
       ACL: CONTENT_READ,
     };
 
