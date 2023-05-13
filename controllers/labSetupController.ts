@@ -107,7 +107,7 @@ async function postScore(req, res) {
   const studentId = req.student._id;
   const experimentId = req.body.experimentId;
   try {
-    const experiment = await LabExperiment.findOne({ _id: experimentId, student: studentId });
+    const experiment: any = await labAssignmentService.getByExperimentId(experimentId, { student: studentId });
 
     if (!experiment) throw new NotFoundError("experiment not found");
 

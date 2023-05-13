@@ -1,6 +1,8 @@
+import { Request } from "express";
 import { StudentTeacher } from "../../models/teacherStudent";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
 import NotFoundError from "../exceptions/not-found";
+import teacherProfileService from "../teacher/profile.service";
 
 class StudentTeacherService {
   async create(teacherId, studentId, classId?) {
@@ -23,9 +25,13 @@ class StudentTeacherService {
 
       await studentClass.save();
     }
+
+    const schoolId = await teacherProfileService.getSelectedSchool(teacherId);
+
     const newStudentTeacher = new StudentTeacher({
       teacher: teacherId,
       student: studentId,
+      school: schoolId,
     });
 
     return newStudentTeacher.save();
@@ -75,8 +81,13 @@ class StudentTeacherService {
   async findOne(conditions) {
     return StudentTeacher.findOne(conditions);
   }
-  async getTeacherStudents(teacherId) {
-    const students = await StudentTeacher.find({ teacher: teacherId }).populate({
+  async getTeacherStudents(req: Request) {
+    const conditions: any = { teacher: req.teacher._id };
+
+    if (req.teacher.school_id) {
+      conditions.school = req.teacher.school_id;
+    }
+    const students = await StudentTeacher.find(conditions).populate({
       path: "student",
       select: "name email userName imageUrl avatar _id",
     });

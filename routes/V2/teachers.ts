@@ -8,15 +8,16 @@ import { teacherAuth } from "../../middleware/auth";
 import teachersController from "../../controllers/V2/teacherController";
 
 import { teacherMCQController } from "../../controllers/V2/teacherMCQ.controller";
+import { techerProfileMiddleware } from "../../middleware/profile";
 
 // create a teacher
 router.post("/", teachersController.createTeacher);
 
 // get teacher students
 
-router.get("/students", teacherAuth, teachersController.getStudents);
+router.get("/students", techerProfileMiddleware.build(), teachersController.getStudents);
 
-router.get("/students/score", teacherAuth, teachersController.getStudentScores);
+router.get("/students/score", techerProfileMiddleware.build(), teachersController.getStudentScores);
 
 // delete only teacher student
 /**
@@ -34,7 +35,7 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // get teacher classes
 
-router.get("/classes", teacherAuth, teachersController.getClass);
+router.get("/classes", techerProfileMiddleware.build(), teachersController.getClass);
 
 // post: Teacher avatar
 

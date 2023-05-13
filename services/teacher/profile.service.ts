@@ -1,17 +1,15 @@
-import { Teacher } from "../../models/teacher";
 import NotFoundError from "../exceptions/not-found";
-import { passwordService } from "../passwordService";
-import generateRandomString from "../../utils/randomStr";
-import { StudentTeacher } from "../../models/teacherStudent";
-import Logger from "../../utils/logger";
-import { Student } from "../../models/student";
-import { Profile } from "../../models/profile";
-import { SchoolTeacher } from "../../models/schoolTeacher";
+
+import { Profile, ProfileAttr } from "../../models/profile";
+
 import { SchoolAdmin } from "../../models/schoolAdmin";
 
 class TeacherProfileService {
+  async findById(id: string): Promise<ProfileAttr | null> {
+    return Profile.findOne({ teacher: id });
+  }
   async update(teacherId: string, data: { school_id: string }) {
-    let profile = await Profile.findOne({ teacher: teacherId });
+    let profile = await this.findById(teacherId);
     if (data.school_id) await this.checkIsSchoolValid(data.school_id);
 
     if (!profile) {
@@ -25,8 +23,8 @@ class TeacherProfileService {
     );
   }
 
-  async create(teacherId: string) {
-    const profile = new Profile({
+  async create(teacherId: string): Promise<ProfileAttr> {
+    const profile: any = new Profile({
       teacher: teacherId,
     });
 
@@ -39,6 +37,14 @@ class TeacherProfileService {
     if (!school) throw new NotFoundError("school not found");
 
     return school;
+  }
+
+  async getSelectedSchool(id: string): Promise<string | null> {
+    const profile = await this.findById(id);
+
+    if (!profile) return null;
+
+    return profile.selectedSchool?.toString() || null;
   }
 }
 const teacherProfileService = new TeacherProfileService();

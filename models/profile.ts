@@ -1,4 +1,11 @@
 import mongoose from "mongoose";
+export interface ProfileAttr {
+  _id: string;
+  teacher: string | null;
+  student: string | null;
+  selectedSchool: string | null;
+  isActive: boolean;
+}
 
 const profileSchema = new mongoose.Schema({
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },

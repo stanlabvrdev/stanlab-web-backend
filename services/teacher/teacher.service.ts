@@ -8,6 +8,8 @@ import { Student } from "../../models/student";
 
 import { SchoolTeacher } from "../../models/schoolTeacher";
 
+import teacherProfileService from "./profile.service";
+
 class TeacherService {
   async findOne(conditions) {
     return Teacher.findOne(conditions);
@@ -19,6 +21,8 @@ class TeacherService {
     data.password = data.password || hashedPassword;
     data.email = data.email || data.userName;
 
+    const schoolId = await teacherProfileService.getSelectedSchool(teacherId);
+
     let student = new Student(data);
 
     student = await student.save();
@@ -26,6 +30,7 @@ class TeacherService {
     const studentTeacher = new StudentTeacher({
       teacher: teacherId,
       student: student._id,
+      school: schoolId,
     });
 
     await studentTeacher.save();
