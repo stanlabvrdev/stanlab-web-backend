@@ -9,8 +9,6 @@ import { TeacherClass } from "../../models/teacherClass";
 import { GeneratedQuestions, QuestionGroup } from "../../models/generated-questions";
 import { Request } from "express";
 import mcqAssignment from "../../models/mcqAssignment";
-import { csvUploaderService } from "../csv-uploader";
-import { string } from "joi";
 
 interface ExtendedRequest extends Request {
   file: any;
@@ -55,7 +53,7 @@ class GeneratedQuestionManagementServiceClass {
   async getQuestions(teacherID: string) {
     return await QuestionGroup.find({
       teacher: teacherID,
-    }).populate(populateOptions);
+    });
   }
 
   async deleteQuestionGroup(id: string) {
@@ -99,15 +97,6 @@ class GeneratedQuestionManagementServiceClass {
     };
     const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
     return updatedQuestionGroup;
-  }
-
-  async addImageToQuestion(req: Request) {
-    if (!req.file) throw new CustomError(400, "No, Image uploaded");
-    const key = `${new Date()}-${req.file.originalname}`;
-    const imageData = await csvUploaderService.doUpload(req.file.buffer, key, req.file.mimetype);
-    if (!imageData) throw new CustomError(500, "Image upload not successful");
-
-    return { image: imageData.Location };
   }
 }
 

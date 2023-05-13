@@ -29,10 +29,11 @@ router.post("/invite-teacher", [studentAuth, isFreelanceStudent, paymentAuth], s
 // Post: Register a new Student
 
 const fileFilter = createFileFilter();
+const diskUpload = diskStorage();
 
 router.post("/", studentsController.createStudent);
-router.post("/bulk", uploadFile("student-file", fileFilter, diskStorage), studentsController.bulkCreate);
-router.post("/sign-up/bulk", uploadFile("student-file", fileFilter, diskStorage), studentsController.bulkSignup);
+router.post("/bulk", uploadFile("student-file", fileFilter, diskUpload), studentsController.bulkCreate);
+router.post("/sign-up/bulk", uploadFile("student-file", fileFilter, diskUpload), studentsController.bulkSignup);
 router.post("/sign-up/bulk/download", studentsController.downloadStudents);
 router.post("/password/reset", studentsController.createStudent);
 

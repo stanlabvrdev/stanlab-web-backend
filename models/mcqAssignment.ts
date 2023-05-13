@@ -6,7 +6,7 @@ export interface StudentWork extends Document {
 }
 
 export interface MCQAssignment extends Document {
-  questions: Schema.Types.ObjectId;
+  questions: Schema.Types.ObjectId | undefined;
   classId: Schema.Types.ObjectId;
   startDate: Date;
   dueDate: Date;
