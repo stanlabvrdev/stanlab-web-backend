@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 const questionSchema = new mongoose.Schema({
   question: {
     type: String,
-    required: true,
   },
   image: String,
   options: {
@@ -23,6 +22,11 @@ const questionSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
     required: true,
+  },
+  type: {
+    type: String,
+    required: [true, "Questions should have types"],
+    enum: ["MCQ", "T/F"],
   },
   createdAt: {
     type: Date,
