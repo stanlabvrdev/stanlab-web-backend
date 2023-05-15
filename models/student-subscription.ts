@@ -45,6 +45,7 @@ const studentSubscriptionSchema = new mongoose.Schema({
   },
   startDate: { type: Date, default: Date.now, required: true },
   endDate: { type: Date, required: true },
+  extensionDate: { type: Date, required: true },
   autoRenew: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
 });
