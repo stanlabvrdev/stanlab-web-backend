@@ -5,7 +5,7 @@ import { TeacherClass } from "../../models/teacherClass";
 import { QuestionGroup } from "../../models/generated-questions";
 import BadRequestError from "../exceptions/bad-request";
 import { createTopicalMcqNotification } from "../student/notification";
-import { GeneratedQuestionManagementService } from "./generated-question-service";
+import { QuestionManagementService } from "./generated-question-service";
 import { Request } from "express";
 import mcqAssignment from "../../models/mcqAssignment";
 import { Teacher } from "../../models/teacher";
@@ -24,16 +24,11 @@ interface ExtendedRequest extends Request {
 }
 
 class AssignmentHelperServiceClass {
-  private models;
-  constructor(models) {
-    this.models = models;
-  }
-
   private async getTeacherStudentsByClassAndSchool(classID: string, school: string): Promise<string[]> {
-    const teacherClass = await this.models.TeacherClass.findOne({ _id: classID, school });
+    const teacherClass = await TeacherClass.findOne({ _id: classID, school });
     if (!teacherClass) throw new NotFoundError("Class not found");
 
-    const teacherStudents = await this.models.StudentTeacherClass.find({ school, class: teacherClass._id })
+    const teacherStudents = await StudentTeacherClass.find({ school, class: teacherClass._id })
       .populate({ path: "student", select: ["_id"] })
       .select(["-class", "-school", "-createdAt", "-_id", "-__v"]);
 
@@ -43,7 +38,7 @@ class AssignmentHelperServiceClass {
   }
 
   private async getTeacherClassStudentsByIDAndTeacher(classID: string, teacherID: string) {
-    const teacherClass = await this.models.TeacherClass.findOne({ _id: classID, teacher: teacherID });
+    const teacherClass = await TeacherClass.findOne({ _id: classID, teacher: teacherID });
     if (!teacherClass) throw new NotFoundError("Class not found");
     if (teacherClass.students.length < 1) throw new NotFoundError("No student in this class found");
     return teacherClass.students;
@@ -53,7 +48,7 @@ class AssignmentHelperServiceClass {
     let teacherCurrentSchool;
     let teacherStudents;
     // Find teacher's selected school if any
-    const profile = await this.models.Profile.findOne({ teacher: teacherID });
+    const profile = await Profile.findOne({ teacher: teacherID });
 
     if (profile) {
       teacherCurrentSchool = profile.selectedSchool;
@@ -66,7 +61,7 @@ class AssignmentHelperServiceClass {
   }
 
   async extractQuestions(questGroupID: string, teacher: string) {
-    let questGroup = await this.models.QuestionGroup.findOne({ _id: questGroupID, teacher }).populate(populateOptions);
+    let questGroup = await QuestionGroup.findOne({ _id: questGroupID, teacher }).populate(populateOptions);
     if (!questGroup) throw new NotFoundError("Questions not found");
 
     const foundQuestions = questGroup.questions.map((eachQuestionGroup) => {
@@ -77,14 +72,6 @@ class AssignmentHelperServiceClass {
 }
 
 class AssignmentServiceClass {
-  private AssignmentHelperService;
-  private GeneratedQuestionManagementService;
-
-  constructor(assignmentHelperService, generatedQuestionManagementService) {
-    this.AssignmentHelperService = assignmentHelperService;
-    this.GeneratedQuestionManagementService = generatedQuestionManagementService;
-  }
-
   private validateAssignmentDetails(type: string, duration: string | number) {
     let assignmentType = type === "Test" ? type : "Practice";
     let testDuration = duration ? +duration : undefined;
@@ -100,9 +87,9 @@ class AssignmentServiceClass {
 
     const teacher = await Teacher.findOne({ _id: extendedReq.teacher._id });
 
-    const { questGroup, foundQuestions } = await this.AssignmentHelperService.extractQuestions(questGroupId, extendedReq.teacher._id);
+    const { questGroup, foundQuestions } = await AssignmentHelperService.extractQuestions(questGroupId, extendedReq.teacher._id);
 
-    const { school, students } = await this.AssignmentHelperService.getTeacherStudentsAndSchool(classID, extendedReq.teacher._id);
+    const { school, students } = await AssignmentHelperService.getTeacherStudentsAndSchool(classID, extendedReq.teacher._id);
 
     const studentWork = students.map((studentID: string) => {
       return {
@@ -135,7 +122,7 @@ class AssignmentServiceClass {
   }
 
   async assignNow(req: Request) {
-    const questGroup = await this.GeneratedQuestionManagementService.saveQuestions(req);
+    const questGroup = await QuestionManagementService.saveQuestions(req);
     req.body.questGroupId = questGroup._id;
     const assignment = await this.assignQuestions(req, createTopicalMcqNotification);
     return assignment;
@@ -147,8 +134,7 @@ class AssignmentServiceClass {
   }
 }
 
-const models = { TeacherClass, Profile, StudentTeacherClass, QuestionGroup };
-const AssignmentHelperService = new AssignmentHelperServiceClass(models);
-const AssignmentService = new AssignmentServiceClass(AssignmentHelperService, GeneratedQuestionManagementService);
+const AssignmentHelperService = new AssignmentHelperServiceClass();
+const AssignmentService = new AssignmentServiceClass();
 
 export { AssignmentService };

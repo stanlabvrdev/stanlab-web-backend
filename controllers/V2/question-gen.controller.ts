@@ -4,16 +4,10 @@ import { ServerErrorHandler, ServerResponse } from "../../services/response/serv
 import { Request, Response } from "express";
 
 class QuestionGeneratorControllerClass {
-  private QuestionGenerator;
-
-  constructor(QuestionGenerator) {
-    this.QuestionGenerator = QuestionGenerator;
-  }
-
   genFromFile = async (req: Request, res: Response) => {
     try {
       if (!req.file) throw new CustomError(400, "No file uploaded");
-      const questions = await this.QuestionGenerator.genFromFile(req.file.mimetype, req.file.buffer);
+      const questions = await QuestionGenerator.genFromFile(req.file.mimetype, req.file.buffer);
       return ServerResponse(req, res, 200, questions, "Questions generated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -23,7 +17,7 @@ class QuestionGeneratorControllerClass {
   genFromText = async (req: Request, res: Response) => {
     try {
       if (!req.body.text) throw new CustomError(400, "Upload text to generate questions");
-      const questions = await this.QuestionGenerator.genFromText(req.body.text);
+      const questions = await QuestionGenerator.genFromText(req.body.text);
       return ServerResponse(req, res, 200, questions, "Questions generated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -31,6 +25,6 @@ class QuestionGeneratorControllerClass {
   };
 }
 
-const QuestionGeneratorController = new QuestionGeneratorControllerClass(QuestionGenerator);
+const QuestionGeneratorController = new QuestionGeneratorControllerClass();
 
 export { QuestionGeneratorController };

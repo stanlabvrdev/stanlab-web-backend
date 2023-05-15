@@ -1,4 +1,4 @@
-import { GeneratedQuestionManagementService } from "../../services/QuestionGeneration/generated-question-service";
+import { QuestionManagementService } from "../../services/QuestionGeneration/generated-question-service";
 import { ServerErrorHandler, ServerResponse } from "../../services/response/serverResponse";
 import { Request, Response } from "express";
 
@@ -7,15 +7,9 @@ interface ExtendedRequest extends Request {
 }
 
 class GeneratedQuestionManagementControllerClass {
-  private GeneratedQuestionManagementService;
-
-  constructor(GeneratedQuestionManagementService) {
-    this.GeneratedQuestionManagementService = GeneratedQuestionManagementService;
-  }
-
   saveQuestions = async (req: Request, res: Response) => {
     try {
-      const questGroup = await this.GeneratedQuestionManagementService.saveQuestions(req);
+      const questGroup = await QuestionManagementService.saveQuestions(req);
       return ServerResponse(req, res, 200, questGroup, "Questions saved to 'Question bank'");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -24,7 +18,7 @@ class GeneratedQuestionManagementControllerClass {
 
   editAQuestionGroup = async (req: Request, res: Response) => {
     try {
-      const updatedGroup = await this.GeneratedQuestionManagementService.editQuestionGroup(req);
+      const updatedGroup = await QuestionManagementService.editQuestionGroup(req);
       return ServerResponse(req, res, 200, updatedGroup, "Update successful");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -34,7 +28,7 @@ class GeneratedQuestionManagementControllerClass {
   getQuestions = async (req: Request, res: Response) => {
     const extendedReq = req as ExtendedRequest;
     try {
-      const questions = await this.GeneratedQuestionManagementService.getQuestions(extendedReq.teacher._id);
+      const questions = await QuestionManagementService.getQuestions(extendedReq.teacher._id);
       return ServerResponse(extendedReq, res, 200, questions, "Successful");
     } catch (err) {
       ServerErrorHandler(extendedReq, res, err);
@@ -44,7 +38,7 @@ class GeneratedQuestionManagementControllerClass {
   getAQuestion = async (req: Request, res: Response) => {
     const extendedReq = req as ExtendedRequest;
     try {
-      const data = await this.GeneratedQuestionManagementService.getAQuestionGroup(extendedReq.params.id, extendedReq.teacher._id);
+      const data = await QuestionManagementService.getAQuestionGroup(extendedReq.params.id, extendedReq.teacher._id);
       return ServerResponse(extendedReq, res, data.code, data.data, data.message);
     } catch (err) {
       ServerErrorHandler(extendedReq, res, err);
@@ -53,7 +47,7 @@ class GeneratedQuestionManagementControllerClass {
 
   deleteQuestionGroup = async (req: Request, res: Response) => {
     try {
-      const data = await this.GeneratedQuestionManagementService.deleteQuestionGroup(req.params.id);
+      const data = await QuestionManagementService.deleteQuestionGroup(req.params.id);
       return ServerResponse(req, res, data.code, null, data.message);
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -61,6 +55,6 @@ class GeneratedQuestionManagementControllerClass {
   };
 }
 
-const GeneratedQuestionManagementController = new GeneratedQuestionManagementControllerClass(GeneratedQuestionManagementService);
+const GeneratedQuestionManagementController = new GeneratedQuestionManagementControllerClass();
 
 export { GeneratedQuestionManagementController };

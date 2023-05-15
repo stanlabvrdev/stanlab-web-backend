@@ -3,14 +3,9 @@ import { ServerResponse, ServerErrorHandler } from "../../services/response/serv
 import { Request, Response } from "express";
 
 class TeacherMCQControllerClass {
-  private teacherMCQService;
-  constructor(teacherMCQService) {
-    this.teacherMCQService = teacherMCQService;
-  }
-
   editAssignment = async (req: Request, res: Response) => {
     try {
-      const assignment = await this.teacherMCQService.editAssignment(req);
+      const assignment = await teacherMCQService.editAssignment(req);
       ServerResponse(req, res, 200, assignment, "Topical assignment updated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -19,7 +14,7 @@ class TeacherMCQControllerClass {
 
   deleteAssignment = async (req: Request, res: Response) => {
     try {
-      await this.teacherMCQService.deleteAssignment(req);
+      await teacherMCQService.deleteAssignment(req);
       ServerResponse(req, res, 200, null, "Assignment deleted successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -28,7 +23,7 @@ class TeacherMCQControllerClass {
 
   getAssignmentAssigned = async (req: Request, res: Response) => {
     try {
-      const assigments = await this.teacherMCQService.getAssignmentAssigned(req);
+      const assigments = await teacherMCQService.getAssignmentAssigned(req);
       ServerResponse(req, res, 200, assigments, "Assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -37,7 +32,7 @@ class TeacherMCQControllerClass {
 
   getAssignmentCompleted = async (req: Request, res: Response) => {
     try {
-      const assigments = await this.teacherMCQService.getAssignmentCompleted(req);
+      const assigments = await teacherMCQService.getAssignmentCompleted(req);
       ServerResponse(req, res, 200, assigments, "Assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -46,7 +41,7 @@ class TeacherMCQControllerClass {
 
   getAssignment = async (req: Request, res: Response) => {
     try {
-      const data = await this.teacherMCQService.getAssignment(req);
+      const data = await teacherMCQService.getAssignment(req);
       ServerResponse(req, res, 200, data, "Operation successful");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -54,4 +49,4 @@ class TeacherMCQControllerClass {
   };
 }
 
-export const teacherMCQController = new TeacherMCQControllerClass(teacherMCQService);
+export const teacherMCQController = new TeacherMCQControllerClass();

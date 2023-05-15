@@ -3,14 +3,9 @@ import { ServerErrorHandler, ServerResponse } from "../../services/response/serv
 import { Request, Response } from "express";
 
 class AssignmentControllerClass {
-  private AssignmentService;
-
-  constructor(assignmentService) {
-    this.AssignmentService = assignmentService;
-  }
   assignNow = async (req: Request, res: Response) => {
     try {
-      const assignment = await this.AssignmentService.assignNow(req);
+      const assignment = await AssignmentService.assignNow(req);
       return ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -19,7 +14,7 @@ class AssignmentControllerClass {
 
   assignLater = async (req: Request, res: Response) => {
     try {
-      const assignment = await this.AssignmentService.assignLater(req);
+      const assignment = await AssignmentService.assignLater(req);
       return ServerResponse(req, res, 201, assignment, "Topical assignment assigned");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -27,6 +22,6 @@ class AssignmentControllerClass {
   };
 }
 
-const AssignmentController = new AssignmentControllerClass(AssignmentService);
+const AssignmentController = new AssignmentControllerClass();
 
 export { AssignmentController };
