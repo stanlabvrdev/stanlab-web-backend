@@ -2,13 +2,8 @@ const { isValid } = require("mongoose").Types.ObjectId;
 import CustomError from "../exceptions/custom";
 import BadRequestError from "../exceptions/bad-request";
 import { Profile } from "../../models/profile";
-import { StudentTeacherClass } from "../../models/teacherStudentClass";
-import { Student } from "../../models/student";
-import { Teacher } from "../../models/teacher";
-import { TeacherClass } from "../../models/teacherClass";
 import { GeneratedQuestions, QuestionGroup } from "../../models/generated-questions";
 import { Request } from "express";
-import mcqAssignment from "../../models/mcqAssignment";
 
 interface ExtendedRequest extends Request {
   file: any;
@@ -22,24 +17,18 @@ const populateOptions = {
   },
 };
 
-class GeneratedQuestionManagementServiceClass {
-  private models;
-
-  constructor(models) {
-    this.models = models;
-  }
-
+class QuestionManagementClass {
   async saveQuestions(req: Request) {
     const extendedReq = req as ExtendedRequest;
     const { questions, subject, topic } = extendedReq.body;
 
     const questionsWithIds = questions.filter((question) => question._id);
-    const questionsUpdatePromises = questionsWithIds.map((question) => this.models.GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, { runValidators: true, new: true }));
+    const questionsUpdatePromises = questionsWithIds.map((question) => GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, { runValidators: true, new: true }));
     const updatedQuestions = await Promise.allSettled(questionsUpdatePromises);
     const savedQuestionsID = updatedQuestions.filter((each) => each.status === "fulfilled").map((each: any) => each.value.id);
     if (savedQuestionsID.length < 1) throw new BadRequestError("Cannot save questions");
-    const profile = await this.models.Profile.findOne({ teacher: extendedReq.teacher._id });
-    const questGroup = await this.models.QuestionGroup.create({
+    const profile = await Profile.findOne({ teacher: extendedReq.teacher._id });
+    const questGroup = await QuestionGroup.create({
       teacher: extendedReq.teacher._id,
       subject,
       topic,
@@ -51,19 +40,19 @@ class GeneratedQuestionManagementServiceClass {
   }
 
   async getQuestions(teacherID: string) {
-    return await this.models.QuestionGroup.find({
+    return await QuestionGroup.find({
       teacher: teacherID,
     });
   }
 
   async deleteQuestionGroup(id: string) {
-    const deletedGroup = await this.models.QuestionGroup.findByIdAndDelete(id);
+    const deletedGroup = await QuestionGroup.findByIdAndDelete(id);
     if (deletedGroup) return { code: 200, message: "Deleted Successfully" };
     else return { code: 404, message: "Resource not found" };
   }
 
   async getAQuestionGroup(questionGroupID: string, teacherID: string) {
-    const questionGroup = await this.models.QuestionGroup.findOne({
+    const questionGroup = await QuestionGroup.findOne({
       _id: questionGroupID,
       teacher: teacherID,
     }).populate(populateOptions);
@@ -79,13 +68,13 @@ class GeneratedQuestionManagementServiceClass {
     } = req as ExtendedRequest;
     const options = { runValidators: true, new: true };
 
-    const questionExists = await this.models.QuestionGroup.findOne({ _id: id, teacher: teacher._id });
+    const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
     if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
 
     const updatedIDs: string[] = [];
     for (const question of questions) {
       if (question._id && isValid(question._id)) {
-        const updatedQuestion = await this.models.GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
+        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
         if (updatedQuestion?._id) updatedIDs.push(updatedQuestion._id);
       }
     }
@@ -95,12 +84,11 @@ class GeneratedQuestionManagementServiceClass {
       topic,
       questions: updatedIDs,
     };
-    const updatedQuestionGroup = await this.models.QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
+    const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
     return updatedQuestionGroup;
   }
 }
 
-const models = { Teacher, Student, TeacherClass, Profile, StudentTeacherClass, GeneratedQuestions, QuestionGroup, mcqAssignment };
-const GeneratedQuestionManagementService = new GeneratedQuestionManagementServiceClass(models);
+const QuestionManagementService = new QuestionManagementClass();
 
-export { GeneratedQuestionManagementService };
+export { QuestionManagementService };

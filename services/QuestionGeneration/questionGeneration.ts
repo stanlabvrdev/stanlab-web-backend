@@ -1,5 +1,5 @@
 import axios from "axios";
-import { parser, ParserInterface } from "../../utils/docParse";
+import { parser } from "../../utils/docParse";
 import CustomError from "../exceptions/custom";
 import env from "../../config/env";
 import { GeneratedQuestions } from "../../models/generated-questions";
@@ -20,14 +20,6 @@ interface QuizQuestion {
 }
 
 class QuestionGenerationClass {
-  private parser: ParserInterface;
-  private GeneratedQuestionsModel;
-
-  constructor(parser: ParserInterface, GeneratedQuestionsModel) {
-    this.parser = parser;
-    this.GeneratedQuestionsModel = GeneratedQuestionsModel;
-  }
-
   private callToModel(context: string) {
     try {
       return axios.post(QUESTION_GENERATION_MODEL!, {
@@ -39,8 +31,8 @@ class QuestionGenerationClass {
     }
   }
 
-  async genFromFile(fileType: string, buffer: Buffer): Promise<Questions[]> {
-    const formattedData = await this.parser.parse(buffer, fileType);
+  async genFromFile(fileType: string, buffer: Buffer) {
+    const formattedData = await parser.parse(buffer, fileType);
     const callsToModel = formattedData.map((eachBlockofText) => this.callToModel(eachBlockofText));
     //Resolve promises and extract questions
     const questions: QuizQuestion[] = (await Promise.allSettled(callsToModel)).filter((each: any) => each.status === "fulfilled").map((each: any) => each.value.data);
@@ -50,7 +42,7 @@ class QuestionGenerationClass {
     } else throw new CustomError(500, "Question Generation unsuccessful");
   }
 
-  async genFromText(text: string): Promise<Questions[]> {
+  async genFromText(text: string) {
     const questions: QuizQuestion = (await this.callToModel(text)).data;
     if (!(Object.keys(questions).length === 0)) {
       const formattedQuestions = this.formatQuestions([questions]);
@@ -86,11 +78,11 @@ class QuestionGenerationClass {
   }
 
   private async saveGeneratedQuestions(questions: Questions[]) {
-    const savedQuestions = await this.GeneratedQuestionsModel.insertMany(questions, { rawResult: false });
+    const savedQuestions = await GeneratedQuestions.insertMany(questions, { rawResult: false });
     return savedQuestions;
   }
 }
 
-const QuestionGenerator = new QuestionGenerationClass(parser, GeneratedQuestions);
+const QuestionGenerator = new QuestionGenerationClass();
 
 export { QuestionGenerator };
