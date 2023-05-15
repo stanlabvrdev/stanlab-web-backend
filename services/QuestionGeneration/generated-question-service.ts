@@ -51,19 +51,19 @@ class GeneratedQuestionManagementServiceClass {
   }
 
   async getQuestions(teacherID: string) {
-    return await QuestionGroup.find({
+    return await this.models.QuestionGroup.find({
       teacher: teacherID,
     });
   }
 
   async deleteQuestionGroup(id: string) {
-    const deletedGroup = await QuestionGroup.findByIdAndDelete(id);
+    const deletedGroup = await this.models.QuestionGroup.findByIdAndDelete(id);
     if (deletedGroup) return { code: 200, message: "Deleted Successfully" };
     else return { code: 404, message: "Resource not found" };
   }
 
   async getAQuestionGroup(questionGroupID: string, teacherID: string) {
-    const questionGroup = await QuestionGroup.findOne({
+    const questionGroup = await this.models.QuestionGroup.findOne({
       _id: questionGroupID,
       teacher: teacherID,
     }).populate(populateOptions);
@@ -79,13 +79,13 @@ class GeneratedQuestionManagementServiceClass {
     } = req as ExtendedRequest;
     const options = { runValidators: true, new: true };
 
-    const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
+    const questionExists = await this.models.QuestionGroup.findOne({ _id: id, teacher: teacher._id });
     if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
 
     const updatedIDs: string[] = [];
     for (const question of questions) {
       if (question._id && isValid(question._id)) {
-        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
+        const updatedQuestion = await this.models.GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
         if (updatedQuestion?._id) updatedIDs.push(updatedQuestion._id);
       }
     }
@@ -95,7 +95,7 @@ class GeneratedQuestionManagementServiceClass {
       topic,
       questions: updatedIDs,
     };
-    const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
+    const updatedQuestionGroup = await this.models.QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
     return updatedQuestionGroup;
   }
 }

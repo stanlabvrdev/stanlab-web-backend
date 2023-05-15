@@ -69,7 +69,6 @@ class TeacherMCQStudentClass {
     const assignmentsCompleted = await this.getAssignmentsByCriteria(req, {
       "students.scores": { $ne: [], $exists: true },
     });
-    console.log(req.originalUrl);
     return assignmentsCompleted;
   }
 
