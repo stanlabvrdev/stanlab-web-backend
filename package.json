@@ -22,6 +22,7 @@
         "cors": "^2.8.5",
         "dotenv": "^16.0.3",
         "express": "^4.17.1",
+        "flutterwave-node-v3": "^1.1.5",
         "generate-password": "^1.7.0",
         "google-auth-library": "^6.1.4",
         "joi": "^17.3.0",
