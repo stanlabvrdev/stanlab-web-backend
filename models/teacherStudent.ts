@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const studentTeacherSchema = new mongoose.Schema({
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
   student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+  school: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin", default: null },
   teacherApproved: { type: Boolean, default: true },
   studentApproved: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now() },

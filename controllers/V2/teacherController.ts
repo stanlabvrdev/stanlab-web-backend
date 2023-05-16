@@ -19,6 +19,8 @@ import BadRequestError from "../../services/exceptions/bad-request";
 
 import studentTeacherService from "../../services/teacherClass/teacher-student";
 import teacherClassService from "../../services/teacherClass/teacherClass.service";
+import teacherService from "../../services/teacher/teacher.service";
+import { Request, Response } from "express";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -326,29 +328,38 @@ async function getTeacher(req, res) {
     ServerErrorHandler(req, res, error);
   }
 }
-
-async function getStudents(req, res) {
+async function getStudents(req: Request, res: Response) {
   try {
-    const teacher = await Teacher.findOne({ _id: req.teacher._id })
-      .populate({
-        path: "students.student",
-        select: "name email",
-      })
-      .select("students");
+    const students = await studentTeacherService.getTeacherStudents(req);
 
-    let students = teacher.students;
-
-    if (students.length > 0) {
-      students = students.map((data) => data.student);
-    }
-    res.send({
-      message: "students successfully fetched",
-      data: students,
-    });
+    ServerResponse(req, res, 200, students, "student fetched successfully");
+    res.send(students);
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
 }
+// async function getStudents(req, res) {
+//   try {
+//     const teacher = await Teacher.findOne({ _id: req.teacher._id })
+//       .populate({
+//         path: "students.student",
+//         select: "name email",
+//       })
+//       .select("students");
+
+//     let students = teacher.students;
+
+//     if (students.length > 0) {
+//       students = students.map((data) => data.student);
+//     }
+//     res.send({
+//       message: "students successfully fetched",
+//       data: students,
+//     });
+//   } catch (error) {
+//     ServerErrorHandler(req, res, error);
+//   }
+// }
 
 async function getStudentScores(req, res) {
   const teacherId = req.teacher._id;

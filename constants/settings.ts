@@ -1,0 +1,4 @@
+export const SETTINGS_CONSTANTS = Object.freeze({
+  SUBSCRIPTION_EXTENSION: 7,
+  FREE_SUBSCRIPTION_TITLE: "Free"
+});
