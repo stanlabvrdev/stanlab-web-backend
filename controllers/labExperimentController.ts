@@ -85,7 +85,7 @@ async function getLabStudents(req, res) {
     };
 
     if (experiment_id) {
-      filter.experiment = experiment_id;
+      filter["experiment._id"] = experiment_id;
     }
 
     const labs = await labAssignmentService.getLabs(filter);

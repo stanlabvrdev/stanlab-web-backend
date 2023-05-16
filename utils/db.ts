@@ -12,7 +12,7 @@ async function runEperimentLabelSeed() {
   if (experiments.length > 0) {
     let counter = experiments.length;
     for (let data of experiments) {
-      const words = data.experiment.name.split(" ");
+      const words = data.experiment?.name.split(" ");
       const name = words.slice(0, words.length - 1).join(" ");
 
       const updateData = { "experiment.label": name };
