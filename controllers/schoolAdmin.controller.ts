@@ -42,11 +42,11 @@ export const createTeacher = async (req, res) => {
     const { error } = validateSchoolUser(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    const teacher = await schoolAdminService.createTeacher(
+    await schoolAdminService.createTeacher(
       req.body,
       req.school._id
     );
-    ServerResponse(req, res, 201, teacher, "invitation sent sucessfully");
+    ServerResponse(req, res, 201, null, "invitation sent sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -81,11 +81,11 @@ export const bulkCreateStudents = async (req, res) => {
 
 export const bulkCreateTeachers = async (req, res) => {
   try {
-    const teachers = await schoolAdminService.bulkCreateTeachers(
+    await schoolAdminService.bulkCreateTeachers(
       req,
       req.school._id
     );
-    ServerResponse(req, res, 201, teachers, "teachers added sucessfully");
+    ServerResponse(req, res, 201, null, "teachers added sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }

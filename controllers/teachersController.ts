@@ -124,15 +124,24 @@ async function createTeacher(req, res) {
   if (registeredStudent) return res.status(401).send({ message: "You cannot use same email registered as Student" });
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
+  let token;
   let teacher = await Teacher.findOne({ email });
-  if (teacher) return res.status(400).send({ message: "Email already Registered" });
-  teacher = new Teacher({
-    name,
-    password,
-    email,
-  });
-  await teacher.save();
-  const token = teacher.generateAuthToken();
+
+  if (!teacher) {
+    teacher = new Teacher({
+      name,
+      password,
+      email,
+    });
+    await teacher.save();
+    token = teacher.generateAuthToken();
+  }
+
+  if (teacher && teacher.schoolTeacher === false) {
+    return res.status(400).send({ message: "Email already Registered" });
+  }
+  token = teacher.generateAuthToken();
+
   res
     .header("x-auth-token", token)
     .header("access-control-expose-headers", "x-auth-token")

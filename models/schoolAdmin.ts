@@ -45,7 +45,7 @@ const schoolAdminSchema = new mongoose.Schema<SchoolDoc>({
   teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teacher" }],
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   activities: { type: Array },
-  country: { type: String },
+  country: { type: String, required: true },
   role: { type: String, default: "School" },
 });
 
