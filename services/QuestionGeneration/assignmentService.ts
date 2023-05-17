@@ -65,7 +65,7 @@ class AssignmentHelperServiceClass {
     if (!questGroup) throw new NotFoundError("Questions not found");
 
     const foundQuestions = questGroup.questions.map((eachQuestionGroup) => {
-      return { question: eachQuestionGroup.question, image: eachQuestionGroup.image, options: eachQuestionGroup.options };
+      return { question: eachQuestionGroup.question, image: eachQuestionGroup.image, options: eachQuestionGroup.options, type: eachQuestionGroup.type };
     });
     return { questGroup, foundQuestions };
   }
