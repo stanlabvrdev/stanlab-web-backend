@@ -3,11 +3,14 @@ import { parser } from "../../utils/docParse";
 import CustomError from "../exceptions/custom";
 import env from "../../config/env";
 import { GeneratedQuestions } from "../../models/generated-questions";
-const QUESTION_GENERATION_MODEL = env.getAll().question_generation_model;
+import BadRequestError from "../exceptions/bad-request";
+const { question_generation_model: QUESTION_GENERATION_MODEL, true_or_false_model: TRUE_OR_FALSE_MODEL } = env.getAll();
+import { Document } from "mongoose";
 
 interface Questions {
-  question: string;
+  question: string | undefined;
   options: Option[];
+  type: string;
 }
 
 interface Option {
@@ -19,70 +22,93 @@ interface QuizQuestion {
   [question: string]: string[];
 }
 
-class QuestionGenerationClass {
-  private callToModel(context: string) {
-    try {
-      return axios.post(QUESTION_GENERATION_MODEL!, {
-        context,
-        option_set: "Wordnet", //can take on another value such as "other"});
-      });
-    } catch (err) {
-      throw err;
+abstract class QuestionGeneratorr {
+  abstract generate(text: string): Promise<Questions[]>;
+}
+
+class MCQQuestionGenerator extends QuestionGeneratorr {
+  async generate(text: string): Promise<Questions[]> {
+    const callToModel = await axios.post(QUESTION_GENERATION_MODEL!, { context: text, option_set: "Wordnet" /*can take on another value such as "other"*/ });
+    const questions: QuizQuestion = callToModel.data;
+    return Object.keys(questions).length !== 0 ? formatQuestions.formatMCQ(questions) : [];
+  }
+}
+
+class TFQuestionGenerator extends QuestionGeneratorr {
+  async generate(text: string): Promise<Questions[]> {
+    const callToModel = await axios.post(TRUE_OR_FALSE_MODEL!, { text });
+    const questions: string[][] = callToModel.data;
+    return questions.length !== 0 ? formatQuestions.formatTrueorFalse(questions) : [];
+  }
+}
+
+class QuestionGeneratorFactory {
+  static create(type: string): QuestionGeneratorr {
+    if (type === "MCQ") {
+      return new MCQQuestionGenerator();
+    } else if (type === "TOF") {
+      return new TFQuestionGenerator();
+    } else {
+      throw new BadRequestError("Invalid question type");
     }
   }
+}
 
-  async genFromFile(fileType: string, buffer: Buffer) {
+class QuestionGenerationService {
+  async genFromFile(type: string, fileType: string, buffer: Buffer): Promise<Document<Questions>[]> {
     const formattedData = await parser.parse(buffer, fileType);
-    const callsToModel = formattedData.map((eachBlockofText) => this.callToModel(eachBlockofText));
-    //Resolve promises and extract questions
-    const questions: QuizQuestion[] = (await Promise.allSettled(callsToModel)).filter((each: any) => each.status === "fulfilled").map((each: any) => each.value.data);
-    if (questions && questions.length !== 0) {
-      const formattedQuestions = this.formatQuestions(questions);
-      return await this.saveGeneratedQuestions(formattedQuestions);
-    } else throw new CustomError(500, "Question Generation unsuccessful");
+    const generator = QuestionGeneratorFactory.create(type);
+    const callsToModel = formattedData.map((eachBlockofText) => generator.generate(eachBlockofText));
+    const [questions] = (await Promise.allSettled(callsToModel)).filter((each: any) => each.status === "fulfilled").map((each: any) => each.value);
+    if (questions.length < 1) throw new CustomError(500, "Question Generation unsuccessful");
+    return await this.saveGeneratedQuestions(questions);
   }
 
-  async genFromText(text: string) {
-    const questions: QuizQuestion = (await this.callToModel(text)).data;
-    if (!(Object.keys(questions).length === 0)) {
-      const formattedQuestions = this.formatQuestions([questions]);
-      return await this.saveGeneratedQuestions(formattedQuestions);
-    } else throw new CustomError(500, "Question Generation unsuccessful");
+  async genFromText(type: string, text: string): Promise<Document<Questions>[]> {
+    const generator = QuestionGeneratorFactory.create(type);
+    const questions = await generator.generate(text);
+    if (questions.length < 1) throw new CustomError(500, "Question Generation unsuccessful");
+    return await this.saveGeneratedQuestions(questions);
   }
 
-  private formatQuestions(arrayOfQuestions: QuizQuestion[]): Questions[] {
-    const finalQuestions: Questions[] = [];
-    arrayOfQuestions.forEach((each: QuizQuestion) => {
-      const entries: [string, string[]][] = Object.entries(each);
-      for (let [question, options] of entries) {
-        let formattedOptions: Option[] = options.map((each) => {
-          if (each.startsWith("Ans:")) {
-            return {
-              answer: each.split(": ")[1],
-              isCorrect: true,
-            };
-          } else {
-            return {
-              answer: each,
-              isCorrect: false,
-            };
-          }
-        });
-        finalQuestions.push({
-          question,
-          options: formattedOptions,
-        });
-      }
-    });
-    return finalQuestions;
-  }
-
-  private async saveGeneratedQuestions(questions: Questions[]) {
+  private async saveGeneratedQuestions(questions: Questions[]): Promise<Document<Questions>[]> {
     const savedQuestions = await GeneratedQuestions.insertMany(questions, { rawResult: false });
     return savedQuestions;
   }
 }
 
-const QuestionGenerator = new QuestionGenerationClass();
+class FormatQuestionsClass {
+  formatMCQ(question: QuizQuestion): Questions[] {
+    const entries: [string, string[]][] = Object.entries(question);
+    const formattedQuestions = entries.map((entry: [string, string[]]): Questions => {
+      const [questionText, options] = entry;
+      const formattedOptions = options.map(
+        (option): Option => ({
+          answer: option.startsWith("Ans:") ? option.substring(5) : option,
+          isCorrect: option.startsWith("Ans:"),
+        })
+      );
 
-export { QuestionGenerator };
+      return { question: questionText, options: formattedOptions, type: "MCQ" };
+    });
+    return formattedQuestions;
+  }
+
+  formatTrueorFalse(arrayOfQuestions: string[][]): Questions[] {
+    const formattedArray: Questions[] = arrayOfQuestions.map((nestedArray: string[]) => {
+      const options = nestedArray.slice(0, 2).map((option, index) => ({
+        answer: option.startsWith("True: ") ? option.substring(6) : option,
+        isCorrect: option.startsWith("True: ") && index === 0,
+      }));
+
+      return { question: undefined, options, type: "TOF" };
+    });
+    return formattedArray;
+  }
+}
+
+const formatQuestions = new FormatQuestionsClass();
+
+const questionGenerationService = new QuestionGenerationService();
+
+export { questionGenerationService };
