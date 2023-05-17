@@ -1,17 +1,12 @@
 //This class exposes methods that handle contracts that involve the MCQs - may later be extended to also handle true/false questions when they are available
 import { ServerResponse, ServerErrorHandler } from "../../services/response/serverResponse";
-import { studentMCQInstance } from "../../services/studentMCQ.services";
+import { studentMCQInstance } from "../../services/QuestionGeneration/studentMCQ.services";
 import { Request, Response } from "express";
 
 class StudentMCQControllerClass {
-  private studentMCQService;
-  constructor(studentMCQService) {
-    this.studentMCQService = studentMCQService;
-  }
-
   getAssignments = async (req: Request, res: Response): Promise<any> => {
     try {
-      const assignments = await this.studentMCQService.getAssignments(req);
+      const assignments = await studentMCQInstance.getAssignments(req);
       ServerResponse(req, res, 200, assignments, "Topical assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -20,7 +15,7 @@ class StudentMCQControllerClass {
 
   getAssignment = async (req: Request, res: Response): Promise<any> => {
     try {
-      const assignment = await this.studentMCQService.getAssignment(req);
+      const assignment = await studentMCQInstance.getAssignment(req);
       ServerResponse(req, res, 200, assignment, "Assignment fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -29,12 +24,21 @@ class StudentMCQControllerClass {
 
   makeSubmission = async (req: Request, res: Response): Promise<any> => {
     try {
-      const assignment = await this.studentMCQService.makeSubmission(req);
+      const assignment = await studentMCQInstance.makeSubmission(req);
       ServerResponse(req, res, 200, assignment, "Score saved successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  getAssignmentScore = async (req: Request, res: Response): Promise<any> => {
+    try {
+      const score = await studentMCQInstance.getAssignmentScore(req);
+      ServerResponse(req, res, 200, score, "Score fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   };
 }
 
-export const studentMCQController = new StudentMCQControllerClass(studentMCQInstance);
+export const studentMCQController = new StudentMCQControllerClass();
