@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 const questionSchema = new mongoose.Schema({
   question: {
     type: String,
-    required: true,
   },
+  image: String,
   options: {
     type: [
       {
@@ -17,6 +17,16 @@ const questionSchema = new mongoose.Schema({
       },
     ],
     required: true,
+  },
+  draft: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
+  type: {
+    type: String,
+    required: [true, "Questions should have types"],
+    enum: ["MCQ", "T/F"],
   },
   createdAt: {
     type: Date,
@@ -48,7 +58,7 @@ const questionGroupSchema = new mongoose.Schema({
   ],
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SchoolAdmin"
+    ref: "SchoolAdmin",
   },
 });
 
