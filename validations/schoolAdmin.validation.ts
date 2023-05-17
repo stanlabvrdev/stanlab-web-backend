@@ -7,7 +7,7 @@ function validateSchoolAdmin(admin) {
     admin_email: Joi.string().email().required(),
     school_email: Joi.string().email().required(),
     password: Joi.string().min(5).max(255).required(),
-    country: Joi.string(),
+    country: Joi.string().required(),
   });
 
   return schema.validate(admin);
