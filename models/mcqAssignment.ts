@@ -30,7 +30,7 @@ const questionSchema = new mongoose.Schema({
   question: { type: String },
   image: String,
   options: { type: [{ answer: String, isCorrect: { type: Boolean, default: false } }], required: true },
-  type: { type: String, required: [true, "Questions must have a type"], enum: ["MCQ", "T/F"] },
+  type: { type: String, enum: ["MCQ", "T/F"] },
 });
 
 //This model is the student's copy of the assignment
