@@ -1,6 +1,8 @@
 import request from "supertest";
 import app from "../../../app";
 import { AdminCreateTeacher } from "../../../test/school";
+import { SchoolTeacher } from "../../../models/schoolTeacher";
+import { Profile } from "../../../models/profile";
 
 const baseURL = global.baseURL;
 
@@ -22,5 +24,18 @@ it("should create a school teacher", async () => {
       email: "schoolTeacher@school.com",
     });
 
+  const schoolTeacher = await SchoolTeacher.findOne({
+    school: school._id,
+  });
+
+  const profile = await Profile.findOne({
+    selectedSchool: school._id,
+  });
+
   expect(res.statusCode).toBe(201);
+  expect(res.body.data).toBe(null);
+  expect(schoolTeacher).toBeDefined();
+  expect(schoolTeacher.school.toString()).toBe(school._id.toString());
+  expect(profile).toBeDefined();
+  expect(profile.selectedSchool.toString()).toBe(school._id.toString());
 });
