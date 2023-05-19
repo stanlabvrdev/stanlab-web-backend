@@ -4,6 +4,7 @@ import "jest";
 import { sampleText, data, tfData } from "./data";
 import axios from "axios";
 import env from "../../../config/env";
+
 const { question_generation_model: QUESTION_GENERATION_MODEL, true_or_false_model: TRUE_OR_FALSE_MODEL } = env.getAll();
 const baseURL = global.baseURL;
 
@@ -64,7 +65,6 @@ const performQuestionGenerationTest = async (type: string) => {
   const teacher = await global.loginTeacher();
 
   jest.spyOn(axios, "post").mockResolvedValueOnce({ data: [] });
-
   const res = await request(app).post(texturl).set("x-auth-token", teacher.token).send({
     text: sampleText,
     type: type,
