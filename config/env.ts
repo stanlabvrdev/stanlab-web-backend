@@ -23,6 +23,7 @@ interface IEnv {
   aws_access_key_id: string;
   aws_s3_secret: string;
   question_generation_model: string;
+  true_or_false_model: string;
   paystack_payment_URL: string;
   paystack_secret_key: string;
   paystack_verification_URL: string;
@@ -71,6 +72,7 @@ class Env {
       aws_access_key_id: process.env.AWS_S3_ACCESS_KEY!,
       aws_s3_secret: process.env.AWS_S3_SECRET!,
       question_generation_model: process.env.QUESTION_GENERATION_MODEL!,
+      true_or_false_model: process.env.TRUE_OR_FALSE_MODEL!,
       paystack_payment_URL: process.env.PAYSTACK_PAYMENT_URL!,
       paystack_secret_key: process.env.PAYSTACK_SECRET_KEY!,
       paystack_verification_URL: process.env.PAYSTACK_VERIFICATION_URL!,
