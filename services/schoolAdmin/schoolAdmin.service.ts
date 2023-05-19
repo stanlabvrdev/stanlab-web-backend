@@ -56,47 +56,73 @@ class SchoolAdminService {
     return { admin, token };
   }
 
-  async createTeacher(body, schoolId) {
+  async createTeacher(body: any, schoolId: string) {
     const { name, email } = body;
     let password = generateRandomString(7);
 
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     let teacher = await Teacher.findOne({ email });
-    if (teacher) throw new BadRequestError("teacher already exists");
 
-    const hashedPassword = await passwordService.hash(password);
+    if (!teacher) {
+      const hashedPassword = await passwordService.hash(password);
 
-    teacher = new Teacher({
-      name,
-      email,
-      password: hashedPassword,
-      schoolTeacher: true,
+      teacher = new Teacher({
+        name,
+        email,
+        password: hashedPassword,
+        schoolTeacher: true,
+      });
+
+      await teacher.save();
+      sendWelcomeEmailToTeacher(teacher, password);
+
+      const schoolTeacher = new SchoolTeacher({
+        school: school._id,
+        teacher: teacher._id,
+      });
+      await schoolTeacher.save();
+
+      const teacherProfile = new Profile({
+        teacher: teacher._id,
+        selectedSchool: school._id,
+      });
+      await teacherProfile.save();
+
+      const response = {
+        id: teacher._id,
+        name: teacher.name,
+        email: teacher.email,
+        schoolTeacher: teacher.schoolTeacher,
+      };
+      return response;
+    }
+
+    let existingSchoolTeacher = await SchoolTeacher.findOne({
+      school: school._id,
+      teacher: teacher._id,
     });
 
+    if (existingSchoolTeacher) {
+      throw new BadRequestError("teacher already exists in this school");
+    }
+
+    teacher.schoolTeacher = true;
     await teacher.save();
-    sendWelcomeEmailToTeacher(teacher, password);
+
+    // sendWelcomeEmailToTeacher(teacher, password);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
       teacher: teacher._id,
-      schoolTeacher: true,
     });
     await schoolTeacher.save();
 
     const teacherProfile = new Profile({
       teacher: teacher._id,
       selectedSchool: school._id,
-      isActive: true,
     });
     await teacherProfile.save();
-    const response = {
-      id: teacher._id,
-      name: teacher.name,
-      email: teacher.email,
-      schoolTeacher: teacher.schoolTeacher,
-    };
-    return response;
   }
 
   async createStudent(body, schoolId) {
@@ -205,7 +231,7 @@ class SchoolAdminService {
     return response;
   }
 
-  async bulkCreateTeachers(obj, schoolId) {
+  async bulkCreateTeachers(obj: any, schoolId: string) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     const data: any[] = await excelParserService.convertToJSON(obj);
@@ -216,46 +242,64 @@ class SchoolAdminService {
     for (let item of data) {
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
+
       let existingTeacher = await Teacher.findOne({ email: item.Email });
-      if (existingTeacher) {
-        continue;
+
+      if (!existingTeacher) {
+        const teacher = new Teacher({
+          name: getFullName(item.Firstname, item.Surname),
+          email: item.Email,
+          password: hashedPassword,
+          authCode: password,
+          schoolTeacher: true,
+        });
+        promises.push(teacher.save());
+
+        sendWelcomeEmailToTeacher(teacher, password);
+
+        const schoolTeacher = new SchoolTeacher({
+          school: school._id,
+          teacher: teacher._id,
+        });
+        schools.push(schoolTeacher.save());
+
+        const teacherProfile = new Profile({
+          teacher: teacher._id,
+          selectedSchool: school._id,
+        });
+        profile.push(teacherProfile.save());
       }
 
-      const teacher = new Teacher({
-        name: getFullName(item.Firstname, item.Surname),
-        email: item.Email,
-        password: hashedPassword,
-        authCode: password,
-        schoolTeacher: true,
-      });
-      promises.push(teacher.save());
+      if (existingTeacher) {
+        let existingSchoolTeacher = await SchoolTeacher.findOne({
+          school: school._id,
+          teacher: existingTeacher._id,
+        });
 
-      sendWelcomeEmailToTeacher(teacher, password);
+        if (existingSchoolTeacher) {
+          continue;
+        }
 
-      const schoolTeacher = new SchoolTeacher({
-        school: school._id,
-        teacher: teacher._id,
-      });
-      schools.push(schoolTeacher.save());
+        existingTeacher.schoolTeacher = true;
+        await existingTeacher.save();
 
-      const teacherProfile = new Profile({
-        teacher: teacher._id,
-        selectedSchool: school._id,
-        isActive: true,
-      });
-      profile.push(teacherProfile.save());
+        //sendWelcomeEmailToTeacher(existingTeacher, password);
+
+        const schoolTeacher = new SchoolTeacher({
+          school: school._id,
+          teacher: existingTeacher._id,
+        });
+        schools.push(schoolTeacher.save());
+
+        const teacherProfile = new Profile({
+          teacher: existingTeacher._id,
+          selectedSchool: school._id,
+        });
+        profile.push(teacherProfile.save());
+      }
     }
-    const teachers = await Promise.all(promises);
-    await Promise.all(schools);
-    const response = teachers.map((e) => {
-      return {
-        id: e._id,
-        name: e.name,
-        email: e.email,
-        schoolTeacher: e.schoolTeacher,
-      };
-    });
-    return response;
+
+    await Promise.all([promises, schools, profile]);
   }
 
   async getSchoolAdmin(schoolId) {
@@ -355,44 +399,61 @@ class SchoolAdminService {
     await Promise.all(promises);
   }
 
-  async addStudentToClass(schoolId, classId, body) {
+  async addStudentToClass(schoolId: string, classId: string, body: any) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
     if (!school) throw new NotFoundError("school admin not found");
-
-    const student = await Student.find({ _id: body.studentIds });
-    if (!student) throw new NotFoundError("student not found");
 
     const teacherClass = await TeacherClass.findOne({ _id: classId });
     if (!teacherClass) throw new NotFoundError("class not found");
 
-    const promises: any[] = [];
-    student.map(async (element) => {
-      const schoolStudent = await SchoolStudent.find({
-        school: school._id,
-        student: element._id,
-      });
-      if (!schoolStudent) throw new NotFoundError("student not found");
+    const { name } = body;
+    let password = generateRandomString(7);
+    let nameParts = name.split(" ");
+    let userName = await generateUserName(nameParts[0], nameParts[1]);
 
-      let existingStudents = await StudentTeacherClass.findOne({
-        school: school._id,
-        class: teacherClass._id,
-        student: element._id,
-      });
-      if (existingStudents)
-        throw new BadRequestError(
-          "student have already been added to this class"
-        );
+    let student = await Student.findOne({ userName });
+    if (student) throw new BadRequestError("student already exist");
 
-      const studentClass = new StudentTeacherClass({
-        student: element._id,
-        class: teacherClass._id,
-        school: school._id,
-      });
-      promises.push(studentClass.save());
+    const hashedPassword = await passwordService.hash(password);
 
-      await Student.updateOne({ _id: element._id }, { status: "In class" });
+    student = new Student({
+      name,
+      userName,
+      email: userName,
+      password: hashedPassword,
+      authCode: password,
     });
-    await Promise.all(promises);
+
+    const schoolStudent = new SchoolStudent({
+      school: school._id,
+      student: student._id,
+    });
+    await schoolStudent.save();
+
+    const studentClass = new StudentTeacherClass({
+      student: student._id,
+      class: teacherClass._id,
+      school: school._id,
+    });
+    await studentClass.save();
+
+    student.status = "In class";
+    await student.save();
+
+    teacherClass.students.push(student._id);
+    await teacherClass.save();
+
+    const freePlan = await subscriptionService.getFreePlan();
+
+    const studentSubscription = new StudentSubscription({
+      school: school._id,
+      student: student._id,
+      subscriptionPlanId: freePlan._id,
+      endDate: addDaysToDate(freePlan.duration),
+      extensionDate: addDaysToDate(freePlan.duration),
+      autoRenew: false,
+    });
+    await studentSubscription.save();
   }
 
   async getDownload(conditions) {
@@ -471,28 +532,41 @@ class SchoolAdminService {
     return downloadedUrl;
   }
 
-  async addStudentsToClassInBulk(obj, schoolId, classId) {
+  async addStudentsToClassInBulk(obj: any, schoolId: string, classId: string) {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     const teacherClass = await TeacherClass.findOne({ _id: classId });
     if (!teacherClass) throw new NotFoundError("class not found");
 
-    const data: any[] = await excelParserService.convertToJSON(obj);
     const promises: any[] = [];
+    const schools: any[] = [];
+    const subscribers: any[] = [];
+    const classes: any[] = [];
+    const students: any[] = [];
+
+    const data: any[] = await excelParserService.convertToJSON(obj);
 
     for (let item of data) {
-      let student = await Student.findOne({ userName: item.userName });
-      if (!student) {
-        continue;
-      }
+      let password = generateRandomString(7);
+      const hashedPassword = await passwordService.hash(password);
+      let userName = await generateUserName(item.Firstname, item.Surname);
 
-      const schoolStudent = await SchoolStudent.find({
+      let existingStudent = await Student.findOne({ userName });
+      if (existingStudent) throw new BadRequestError("student already exist");
+
+      const student = new Student({
+        name: getFullName(item.Firstname, item.Surname),
+        userName,
+        email: userName,
+        password: hashedPassword,
+        authCode: password,
+      });
+
+      const schoolStudent = new SchoolStudent({
         school: school._id,
         student: student._id,
       });
-      if (!schoolStudent) {
-        continue;
-      }
+      schools.push(schoolStudent.save());
 
       let existingStudents = await StudentTeacherClass.findOne({
         school: school._id,
@@ -507,12 +581,28 @@ class SchoolAdminService {
         class: teacherClass._id,
         school: school._id,
       });
-      promises.push(studentClass.save());
+      classes.push(studentClass.save());
 
-      await Student.updateOne({ _id: student._id }, { status: "In class" });
+      student.status = "In class";
+      promises.push(student.save());
+
+      teacherClass.students.push(student._id);
+      students.push(teacherClass.save());
+
+      const freePlan = await subscriptionService.getFreePlan();
+
+      const studentSubscription = new StudentSubscription({
+        school: school._id,
+        student: student._id,
+        subscriptionPlanId: freePlan._id,
+        endDate: addDaysToDate(freePlan.duration),
+        extensionDate: addDaysToDate(freePlan.duration),
+        autoRenew: false,
+      });
+      subscribers.push(studentSubscription.save());
     }
 
-    await Promise.all(promises);
+    await Promise.all([promises, schools, subscribers, classes, students]);
   }
 
   async getStudentsByClass(schoolId, classId) {
