@@ -127,6 +127,10 @@ async function createTeacher(req, res) {
   let token;
   let teacher = await Teacher.findOne({ email });
 
+  if (teacher && teacher.schoolTeacher === false) {
+    return res.status(400).send({ message: "Email already Registered" });
+  }
+
   if (!teacher) {
     teacher = new Teacher({
       name,
@@ -137,9 +141,6 @@ async function createTeacher(req, res) {
     token = teacher.generateAuthToken();
   }
 
-  if (teacher && teacher.schoolTeacher === false) {
-    return res.status(400).send({ message: "Email already Registered" });
-  }
   token = teacher.generateAuthToken();
 
   res
