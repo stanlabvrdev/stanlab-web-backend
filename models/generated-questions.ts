@@ -25,6 +25,8 @@ const questionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
+    required: [true, "Questions should have types"],
+    enum: ["MCQ", "TOF"],
   },
   createdAt: {
     type: Date,
