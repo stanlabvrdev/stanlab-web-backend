@@ -1,6 +1,8 @@
 import request from "supertest";
 import app from "../../../app";
 import { addStudentToClass, createClass } from "../../../test/school";
+import { SchoolStudent } from "../../../models/schoolStudent";
+import { StudentSubscription } from "../../../models/student-subscription";
 
 const baseURL = global.baseURL;
 
@@ -23,5 +25,18 @@ it("should create a student and add them to the class", async () => {
       name,
     });
 
+  const schoolStudent = await SchoolStudent.findOne({
+    school: school._id,
+  });
+
+  const subscribe = await StudentSubscription.findOne({
+    school: school._id,
+  });
+
   expect(res.statusCode).toBe(200);
+  expect(res.body.data).toBe(null);
+  expect(schoolStudent).toBeDefined();
+  expect(schoolStudent.school.toString()).toBe(school._id.toString());
+  expect(subscribe).toBeDefined();
+  expect(subscribe.school.toString()).toBe(school._id.toString());
 });
