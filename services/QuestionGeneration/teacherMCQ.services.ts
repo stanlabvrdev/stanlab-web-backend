@@ -54,7 +54,10 @@ class TeacherMCQStudentClass {
   }
   async getAssignmentsByCriteria(req: Request, criteria: object) {
     const extendedReq = req as ExtendedRequest;
-    const assignments = await this.mcqAssignmentModel.find({ teacher: extendedReq.teacher._id, ...criteria }).select("-__id -questions -students");
+    const assignments = await this.mcqAssignmentModel
+      .find({ teacher: extendedReq.teacher._id, ...criteria })
+      .select("-__id -questions -students")
+      .populate("classId", "title");
     return assignments;
   }
 
