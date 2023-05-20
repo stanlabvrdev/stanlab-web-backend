@@ -18,11 +18,11 @@ function generateData() {
     const options: string[] = [];
 
     for (let j = 0; j < 4; j++) {
-      const option = faker.string.alpha();
+      const option = faker.random.word();
       options.push(option);
     }
 
-    const answerIndex = faker.number.int({ min: 0, max: 3 });
+    const answerIndex = faker.datatype.number({ min: 0, max: 3 });
     options[answerIndex] = `Ans: ${options[answerIndex]}`;
 
     data.data[question] = options;
