@@ -28,8 +28,8 @@ class GeneratedQuestionManagementControllerClass {
   getQuestions = async (req: Request, res: Response) => {
     const extendedReq = req as ExtendedRequest;
     try {
-      const questions = await QuestionManagementService.getQuestions(extendedReq.teacher._id);
-      return ServerResponse(extendedReq, res, 200, questions, "Successful");
+      const data = await QuestionManagementService.getQuestions(extendedReq.teacher._id);
+      return ServerResponse(extendedReq, res, data.code, data.questions, data.message);
     } catch (err) {
       ServerErrorHandler(extendedReq, res, err);
     }

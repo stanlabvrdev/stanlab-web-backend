@@ -39,10 +39,12 @@ class QuestionManagementClass {
     return questGroup;
   }
 
-  async getQuestions(teacherID: string) {
-    return await QuestionGroup.find({
+  async getQuestions(teacherID: string): Promise<{ code: number; message: string; questions: any }> {
+    const questions = await QuestionGroup.find({
       teacher: teacherID,
     });
+    if (questions.length === 0) return { code: 404, message: "You have no saved questions", questions: null };
+    else return { code: 200, questions, message: "Successful" };
   }
 
   async deleteQuestionGroup(id: string) {
