@@ -104,7 +104,7 @@ describe("Question Group ENDPOINTS", () => {
       const newUrl = `${url}/${id}`;
 
       const res = await request(app).get(newUrl).set("x-auth-token", teacher.token);
-      console.log(res.body);
+
       expect(res.status).toBe(200);
       expect(res.body.message).toBe("Successful");
       expect(res.body.data.questions).toBeInstanceOf(Array);
@@ -116,6 +116,37 @@ describe("Question Group ENDPOINTS", () => {
       const res = await request(app).get(newUrl).set("x-auth-token", teacher.token);
       expect(res.status).toBe(404);
       expect(res.body.message).toBe("Questions, Not found");
+    });
+  });
+
+  describe("EDIT /v2/ai/questions/:id", () => {
+    it("should edit details of a question group", async () => {
+      const teacher = await global.loginTeacher();
+      const questionGroup = await createQuestionGroup(teacher._id);
+      const id = questionGroup._id;
+      const newUrl = `${url}/${id}`;
+      const res = await request(app).put(newUrl).set("x-auth-token", teacher.token).send({
+        questions: questionGroup.questions,
+        subject: "Physics",
+        topic: "Electromagnetism",
+      });
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe("Update successful");
+      expect(res.body.data.questions).toBeInstanceOf(Array);
+      expect(res.body.data.teacher).toEqual(teacher._id.toString());
+    });
+    it("should return a message if the resource is not found", async () => {
+      const teacher = await global.loginTeacher();
+      const newUrl = `${url}/60aae530b4fb6a001f4e93cc`;
+      const questionGroup = await createQuestionGroup(teacher._id);
+      const res = await request(app).put(newUrl).set("x-auth-token", teacher.token).send({
+        questions: questionGroup.questions,
+        subject: "Physics",
+        topic: "Electromagnetism",
+      });
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe("Resource not found or you are not authorized to edit this resource");
     });
   });
 });
