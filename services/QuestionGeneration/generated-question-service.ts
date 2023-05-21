@@ -71,7 +71,7 @@ class QuestionManagementClass {
     const options = { runValidators: true, new: true };
 
     const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
-    if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
+    if (!questionExists) throw new CustomError(404, "Resource not found or you are not authorized to edit this resource");
 
     const updatedIDs: string[] = [];
     for (const question of questions) {
