@@ -87,6 +87,11 @@ class QuestionManagementClass {
     const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
     return updatedQuestionGroup;
   }
+
+  async addImage(req: Request) {
+    if (!req.file.location) throw new CustomError(500, "Image upload unsuccessful");
+    return req.file.location;
+  }
 }
 
 const QuestionManagementService = new QuestionManagementClass();
