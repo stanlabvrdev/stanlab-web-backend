@@ -70,8 +70,8 @@ export function createFileFilter(allowedTypes?: string[]) {
 
 export function awsStorage() {
   return multerS3({
-    s3,
-    bucket,
+    s3: s3,
+    bucket: bucket,
     acl: "public-read",
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
