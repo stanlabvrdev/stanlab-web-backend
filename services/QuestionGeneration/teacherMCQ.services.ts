@@ -8,16 +8,10 @@ interface ExtendedRequest extends Request {
 }
 
 class TeacherMCQStudentClass {
-  private mcqAssignmentModel;
-
-  constructor(mcqAssignmentModel) {
-    this.mcqAssignmentModel = mcqAssignmentModel;
-  }
-
   async editAssignment(req: Request) {
     const extendedReq = req as ExtendedRequest;
     const { id } = extendedReq.params;
-    const assignment = await this.mcqAssignmentModel
+    const assignment = await mcqAssignment
       .findOneAndUpdate(
         {
           teacher: extendedReq.teacher._id,
@@ -45,7 +39,7 @@ class TeacherMCQStudentClass {
     const extendedReq = req as ExtendedRequest;
     const { id } = extendedReq.params;
 
-    const assignment = await this.mcqAssignmentModel.findOneAndDelete({
+    const assignment = await mcqAssignment.findOneAndDelete({
       teacher: extendedReq.teacher._id,
       _id: id,
     });
@@ -54,7 +48,10 @@ class TeacherMCQStudentClass {
   }
   async getAssignmentsByCriteria(req: Request, criteria: object) {
     const extendedReq = req as ExtendedRequest;
-    const assignments = await this.mcqAssignmentModel.find({ teacher: extendedReq.teacher._id, ...criteria }).select("-__id -questions -students");
+    const assignments = await mcqAssignment
+      .find({ teacher: extendedReq.teacher._id, ...criteria })
+      .select("-__id -questions -students")
+      .populate("classId", "title");
     return assignments;
   }
 
@@ -97,11 +94,12 @@ class TeacherMCQStudentClass {
     const { status } = req.query;
     const validQueries = ["assigned", "completed"];
     if (!status || !validQueries.includes(status as string)) throw new BadRequestError("Invalid Request");
-    const assigment = await this.mcqAssignmentModel.findOne({ teacher: extendedReq.teacher._id, _id: id }, { _id: 0, students: 1 }).populate({ path: "students.student", select: "name" });
+    const assigment = await mcqAssignment.findOne({ teacher: extendedReq.teacher._id, _id: id }, { _id: 0, students: 1, classId: 1 }).populate({ path: "students.student", select: "name" }).populate({ path: "classId", select: "title" });
+    if (!assigment) throw new NotFoundError("Assignment not found");
     const students = assigment.students;
     const result = this.assigmnentFilter(students, status as string);
-    return result;
+    return { class: assigment.classId["title"], students: result };
   }
 }
 
-export const teacherMCQService = new TeacherMCQStudentClass(mcqAssignment);
+export const teacherMCQService = new TeacherMCQStudentClass();
