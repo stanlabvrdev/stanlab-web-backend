@@ -27,6 +27,29 @@ export async function createSchool() {
   return school.save();
 }
 
+export async function updateSchool(body) {
+  let {
+    admin_name,
+    school_name,
+    admin_email,
+    school_email,
+    password,
+    country,
+  } = body;
+  password = await passwordService.hash(password);
+  const school = new SchoolAdmin({
+    adminName: "test admin",
+    schoolName: "test school",
+    password,
+    email: "test@school.com",
+    schoolEmail: "test@school.com",
+    role: "School",
+    country: "Nigeria",
+  });
+
+  return school.save();
+}
+
 export async function createTeacherSchool(teacherId: string) {
   const school = await createSchool();
 
