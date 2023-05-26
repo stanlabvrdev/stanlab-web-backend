@@ -53,6 +53,15 @@ class GeneratedQuestionManagementControllerClass {
       ServerErrorHandler(req, res, err);
     }
   };
+
+  addImage = async (req: Request, res: Response) => {
+    try {
+      const location = await QuestionManagementService.addImage(req);
+      return ServerResponse(req, res, 200, location, "Image uploaded successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
 }
 
 const GeneratedQuestionManagementController = new GeneratedQuestionManagementControllerClass();

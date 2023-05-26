@@ -103,6 +103,11 @@ class Env {
       student_google_CLIENT_SECRET: "student-test-secret",
       teacher_google_CLIENT_ID: "teacher-test-id",
       teacher_google_CLIENT_SECRET: "teacher-secret",
+      aws_bucket: "aws-bucket",
+      aws_access_key_id: "aws-access-key",
+      aws_s3_secret: "aws-s3-secret",
+      question_generation_model: "question-gen-endpoint",
+      true_or_false_model: "true_or_false_model",
     };
   }
 }
