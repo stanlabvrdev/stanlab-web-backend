@@ -7,7 +7,7 @@ export interface StudentWork extends Document {
 
 export interface MCQAssignment extends Document {
   questions: Schema.Types.ObjectId | undefined;
-  classId: Schema.Types.ObjectId;
+  classId: string;
   startDate: Date;
   dueDate: Date;
   duration?: number;
@@ -17,6 +17,8 @@ export interface MCQAssignment extends Document {
   comments?: string;
   students: StudentWork[] | undefined;
   school?: Schema.Types.ObjectId;
+  subject: string;
+  topic: string;
 }
 
 //schema for scores since I plan on scores to be an embedded document within the mcq assignment schema
