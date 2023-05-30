@@ -60,7 +60,7 @@ class QuestionGenerationService {
     const generator = QuestionGeneratorFactory.create(type);
     const callsToModel = formattedData.map((eachBlockofText) => generator.generate(eachBlockofText));
     const [questions] = (await Promise.allSettled(callsToModel)).filter((each: any) => each.status === "fulfilled").map((each: any) => each.value);
-    if (questions.length < 1) throw new CustomError(500, "Question Generation unsuccessful");
+    if (!questions || questions.length < 1) throw new CustomError(500, "Question Generation unsuccessful");
     return await this.saveGeneratedQuestions(questions);
   }
 
