@@ -8,7 +8,7 @@ function generateRandomPassage() {
   return passage.trim();
 }
 
-function generateData() {
+function generateFakeMcqData() {
   const data = {
     data: {},
   };
@@ -31,7 +31,7 @@ function generateData() {
   return data;
 }
 
-function generateOptions(numOptions: number) {
+function generateFakeOptions(numOptions: number) {
   const options: string[] = [];
 
   for (let i = 0; i < numOptions; i++) {
@@ -43,8 +43,65 @@ function generateOptions(numOptions: number) {
   return options;
 }
 
-export const sampleText = generateRandomPassage();
-export const data = generateData();
-export const tfData = {
-  data: [generateOptions(4), generateOptions(7), generateOptions(2)],
+function generateFakeQuestionObjects(questionType: string) {
+  const numObjects = Math.floor(Math.random() * 14) + 2; // Random number between 2 and 15
+  const fakeObjects: any = [];
+
+  for (let i = 0; i < numObjects; i++) {
+    let fakeObject;
+
+    if (questionType === "TOF") {
+      fakeObject = {
+        options: [
+          {
+            isCorrect: true,
+            answer: "True",
+          },
+          {
+            isCorrect: false,
+            answer: "False",
+          },
+        ],
+        type: "TOF",
+      };
+    } else if (questionType === "MCQ") {
+      fakeObject = {
+        question: faker.lorem.sentence(),
+        options: [
+          {
+            isCorrect: false,
+            answer: faker.lorem.word(),
+          },
+          {
+            isCorrect: false,
+            answer: faker.lorem.word(),
+          },
+          {
+            isCorrect: false,
+            answer: faker.lorem.word(),
+          },
+          {
+            isCorrect: true,
+            answer: faker.lorem.word(),
+          },
+        ],
+        type: "MCQ",
+      };
+    } else {
+      throw new Error("Invalid question type");
+    }
+
+    fakeObjects.push(fakeObject);
+  }
+
+  return fakeObjects;
+}
+
+export const randoPassage = generateRandomPassage();
+export const fakeMCQData = generateFakeMcqData();
+export const fakeTOFData = {
+  data: [generateFakeOptions(4), generateFakeOptions(7), generateFakeOptions(2)],
 };
+
+export const fakeMCQQuestions = generateFakeQuestionObjects("MCQ");
+export const fakeTOFQuestions = generateFakeQuestionObjects("TOF");

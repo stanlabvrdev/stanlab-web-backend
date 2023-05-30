@@ -28,8 +28,8 @@ class GeneratedQuestionManagementControllerClass {
   getQuestions = async (req: Request, res: Response) => {
     const extendedReq = req as ExtendedRequest;
     try {
-      const questions = await QuestionManagementService.getQuestions(extendedReq.teacher._id);
-      return ServerResponse(extendedReq, res, 200, questions, "Successful");
+      const data = await QuestionManagementService.getQuestions(extendedReq.teacher._id);
+      return ServerResponse(extendedReq, res, data.code, data.questions, data.message);
     } catch (err) {
       ServerErrorHandler(extendedReq, res, err);
     }
@@ -49,6 +49,15 @@ class GeneratedQuestionManagementControllerClass {
     try {
       const data = await QuestionManagementService.deleteQuestionGroup(req.params.id);
       return ServerResponse(req, res, data.code, null, data.message);
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  };
+
+  addImage = async (req: Request, res: Response) => {
+    try {
+      const location = await QuestionManagementService.addImage(req);
+      return ServerResponse(req, res, 200, location, "Image uploaded successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

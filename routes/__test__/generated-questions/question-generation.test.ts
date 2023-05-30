@@ -1,7 +1,7 @@
 import request from "supertest";
 import app from "../../../app";
 import "jest";
-import { sampleText, data, tfData } from "./data";
+import { randoPassage, fakeMCQData, fakeTOFData } from "./data";
 import axios from "axios";
 import env from "../../../config/env";
 
@@ -16,7 +16,7 @@ it("can only be accessed if teacher is signed in", async () => {
 it("should return an error message if correct type is not specified", async () => {
   const teacher = await global.loginTeacher();
   const res = await request(app).post(texturl).set("x-auth-token", teacher.token).send({
-    text: sampleText,
+    text: randoPassage,
   });
 
   expect(res.statusCode).toBe(400);
@@ -28,8 +28,8 @@ const fetchQuestions = async (teacher: any, type: string, model: string, data: a
   jest.spyOn(axios, "post").mockResolvedValueOnce(data);
 
   const res = await request(app).post(texturl).set("x-auth-token", teacher.token).send({
-    text: sampleText,
-    type: type,
+    text: randoPassage,
+    type,
   });
 
   expect(res.statusCode).toBe(200);
@@ -40,25 +40,25 @@ const fetchQuestions = async (teacher: any, type: string, model: string, data: a
   if (type === "MCQ") {
     expect(res.body.data[0].question).toBeDefined();
     expect(axios.post).toHaveBeenCalledWith(model, {
-      context: sampleText,
+      context: randoPassage,
       option_set: "Wordnet",
     });
   } else if (type === "TOF") {
     expect(res.body.data[0].question).toBeUndefined();
     expect(axios.post).toHaveBeenCalledWith(model, {
-      text: sampleText,
+      text: randoPassage,
     });
   }
 };
 
 it("should fetch MCQ questions", async () => {
   const teacher = await global.loginTeacher();
-  await fetchQuestions(teacher, "MCQ", QUESTION_GENERATION_MODEL!, data);
+  await fetchQuestions(teacher, "MCQ", QUESTION_GENERATION_MODEL!, fakeMCQData);
 });
 
 it("should fetch TOF questions", async () => {
   const teacher = await global.loginTeacher();
-  await fetchQuestions(teacher, "TOF", TRUE_OR_FALSE_MODEL!, tfData);
+  await fetchQuestions(teacher, "TOF", TRUE_OR_FALSE_MODEL!, fakeTOFData);
 });
 
 const performQuestionGenerationTest = async (type: string) => {
@@ -66,8 +66,8 @@ const performQuestionGenerationTest = async (type: string) => {
 
   jest.spyOn(axios, "post").mockResolvedValueOnce({ data: [] });
   const res = await request(app).post(texturl).set("x-auth-token", teacher.token).send({
-    text: sampleText,
-    type: type,
+    text: randoPassage,
+    type,
   });
 
   expect(res.statusCode).toBe(500);

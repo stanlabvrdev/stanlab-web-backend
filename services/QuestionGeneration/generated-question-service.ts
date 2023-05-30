@@ -39,10 +39,12 @@ class QuestionManagementClass {
     return questGroup;
   }
 
-  async getQuestions(teacherID: string) {
-    return await QuestionGroup.find({
+  async getQuestions(teacherID: string): Promise<{ code: number; message: string; questions: any }> {
+    const questions = await QuestionGroup.find({
       teacher: teacherID,
     });
+    if (questions.length === 0) return { code: 404, message: "You have no saved questions", questions: null };
+    else return { code: 200, questions, message: "Successful" };
   }
 
   async deleteQuestionGroup(id: string) {
@@ -69,7 +71,7 @@ class QuestionManagementClass {
     const options = { runValidators: true, new: true };
 
     const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
-    if (!questionExists) throw new CustomError(400, "Resource not found or you are not authorized to edit this resource");
+    if (!questionExists) throw new CustomError(404, "Resource not found or you are not authorized to edit this resource");
 
     const updatedIDs: string[] = [];
     for (const question of questions) {
@@ -86,6 +88,11 @@ class QuestionManagementClass {
     };
     const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
     return updatedQuestionGroup;
+  }
+
+  async addImage(req: Request) {
+    if (!req.file.location) throw new CustomError(500, "Image upload unsuccessful");
+    return req.file.location;
   }
 }
 
