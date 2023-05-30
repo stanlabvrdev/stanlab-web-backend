@@ -109,20 +109,24 @@ export class StudentMCQClass {
     }
     assignment.markModified("students");
     await assignment.save();
-    // return studentWork
     return;
   }
 
-  async getAssignmentScore(req: Request): Promise<StudentWork[] | string> {
+  async getAssignmentScore(req: Request): Promise<{ subject: string; topic: string; scores: StudentWork[] }[]> {
     const extendedReq = req as ExtendedRequest;
     const studentID = extendedReq.student._id;
     const { id } = req.params;
-    const assignment = await mcqAssignment.findOne({ _id: id, students: { $elemMatch: { student: studentID } } }).select("-__v -questions");
-    if (!assignment) throw new NotFoundError("Assignment not found");
+    const assignments = await mcqAssignment.find({ classId: id, students: { $elemMatch: { student: studentID } } }).select("-__v -questions");
+    if (!assignments || assignments.length < 1) throw new NotFoundError("No graded assignments at this moment");
 
-    const studentWork = assignment.students!.find((eachStudentWork) => eachStudentWork.student == studentID)!;
-    if (studentWork.scores.length < 1) return "No submissions for this assignment";
-    else return studentWork.scores;
+    const studentWork = assignments.reduce((result: { subject: string; topic: string; scores: StudentWork[] }[], eachAssignment: MCQAssignment) => {
+      const work = eachAssignment.students!.find((eachStudentWork) => eachStudentWork.student == studentID);
+      if (work && work.scores.length > 0) {
+        result.push({ subject: eachAssignment.subject, topic: eachAssignment.topic, scores: work.scores });
+      }
+      return result;
+    }, []);
+    return studentWork;
   }
 }
 
