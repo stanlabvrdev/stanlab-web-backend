@@ -22,11 +22,11 @@ interface QuizQuestion {
   [question: string]: string[];
 }
 
-abstract class QuestionGeneratorr {
+abstract class QuestionGenerator {
   abstract generate(text: string): Promise<Questions[]>;
 }
 
-class MCQQuestionGenerator extends QuestionGeneratorr {
+class MCQQuestionGenerator extends QuestionGenerator {
   async generate(text: string): Promise<Questions[]> {
     const callToModel = await axios.post(QUESTION_GENERATION_MODEL!, { context: text, option_set: "Wordnet" /*can take on another value such as "other"*/ });
     const questions: QuizQuestion = callToModel.data;
@@ -34,7 +34,7 @@ class MCQQuestionGenerator extends QuestionGeneratorr {
   }
 }
 
-class TFQuestionGenerator extends QuestionGeneratorr {
+class TFQuestionGenerator extends QuestionGenerator {
   async generate(text: string): Promise<Questions[]> {
     const callToModel = await axios.post(TRUE_OR_FALSE_MODEL!, { text });
     const questions: string[][] = callToModel.data;
@@ -43,7 +43,7 @@ class TFQuestionGenerator extends QuestionGeneratorr {
 }
 
 class QuestionGeneratorFactory {
-  static create(type: string): QuestionGeneratorr {
+  static create(type: string): QuestionGenerator {
     if (type === "MCQ") {
       return new MCQQuestionGenerator();
     } else if (type === "TOF") {
