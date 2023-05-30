@@ -46,27 +46,40 @@ class TeacherMCQStudentClass {
     if (!assignment) throw new NotFoundError("Assignment not found");
     return;
   }
+
   async getAssignmentsByCriteria(req: Request, criteria: object) {
     const extendedReq = req as ExtendedRequest;
     const assignments = await mcqAssignment
       .find({ teacher: extendedReq.teacher._id, ...criteria })
       .select("-__id -questions -students")
       .populate("classId", "title");
+    if (assignments.length === 0) throw new NotFoundError("No assignments found");
     return assignments;
   }
 
-  async getAssignmentAssigned(req: Request) {
+  async getAssignmentsAssigned(req: Request) {
     const assignmentsAssigned = await this.getAssignmentsByCriteria(req, {
       "students.scores": { $size: 0 },
+      dueDate: { $gte: Date.now() },
     });
+
     return assignmentsAssigned;
   }
 
-  async getAssignmentCompleted(req: Request) {
+  async getAssignmentsCompleted(req: Request) {
     const assignmentsCompleted = await this.getAssignmentsByCriteria(req, {
       "students.scores": { $ne: [], $exists: true },
     });
     return assignmentsCompleted;
+  }
+
+  async getAssignmentsUnassigned(req: Request) {
+    const assignmentUnassigned = await this.getAssignmentsByCriteria(req, {
+      "students.scores": { $size: 0 },
+      dueDate: { $lte: Date.now() },
+    });
+
+    return assignmentUnassigned;
   }
 
   private assigmnentFilter(studentsArr, status: string) {
