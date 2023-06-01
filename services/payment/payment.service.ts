@@ -1,6 +1,7 @@
 import axios from "axios";
 import envConfig from "../../config/env";
 const env = envConfig.getAll();
+const stripe = require("stripe")(env.stripe_Secret_Key);
 
 class PaymentService {
   async PaystackInitializePayment(
@@ -117,6 +118,62 @@ class PaymentService {
       }
     );
 
+    return data;
+  }
+
+  async StripeInitializePayment(
+    email: string,
+    amount: number,
+    currency: string,
+    name: string
+  ) {
+    const customer = await stripe.customers.create({
+      email: email,
+    });
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
+      line_items: [
+        {
+          price_data: {
+            currency: currency,
+            product_data: {
+              name: name,
+            },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: env.redirect_URL,
+      cancel_url: env.redirect_URL,
+    });
+    return session;
+  }
+
+  async StripeVerifyPayment(reference: string) {
+    const session = stripe.checkout.sessions.retrieve(reference);
+
+    return session;
+  }
+
+  async StripeRecurringPayment(
+    customerId: string,
+    paymentId: string,
+    amount: number,
+    currency: string
+  ) {
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: currency,
+      customer: customerId,
+      payment_method: paymentId,
+      off_session: true,
+      confirm: true,
+    });
+
+    const data = await stripe.paymentIntents.confirm(paymentIntent.id);
     return data;
   }
 }

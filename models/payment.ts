@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PAYMENT_TYPES } from "../enums/payment-types";
 
 interface PaymentAttrs {
   email: string;
@@ -13,7 +14,7 @@ interface PaymentAttrs {
   authorizationUrl: string;
   status: string;
   autoRenew: boolean;
-  type: string;
+  type: PAYMENT_TYPES;
   createdAt: Date;
   endDate: Date;
   extensionDate: Date;
@@ -32,7 +33,7 @@ interface PaymentDoc extends mongoose.Document {
   authorizationUrl: string;
   status: string;
   autoRenew: boolean;
-  type: string;
+  type: PAYMENT_TYPES;
   createdAt: Date;
   endDate: Date;
   extensionDate: Date;
@@ -67,7 +68,7 @@ const paymentSchema = new mongoose.Schema({
   authorizationUrl: { type: String },
   status: { type: String },
   autoRenew: { type: Boolean },
-  type: { type: String },
+  type: { type: String, enum: PAYMENT_TYPES, required: true, trim: true },
   createdAt: { type: Date, default: Date.now },
   endDate: { type: Date },
   extensionDate: { type: Date },

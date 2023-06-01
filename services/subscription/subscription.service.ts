@@ -21,7 +21,10 @@ import {
   TRANSACTION_TYPE,
 } from "../../enums/transaction.enum";
 import { Transaction } from "../../models/transaction";
+import { PAYMENT_TYPES } from "../../enums/payment-types";
+import { STRIPE } from "../../constants/locations";
 const env = envConfig.getAll();
+const stripe = require("stripe")(env.stripe_Secret_Key);
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
@@ -67,6 +70,12 @@ class SubscriptionService {
     let school = await SchoolAdmin.findById({ _id: schoolId });
 
     let plans = await SubscriptionPlan.find({ country: school.country });
+
+    if (plans.length === 0) {
+      plans = await SubscriptionPlan.find({ country: "USA" });
+      return plans;
+    }
+
     return plans;
   }
 
@@ -191,6 +200,10 @@ class SubscriptionService {
       }
     }
 
+    if (plan.vat) {
+      totalCost = totalCost + totalCost * plan.vat;
+    }
+
     let response: any;
     let payment: any;
     let extension: number =
@@ -221,7 +234,7 @@ class SubscriptionService {
         authorizationUrl: response.data.authorization_url,
         status: TRANSACTION_STATUS.PENDING,
         autoRenew,
-        type: "Paystack",
+        type: PAYMENT_TYPES.PAYSTACK,
         endDate: addDaysToDate(plan.duration),
         extensionDate: addDaysToDate(extension),
       });
@@ -278,7 +291,7 @@ class SubscriptionService {
         authorizationUrl: response.data.link,
         status: TRANSACTION_STATUS.PENDING,
         autoRenew,
-        type: "Flutterwave",
+        type: PAYMENT_TYPES.FLUTTERWAVE,
         endDate: addDaysToDate(plan.duration),
         extensionDate: addDaysToDate(extension),
       });
@@ -303,6 +316,61 @@ class SubscriptionService {
       transaction.save();
 
       return { response, reference: payment.reference };
+    }
+
+    if (plan.country in STRIPE) {
+      response = await paymentService.StripeInitializePayment(
+        school.email,
+        totalCost * 100,
+        plan.currency,
+        plan.title
+      );
+
+      if (!response || response.status !== "open") {
+        throw new BadRequestError("unable to initialize payment");
+      }
+
+      payment = new Payment({
+        email: school.email,
+        cost: totalCost,
+        currency: plan.currency,
+        country: plan.country,
+        school: school._id,
+        student: studentId,
+        subscriptionPlanId: plan._id,
+        reference: response.id,
+        status: TRANSACTION_STATUS.PENDING,
+        autoRenew,
+        type: PAYMENT_TYPES.STRIPE,
+        endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
+      });
+
+      payment.save();
+
+      let transaction: any = new Transaction({
+        txnRef: generator.generate({
+          length: 15,
+          numbers: true,
+        }),
+        paymentRef: payment.reference,
+        cost: totalCost,
+        currency: plan.currency,
+        type: TRANSACTION_TYPE.SUBSCRIPTION,
+        status: TRANSACTION_STATUS.PENDING,
+        email: school.email,
+        txnFrom: school._id,
+        subscriptionPlanId: plan._id,
+      });
+
+      transaction.save();
+
+      return {
+        data: {
+          status: response.status,
+          data: { url: response.url, reference: response.id },
+        },
+      };
     }
   }
 
@@ -344,7 +412,7 @@ class SubscriptionService {
     let response: any;
     let userPayment: any;
 
-    if (payment.type === "Paystack") {
+    if (payment.type === PAYMENT_TYPES.PAYSTACK) {
       response = await paymentService.PaystackVerifyPayment(reference);
 
       if (response.data.status.toLowerCase() !== "success") {
@@ -369,13 +437,13 @@ class SubscriptionService {
           email: payment.email,
           currency: payment.currency,
           school: payment.school,
-          type: "Paystack",
+          type: PAYMENT_TYPES.PAYSTACK,
         });
         userPayment.save();
       }
     }
 
-    if (payment.type === "Flutterwave") {
+    if (payment.type === PAYMENT_TYPES.FLUTTERWAVE) {
       const flw = new Flutterwave(
         env.flutterwave_public_key,
         env.flutterwave_secret_key
@@ -407,7 +475,7 @@ class SubscriptionService {
 
       userPayment = await UserPayment.findOne({
         school: schoolId,
-        signature: response.data.card.token,
+        token: response.data.card.token,
       });
 
       if (!userPayment) {
@@ -416,6 +484,52 @@ class SubscriptionService {
           email: payment.email,
           currency: payment.currency,
           school: payment.school,
+          type: PAYMENT_TYPES.FLUTTERWAVE,
+        });
+        userPayment.save();
+      }
+    }
+
+    if (payment.type === PAYMENT_TYPES.STRIPE) {
+      response = await paymentService.StripeVerifyPayment(reference);
+
+      if (
+        response.payment_status !== "paid" &&
+        response.status !== "complete"
+      ) {
+        throw new BadRequestError("payment is incomplete");
+      }
+
+      const paymentIntentId = response.payment_intent;
+
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
+
+      if (paymentIntent.status !== "succeeded") {
+        throw new BadRequestError(paymentIntent.status);
+      }
+
+      payment.status = paymentIntent.status;
+
+      transaction.status = TRANSACTION_STATUS.COMPLETED;
+      transaction.channel = response.payment_method_types[0];
+      transaction.transactionDate = new Date(paymentIntent.created * 1000);
+
+      userPayment = await UserPayment.findOne({
+        school: schoolId,
+        customerId: paymentIntent.customer,
+        paymentId: paymentIntent.payment_method,
+      });
+
+      if (!userPayment) {
+        userPayment = new UserPayment({
+          customerId: paymentIntent.customer,
+          paymentId: paymentIntent.payment_method,
+          email: payment.email,
+          currency: payment.currency,
+          school: payment.school,
+          type: PAYMENT_TYPES.STRIPE,
         });
         userPayment.save();
       }
@@ -454,7 +568,7 @@ class SubscriptionService {
     let extension: number =
       plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
-    if (userPayment.type === "Paystack") {
+    if (userPayment.type === PAYMENT_TYPES.PAYSTACK) {
       response = await paymentService.PaystackRecurringPayment(
         userPayment.authorizationCode,
         userPayment.email,
@@ -466,12 +580,12 @@ class SubscriptionService {
         response.status !== true ||
         response.data.gateway_response.toLowerCase() !== "approved"
       ) {
-        throw new BadRequestError("unable to initialize payment");
+        throw new BadRequestError("unable to initialize recurring charge");
       }
 
       let payment: any = new Payment({
         email: userPayment.email,
-        cost: plan.cost * 100,
+        cost: plan.cost,
         currency: plan.currency,
         country: plan.country,
         school: userPayment.school,
@@ -480,7 +594,7 @@ class SubscriptionService {
         reference: response.data.reference,
         status: response.data.status,
         autoRenew: true,
-        type: "Paystack",
+        type: PAYMENT_TYPES.PAYSTACK,
         endDate: addDaysToDate(plan.duration),
         extensionDate: addDaysToDate(extension),
       });
@@ -507,7 +621,7 @@ class SubscriptionService {
       transaction.save();
     }
 
-    if (userPayment.type === "Flutterwave") {
+    if (userPayment.type === PAYMENT_TYPES.FLUTTERWAVE) {
       let generatedReference = generator.generate({
         length: 15,
         numbers: true,
@@ -526,7 +640,7 @@ class SubscriptionService {
         response.status.toLowerCase() !== "success" ||
         response.data.processor_response.toLowerCase() !== "approved"
       ) {
-        throw new BadRequestError("unable to initialize payment");
+        throw new BadRequestError("unable to initialize recurring charge");
       }
 
       let payment: any = new Payment({
@@ -540,7 +654,7 @@ class SubscriptionService {
         reference: generatedReference,
         status: response.data.status,
         autoRenew: true,
-        type: "Flutterwave",
+        type: PAYMENT_TYPES.FLUTTERWAVE,
         endDate: addDaysToDate(plan.duration),
         extensionDate: addDaysToDate(extension),
       });
@@ -562,6 +676,56 @@ class SubscriptionService {
         txnFrom: userPayment.school,
         subscriptionPlanId: plan._id,
         transactionDate: response.data.created_at,
+      });
+
+      transaction.save();
+    }
+
+    if (userPayment.type === PAYMENT_TYPES.STRIPE) {
+      response = await paymentService.StripeRecurringPayment(
+        userPayment.customerId,
+        userPayment.paymentId,
+        plan.cost * 100,
+        userPayment.currency
+      );
+
+      if (!response || response.status !== "succeeded") {
+        throw new BadRequestError("unable to initialize recurring charge");
+      }
+
+      let payment: any = new Payment({
+        email: userPayment.email,
+        cost: plan.cost,
+        currency: plan.currency,
+        country: plan.country,
+        school: userPayment.school,
+        student: studentId,
+        subscriptionPlanId: plan._id,
+        reference: response.id,
+        status: response.status,
+        autoRenew: true,
+        type: PAYMENT_TYPES.STRIPE,
+        endDate: addDaysToDate(plan.duration),
+        extensionDate: addDaysToDate(extension),
+      });
+
+      payment.save();
+
+      let transaction = new Transaction({
+        txnRef: generator.generate({
+          length: 15,
+          numbers: true,
+        }),
+        paymentRef: payment.reference,
+        cost: payment.cost,
+        currency: payment.currency,
+        type: TRANSACTION_TYPE.SUBSCRIPTION,
+        status: TRANSACTION_STATUS.COMPLETED,
+        channel: response.payment_method_types[0],
+        email: userPayment.email,
+        txnFrom: userPayment.school,
+        subscriptionPlanId: plan._id,
+        transactionDate: new Date(response.created * 1000),
       });
 
       transaction.save();
