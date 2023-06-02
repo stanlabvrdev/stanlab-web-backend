@@ -1,12 +1,25 @@
+import { PAYMENT_TYPES } from "../enums/payment-types";
+import {
+  TRANSACTION_STATUS,
+  TRANSACTION_TYPE,
+} from "../enums/transaction.enum";
+import { addDaysToDate } from "../helpers/dateHelper";
+import { Payment } from "../models/payment";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SchoolTeacher } from "../models/schoolTeacher";
 import { Student } from "../models/student";
+import { StudentSubscription } from "../models/student-subscription";
 import { Teacher } from "../models/teacher";
 import { TeacherClass } from "../models/teacherClass";
 import { StudentTeacherClass } from "../models/teacherStudentClass";
+import { Transaction } from "../models/transaction";
 import { passwordService } from "../services";
+import BadRequestError from "../services/exceptions/bad-request";
+import paymentService from "../services/payment/payment.service";
 import { generateUserName } from "../services/student/generator";
+import subscriptionService from "../services/subscription/subscription.service";
 import generateRandomString from "../utils/randomStr";
+import generator from "generate-password";
 
 function generateHash(password) {
   return;
@@ -81,6 +94,18 @@ export async function addStudentToClass(
     school: schoolId,
   });
   await studentClass.save();
+
+  const freePlan = await subscriptionService.getFreePlan();
+
+  const studentSubscription = new StudentSubscription({
+    school: schoolId,
+    student: student._id,
+    subscriptionPlanId: freePlan._id,
+    endDate: addDaysToDate(freePlan.duration),
+    extensionDate: addDaysToDate(freePlan.duration),
+    autoRenew: false,
+  });
+  await studentSubscription.save();
 }
 
 export async function createTeacher(body: {
@@ -118,4 +143,65 @@ export async function AdminCreateTeacher(
   });
 
   await teacherSchool.save();
+}
+
+export async function makePayment(body: any, schoolId: string) {
+  body = {
+    planId: body.plan,
+    studentId: [body.student],
+    autoRenew: false,
+  };
+
+  const school = await SchoolAdmin.findById({ _id: schoolId });
+
+  const response = await paymentService.PaystackInitializePayment(
+    school.email,
+    3000,
+    "NGN",
+    `https://www.google.com/`
+  );
+
+  if (!response || response.status !== true) {
+    throw new BadRequestError("unable to initialize payment");
+  }
+
+  let payment: any = new Payment({
+    email: school.email,
+    cost: 3000,
+    currency: "NGN",
+    country: "Nigeria",
+    school: schoolId,
+    student: body.student,
+    subscriptionPlanId: body.plan,
+    reference: response.data.reference,
+    status: TRANSACTION_STATUS.PENDING,
+    autoRenew: body.autoRenew,
+    type: PAYMENT_TYPES.PAYSTACK,
+  });
+
+  payment.save();
+
+  let transaction: any = new Transaction({
+    txnRef: generator.generate({
+      length: 15,
+      numbers: true,
+    }),
+    paymentRef: payment.reference,
+    cost: payment.cost,
+    currency: payment.currency,
+    type: TRANSACTION_TYPE.SUBSCRIPTION,
+    status: TRANSACTION_STATUS.PENDING,
+    email: school.email,
+    txnFrom: school._id,
+    subscriptionPlanId: body.plan,
+  });
+
+  transaction.save();
+
+  return payment;
+}
+
+export async function verifyPayment(schoolId: string, reference: string) {
+  await SchoolAdmin.findById({ _id: schoolId });
+  await Payment.findOne({ school: schoolId, reference });
 }

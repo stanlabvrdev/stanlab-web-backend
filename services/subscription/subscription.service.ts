@@ -72,7 +72,9 @@ class SubscriptionService {
     let plans = await SubscriptionPlan.find({ country: school.country });
 
     if (plans.length === 0) {
-      plans = await SubscriptionPlan.find({ country: "USA" });
+      plans = await SubscriptionPlan.find({
+        country: "United States of America (the)",
+      });
       return plans;
     }
 

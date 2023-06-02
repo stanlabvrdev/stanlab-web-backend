@@ -15,6 +15,6 @@ export enum FLUTTERWAVE {
 }
 
 export enum STRIPE {
-  "UK",
-  "USA"
+  "United Kingdom of Great Britain and Northern Ireland (the)",
+  "United States of America (the)",
 }

@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 interface CouponAttrs {
   code: string;
   discount: number;
-  school: mongoose.Schema.Types.ObjectId;
+  creator: mongoose.Schema.Types.ObjectId;
   isActive: boolean;
   createdAt: Date;
   endDate: Date;
@@ -12,7 +12,7 @@ interface CouponAttrs {
 interface CouponDoc extends mongoose.Document {
   code: string;
   discount: number;
-  school: mongoose.Schema.Types.ObjectId;
+  creator: mongoose.Schema.Types.ObjectId;
   isActive: boolean;
   createdAt: Date;
   endDate: Date;
