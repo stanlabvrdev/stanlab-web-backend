@@ -126,4 +126,11 @@ export function validateGetQuery(data) {
   return schema.validate(data);
 }
 
+labExperimentSchema.virtual("class", {
+  ref: "TeacherClass", // the collection/model name
+  localField: "classId",
+  foreignField: "_id",
+  justOne: true, // default is false
+});
+
 export const LabExperiment = mongoose.model("LabExperiment", labExperimentSchema);

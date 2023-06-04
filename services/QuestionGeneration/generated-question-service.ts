@@ -23,9 +23,17 @@ class QuestionManagementClass {
     const { questions, subject, topic } = extendedReq.body;
 
     const questionsWithIds = questions.filter((question) => question._id);
-    const questionsUpdatePromises = questionsWithIds.map((question) => GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, { runValidators: true, new: true }));
+    const questionsUpdatePromises = questionsWithIds.map((question) =>
+      GeneratedQuestions.findByIdAndUpdate(
+        question._id,
+        { ...question, draft: false },
+        { runValidators: true, new: true }
+      )
+    );
     const updatedQuestions = await Promise.allSettled(questionsUpdatePromises);
-    const savedQuestionsID = updatedQuestions.filter((each) => each.status === "fulfilled").map((each: any) => each.value.id);
+    const savedQuestionsID = updatedQuestions
+      .filter((each) => each.status === "fulfilled")
+      .map((each: any) => each.value.id);
     if (savedQuestionsID.length < 1) throw new BadRequestError("Cannot save questions");
     const profile = await Profile.findOne({ teacher: extendedReq.teacher._id });
     const questGroup = await QuestionGroup.create({
@@ -71,12 +79,17 @@ class QuestionManagementClass {
     const options = { runValidators: true, new: true };
 
     const questionExists = await QuestionGroup.findOne({ _id: id, teacher: teacher._id });
-    if (!questionExists) throw new CustomError(404, "Resource not found or you are not authorized to edit this resource");
+    if (!questionExists)
+      throw new CustomError(404, "Resource not found or you are not authorized to edit this resource");
 
     const updatedIDs: string[] = [];
     for (const question of questions) {
       if (question._id && isValid(question._id)) {
-        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(question._id, { ...question, draft: false }, options);
+        const updatedQuestion = await GeneratedQuestions.findByIdAndUpdate(
+          question._id,
+          { ...question, draft: false },
+          options
+        );
         if (updatedQuestion?._id) updatedIDs.push(updatedQuestion._id);
       }
     }
@@ -86,11 +99,14 @@ class QuestionManagementClass {
       topic,
       questions: updatedIDs,
     };
-    const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(populateOptions);
+    const updatedQuestionGroup = await QuestionGroup.findByIdAndUpdate(id, { $set: update }, options).populate(
+      populateOptions
+    );
     return updatedQuestionGroup;
   }
 
-  async addImage(req: Request) {
+  // typescript check failed
+  async addImage(req: any) {
     if (!req.file.location) throw new CustomError(500, "Image upload unsuccessful");
     return req.file.location;
   }
