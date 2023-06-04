@@ -687,15 +687,27 @@ class SchoolAdminService {
   }
 
   async updateSchoolAdmin(body: any, schoolId: string) {
-    let { admin_name, school_name, admin_email, school_email, country } = body;
+    let {
+      admin_name,
+      school_name,
+      admin_email,
+      school_email,
+      password,
+      country,
+    } = body;
 
     let admin = await SchoolAdmin.findById({ _id: schoolId });
     if (!admin) throw new BadRequestError("admin not found");
+
+    if (password) {
+      password = await passwordService.hash(password);
+    }
 
     admin.email = admin_email;
     admin.schoolEmail = school_email;
     admin.adminName = admin_name;
     admin.schoolName = school_name;
+    admin.password = password;
     admin.country = country;
 
     return admin.save();
