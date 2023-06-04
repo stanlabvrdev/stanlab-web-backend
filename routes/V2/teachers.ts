@@ -52,17 +52,11 @@ const upload = multer({
 });
 // get published quiz
 
-router.post(
-  "/avatar",
-  teacherAuth,
-  upload.single("avatar"),
-  teachersController.createAvatar,
-  (error, req, res, next) => {
-    res.status(400).send({
-      error: error.message,
-    });
-  }
-);
+router.post("/avatar", teacherAuth, upload.single("avatar"), teachersController.createAvatar, (error, req, res, next) => {
+  res.status(400).send({
+    error: error.message,
+  });
+});
 
 // get teacher avatar
 router.get("/:id/avatar", teachersController.getAvatar);
@@ -95,17 +89,14 @@ router.post("/invite-student", teacherAuth, teachersController.sendInviteToStude
 
 // teacher accept student invitation
 router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
-router.get("/mcq-assignments/assigned", teacherAuth, teacherMCQController.getAssignmentAssigned);
-router.get("/mcq-assignments/completed", teacherAuth, teacherMCQController.getAssignmentCompleted);
+router.get("/mcq-assignments/assigned", teacherAuth, teacherMCQController.getAssignmentsAssigned);
+router.get("/mcq-assignments/completed", teacherAuth, teacherMCQController.getAssignmentsCompleted);
+router.get("/mcq-assignments/unassigned", teacherAuth, teacherMCQController.getAssignmentsUnassigned);
 // get a teacher
 
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
 
-router
-  .route("/mcq-assignments/:id")
-  .put(teacherAuth, teacherMCQController.editAssignment)
-  .delete(teacherAuth, teacherMCQController.deleteAssignment)
-  .get(teacherAuth, teacherMCQController.getAssignment);
+router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getAssignment);
 
 export default router;
