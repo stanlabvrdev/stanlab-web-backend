@@ -22,6 +22,7 @@ import { Profile } from "../models/profile";
 import NotFoundError from "../services/exceptions/not-found";
 import teacherProfileService from "../services/teacher/profile.service";
 import { Request, Response } from "express";
+import { StudentTeacherClass } from "../models/teacherStudentClass";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -66,8 +67,9 @@ async function getClass(req, res) {
   try {
     // const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
 
-    let teacherCurrentSchool;
-    let teacherClasses;
+    let teacherCurrentSchool: string;
+    let teacherClasses: any;
+    let classes: any;
 
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
@@ -77,19 +79,40 @@ async function getClass(req, res) {
       teacherClasses = await TeacherClass.find({
         school: teacherCurrentSchool,
       });
+
+      classes = await Promise.all(
+        teacherClasses.map(async (e) => {
+          const teacherClass = await StudentTeacherClass.find({
+            school: teacherCurrentSchool,
+            class: e._id
+          })
+
+          return {
+            class: e,
+            numberOfStudents: teacherClass.length
+          }
+        })
+      )
     }
 
     if (!profile) {
       teacherClasses = await teacherClassService.getAll({
         teacher: req.teacher._id,
       });
+
+      classes = teacherClasses.map((e) => {
+        return {
+          class: e,
+          numberOfStudents: e.students.length
+        }
+      })
     }
 
     if (!teacherClasses) {
       throw new NotFoundError("class not found");
     }
 
-    ServerResponse(req, res, 200, teacherClasses, "classes fetched sucessfully");
+    ServerResponse(req, res, 200, classes, "classes fetched sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
