@@ -22,10 +22,10 @@ class SchoolAdminService {
   async createSchoolAdmin(body) {
     let {
       admin_name,
+      admin_title,
       school_name,
       password,
       admin_email,
-      school_email,
       country,
     } = body;
 
@@ -33,19 +33,19 @@ class SchoolAdminService {
     if (admin)
       throw new BadRequestError("admin with this email already exists");
 
-    let school = await SchoolAdmin.findOne({
-      schoolEmail: school_email,
-    });
-    if (school)
-      throw new BadRequestError("school with this email already exists");
+    // let school = await SchoolAdmin.findOne({
+    //   schoolEmail: school_email,
+    // });
+    // if (school)
+    //   throw new BadRequestError("school with this email already exists");
 
     password = await passwordService.hash(password);
 
     admin = new SchoolAdmin({
       password,
       email: admin_email,
-      schoolEmail: school_email,
       adminName: admin_name,
+      adminTitle: admin_title,
       schoolName: school_name,
       country,
     });
@@ -689,9 +689,9 @@ class SchoolAdminService {
   async updateSchoolAdmin(body: any, schoolId: string) {
     let {
       admin_name,
+      admin_title,
       school_name,
       admin_email,
-      school_email,
       password,
       country,
     } = body;
@@ -704,8 +704,8 @@ class SchoolAdminService {
     }
 
     admin.email = admin_email;
-    admin.schoolEmail = school_email;
     admin.adminName = admin_name;
+    admin.adminTitle = admin_title;
     admin.schoolName = school_name;
     admin.password = password;
     admin.country = country;

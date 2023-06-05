@@ -16,10 +16,10 @@ export async function createSchool() {
   const password = await passwordService.hash("12345");
   const school = new SchoolAdmin({
     adminName: "test admin",
+    adminTitle: "mr",
     schoolName: "test school",
     password,
     email: "test@school.com",
-    schoolEmail: "test@school.com",
     role: "School",
     country: "Nigeria",
   });
@@ -32,7 +32,7 @@ export async function updateSchool(body: any, schoolId: string) {
     admin_name,
     school_name,
     admin_email,
-    school_email,
+    admin_title,
     password,
     country,
   } = body;
@@ -41,7 +41,7 @@ export async function updateSchool(body: any, schoolId: string) {
   password = await passwordService.hash(password);
 
   admin.email = admin_email;
-  admin.schoolEmail = school_email;
+  admin.adminTitle = admin_title;
   admin.adminName = admin_name;
   admin.schoolName = school_name;
   admin.password = password;
