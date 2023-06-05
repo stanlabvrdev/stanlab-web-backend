@@ -5,6 +5,7 @@ import mcqAssignment, { MCQAssignment } from "../../models/mcqAssignment";
 import { LeanDocument } from "mongoose";
 import CustomError from "../exceptions/custom";
 import Notification from "../../models/notification";
+import { GeneratedQuestion } from "../../models/generated-questions";
 
 interface ExtendedRequest extends Request {
   student: any;
@@ -21,6 +22,11 @@ interface Accumulator {
   expired: LeanDocument<MCQAssignment>[];
 }
 
+interface Grade {
+  studentScore: number;
+  maxScore: number;
+}
+
 export class StudentMCQClass {
   private studentHasSubmitted(assignment: LeanDocument<MCQAssignment>, studentID: any): Boolean {
     let studentWork = assignment.students!.find((each) => each.student == studentID)!;
@@ -29,6 +35,33 @@ export class StudentMCQClass {
 
   private assignmentExpired(dueDate: Date): Boolean {
     return new Date() > dueDate;
+  }
+
+  private maskCorrectOptionField(questions: GeneratedQuestion[]): GeneratedQuestion[] {
+    return questions.map((eachQuestion) => {
+      const formattedOptions = eachQuestion.options.map((eachOption) => {
+        return {
+          _id: eachOption._id,
+          answer: eachOption.answer,
+        };
+      });
+      return {
+        ...eachQuestion,
+        options: formattedOptions,
+      };
+    });
+  }
+
+  private async markSubmission(submissions: { _id: string; choice: string }[], originalQuestions: GeneratedQuestion[]): Promise<Grade> {
+    let score = 0;
+    submissions.forEach(({ _id, choice }) => {
+      const matchedQuestion = originalQuestions.find((question) => question._id == _id);
+      if (matchedQuestion) {
+        const isCorrect = matchedQuestion.options.find((option) => choice === option.answer && option.isCorrect);
+        if (isCorrect) score++;
+      }
+    });
+    return { studentScore: score, maxScore: originalQuestions.length };
   }
 
   async getAssignment(req: Request): Promise<LeanDocument<MCQAssignment>> {
@@ -50,6 +83,7 @@ export class StudentMCQClass {
     const notification = await Notification.findOne({ entity: assignment._id });
     notification.read = true;
     await notification.save();
+    // assignment.questions = this.maskCorrectOptionField(assignment.questions as GeneratedQuestion[]);
     return assignment;
   }
 
@@ -94,10 +128,12 @@ export class StudentMCQClass {
     return formattedAssignments;
   }
 
-  async makeSubmission(req: Request): Promise<void> {
+  async makeSubmission(req: Request): Promise<Grade> {
     const extendedReq = req as ExtendedRequest;
-    const { score } = extendedReq.body;
+    const { submission } = extendedReq.body;
     const studentID = extendedReq.student._id;
+    if (!submission) throw new BadRequestError("Make a valid submission");
+
     const assignment: MCQAssignment | null = await mcqAssignment
       .findOne({
         students: { $elemMatch: { student: studentID } },
@@ -111,18 +147,18 @@ export class StudentMCQClass {
     if (this.assignmentExpired(assignment.dueDate)) throw new BadRequestError("Assignment expired, cannot make a submission");
     //This maps out the score of the student making the request
     let studentWork = assignment.students!.find((each) => each.student == studentID)!;
+    if (assignment.type === "Test" && this.studentHasSubmitted(assignment, studentID)) throw new BadRequestError("Already submitted");
 
+    const grade = await this.markSubmission(submission, assignment.questions as GeneratedQuestion[]);
     if (assignment.type === "Practice" || (assignment.type === "Test" && !this.studentHasSubmitted(assignment, studentID))) {
       studentWork.scores.push({
-        score,
+        score: grade.studentScore,
         date: new Date(),
       });
-    } else if (assignment.type === "Test" && this.studentHasSubmitted(assignment, studentID)) {
-      throw new BadRequestError("Already submitted");
     }
     assignment.markModified("students");
     await assignment.save({ validateModifiedOnly: true });
-    return;
+    return grade;
   }
 
   async getAssignmentScore(req: Request): Promise<{ subject: string; topic: string; scores: StudentWork[] }[]> {
