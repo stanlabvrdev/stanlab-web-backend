@@ -4,6 +4,8 @@ interface UserPaymentAttrs {
   authorizationCode: string;
   signature: string;
   token: string;
+  customerId: string;
+  paymentId: string;
   email: string;
   currency: string;
   school: mongoose.Schema.Types.ObjectId;
@@ -15,6 +17,8 @@ interface UserPaymentDoc extends mongoose.Document {
   authorizationCode: string;
   signature: string;
   token: string;
+  customerId: string;
+  paymentId: string;
   email: string;
   currency: string;
   school: mongoose.Schema.Types.ObjectId;
@@ -30,6 +34,8 @@ const userPaymentSchema = new mongoose.Schema({
   authorizationCode: { type: String, trim: true, immutable: true },
   signature: { type: String, trim: true, immutable: true },
   token: { type: String, trim: true, immutable: true },
+  customerId: { type: String, trim: true, immutable: true },
+  paymentId: { type: String, trim: true, immutable: true },
   email: { type: String, trim: true, immutable: true },
   currency: { type: String, trim: true, immutable: true },
   school: {

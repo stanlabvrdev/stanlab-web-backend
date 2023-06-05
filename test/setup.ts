@@ -6,6 +6,7 @@ import { Student } from "../models/student";
 import { Teacher } from "../models/teacher";
 import { passwordService } from "../services/passwordService";
 import { SchoolAdmin } from "../models/schoolAdmin";
+import { SuperAdmin } from "../models/superAdmin";
 
 interface LoginPayload {
   _id: string;
@@ -20,6 +21,7 @@ declare global {
       loginStudent(): LoginPayload;
       loginTeacher(): LoginPayload;
       loginSchool(): LoginPayload;
+      loginAdmin(): LoginPayload;
       baseURL: string;
     }
   }
@@ -123,6 +125,34 @@ global.loginSchool = async () => {
   await school.save();
 
   payload._id = school._id;
+
+  // Create the JWT!
+  const token = jwt.sign(payload, process.env.JWT_KEY!);
+
+  return {
+    ...payload,
+    token,
+  };
+};
+
+global.loginAdmin = async () => {
+  // Build a JWT payload.  { id, email }
+
+  const payload: any = {
+    name: "test admin",
+    _id: new mongoose.Types.ObjectId().toHexString(),
+    userName: "test adminUsername",
+    email: "test@superadmin.com",
+    role: "SuperAdmin",
+  };
+
+  payload.password = await passwordService.hash("1234");
+
+  let admin = await SuperAdmin.create(payload);
+
+  await admin.save();
+
+  payload._id = admin._id;
 
   // Create the JWT!
   const token = jwt.sign(payload, process.env.JWT_KEY!);

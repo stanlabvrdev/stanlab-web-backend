@@ -13,3 +13,8 @@ export enum FLUTTERWAVE {
   "Ghana",
   "South Africa",
 }
+
+export enum STRIPE {
+  "United Kingdom of Great Britain and Northern Ireland (the)",
+  "United States of America (the)",
+}
