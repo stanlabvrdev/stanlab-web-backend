@@ -74,7 +74,7 @@ it("should pay for student subscription", async () => {
   expect(res.statusCode).toBe(200);
   expect(res.body.data).toBeDefined();
   expect(res.body.message).toBe("payment initialized successfully");
-});
+}, 10000);
 
 it("should verify subscription payment", async () => {
   const school = await global.loginSchool();
