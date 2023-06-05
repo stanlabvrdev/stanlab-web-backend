@@ -112,7 +112,7 @@ global.loginSchool = async () => {
     role: "School",
     adminName: "test admin",
     schoolName: "test school",
-    schoolEmail: "test.school@school.com",
+    adminTitle: "mr",
     country: "Nigeria",
   };
 
