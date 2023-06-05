@@ -3,9 +3,10 @@ import multer from "multer";
 import multerS3 from "multer-s3";
 import fs from "fs";
 import NotFoundError from "../services/exceptions/not-found";
-import path from "node:path";
+import path from "path";
 import { NextFunction, Request, Response } from "express";
 import AWS from "aws-sdk";
+import { S3Client } from "@aws-sdk/client-s3";
 import envConfig from "../config/env";
 const env = envConfig.getAll();
 
@@ -13,9 +14,18 @@ const bucket = env.aws_bucket;
 const accessKeyId = env.aws_access_key_id;
 const secretKey = env.aws_s3_secret;
 
-const s3 = new AWS.S3({
-  accessKeyId: accessKeyId,
-  secretAccessKey: secretKey,
+// const s3 = new AWS.S3({
+//   accessKeyId: accessKeyId,
+//   secretAccessKey: secretKey,
+
+// });
+
+const s3 = new S3Client({
+  region: "us-west-1",
+  credentials: {
+    accessKeyId: accessKeyId,
+    secretAccessKey: secretKey,
+  },
 });
 
 function getFileName(file) {
@@ -39,7 +49,7 @@ export function diskStorage() {
 }
 
 export const uploadFile = (fileName: string, fileFilter, storage) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: any, res: Response, next: NextFunction) => {
     const multerUploader = multer({
       storage,
       limits: {
@@ -50,7 +60,7 @@ export const uploadFile = (fileName: string, fileFilter, storage) => {
 
     multerUploader(req, res, (err) => {
       if (!req.file) throw new NotFoundError("No file found");
-      if (!req.file.location) {
+      if (!req.file?.location) {
         req.file.buffer = fs.readFileSync(path.resolve(req.file.path));
       }
       next();

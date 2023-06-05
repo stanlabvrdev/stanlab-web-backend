@@ -131,7 +131,7 @@ const studentSchema = new mongoose.Schema<StudentDoc>({
     maxlength: 255,
   },
   name: { type: String, minlength: 5, maxlength: 255, required: true },
-  userName: { type: String },
+  userName: { type: String, default: null },
   authCode: { type: String },
   password: { type: String, minlength: 5, maxlength: 1024, required: true },
   imageUrl: { type: String },

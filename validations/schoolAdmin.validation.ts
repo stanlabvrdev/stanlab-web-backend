@@ -36,6 +36,7 @@ function validateUpdateSchoolAdmin(admin) {
     school_name: Joi.string().min(3).max(255),
     admin_email: Joi.string().email(),
     school_email: Joi.string().email(),
+    password: Joi.string().min(5).max(255),
     country: Joi.string(),
   });
 

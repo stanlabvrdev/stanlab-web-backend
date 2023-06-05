@@ -40,6 +40,29 @@ export async function createSchool() {
   return school.save();
 }
 
+export async function updateSchool(body: any, schoolId: string) {
+  let {
+    admin_name,
+    school_name,
+    admin_email,
+    school_email,
+    password,
+    country,
+  } = body;
+  let admin = await SchoolAdmin.findById({ _id: schoolId });
+
+  password = await passwordService.hash(password);
+
+  admin.email = admin_email;
+  admin.schoolEmail = school_email;
+  admin.adminName = admin_name;
+  admin.schoolName = school_name;
+  admin.password = password;
+  admin.country = country;
+
+  return admin.save();
+}
+
 export async function createTeacherSchool(teacherId: string) {
   const school = await createSchool();
 
