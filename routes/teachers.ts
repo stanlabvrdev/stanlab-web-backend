@@ -1,6 +1,10 @@
 import express from "express";
 import multer from "multer";
 const router = express.Router();
+import { uploadFile, createFileFilter, diskStorage } from "../middleware/fileUpload";
+
+const fileFilter = createFileFilter();
+const diskUpload = diskStorage();
 // import  passport from "passport"
 
 // import  { teacherPassport } from '../services/initPassport
@@ -43,6 +47,12 @@ body => title, subject, section
 */
 router.post("/create-class", teacherAuth, teachersController.createClass);
 
+// create class as a sub admin
+router.post("/create-school-class", teacherAuth, teachersController.createSchoolClass);
+
+// add students to class as a sub admin
+router.put("/class-school-student/:classId", teacherAuth, teachersController.addSchoolStudentToClass);
+
 // get teacher classes
 
 router.get("/classes", techerProfileMiddleware.build(), teacherAuth, teachersController.getClass);
@@ -71,6 +81,14 @@ router.post(
     res.status(400).send({ error: error.message });
   }
 );
+
+// add students to class in bulk as a sub admin
+router.put(
+  "/class-school-student-bulk/:classId",
+  teacherAuth,
+  uploadFile("student-file", fileFilter, diskUpload),
+  teachersController.addSchoolStudentToClassInBulk);
+
 
 // get teacher avatar
 router.get("/:id/avatar", teachersController.getAvatar);

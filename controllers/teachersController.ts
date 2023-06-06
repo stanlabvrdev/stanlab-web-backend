@@ -23,6 +23,16 @@ import NotFoundError from "../services/exceptions/not-found";
 import teacherProfileService from "../services/teacher/profile.service";
 import { Request, Response } from "express";
 import { StudentTeacherClass } from "../models/teacherStudentClass";
+import { SchoolAdmin } from "../models/schoolAdmin";
+import { validateStudent } from "../validations/schoolAdmin.validation";
+import generateRandomString from "../utils/randomStr";
+import { generateUserName, getFullName } from "../services/student/generator";
+import { passwordService } from "../services/passwordService";
+import { SchoolStudent } from "../models/schoolStudent";
+import subscriptionService from "../services/subscription/subscription.service";
+import { StudentSubscription } from "../models/student-subscription";
+import { addDaysToDate } from "../helpers/dateHelper";
+import { excelParserService } from "../services/excelParserService";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -60,6 +70,192 @@ async function createClass(req, res) {
     ServerResponse(req, res, 200, teacherClass, "class created successfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
+  }
+}
+
+async function createSchoolClass(req, res) {
+  const { title, subject, section, colour } = req.body;
+
+  doValidate(validateClass(req.body));
+
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    if (!school) {
+      throw new BadRequestError("unauthorized school sub admin");
+    }
+
+    const teacherClass = await teacherClassService.create({
+      title,
+      subject,
+      section,
+      colour,
+      school: school._id,
+    });
+
+    ServerResponse(req, res, 200, teacherClass, "class created successfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+
+async function addSchoolStudentToClass(req, res) {
+  try {
+    doValidate(validateStudent(req.body));
+
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    const teacherClass = await TeacherClass.findOne({
+      _id: req.params.classId,
+      school: teacher.subAdmin
+    });
+    if (!teacherClass) throw new NotFoundError("class not found");
+
+    const { name } = req.body;
+    let password = generateRandomString(7);
+    let nameParts = name.split(" ");
+    let userName = await generateUserName(nameParts[0], nameParts[1]);
+
+    let student = await Student.findOne({ userName });
+    if (student) throw new BadRequestError("student already exist");
+
+    const hashedPassword = await passwordService.hash(password);
+
+    student = new Student({
+      name,
+      userName,
+      email: userName,
+      password: hashedPassword,
+      authCode: password,
+    });
+
+    const schoolStudent = new SchoolStudent({
+      school: school._id,
+      student: student._id,
+    });
+    await schoolStudent.save();
+  
+    const studentClass = new StudentTeacherClass({
+      student: student._id,
+      class: teacherClass._id,
+      school: school._id,
+    });
+    await studentClass.save();
+  
+    student.status = "In class";
+    await student.save();
+  
+    teacherClass.students.push(student._id);
+    await teacherClass.save();
+  
+    const freePlan = await subscriptionService.getFreePlan();
+  
+    const studentSubscription = new StudentSubscription({
+      school: school._id,
+      student: student._id,
+      subscriptionPlanId: freePlan._id,
+      endDate: addDaysToDate(freePlan.duration),
+      extensionDate: addDaysToDate(freePlan.duration),
+      autoRenew: false,
+    });
+    await studentSubscription.save();
+
+    ServerResponse(req, res, 200, null, "student added to class sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
+
+async function addSchoolStudentToClassInBulk(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    const teacherClass = await TeacherClass.findOne({
+      _id: req.params.classId,
+      school: teacher.subAdmin
+    });
+    if (!teacherClass) throw new NotFoundError("class not found");
+
+    const promises: any[] = [];
+    const schools: any[] = [];
+    const subscribers: any[] = [];
+    const classes: any[] = [];
+    const students: any[] = [];
+
+    const data: any[] = await excelParserService.convertToJSON(req);
+
+    for (let item of data) {
+    let password = generateRandomString(7);
+    const hashedPassword = await passwordService.hash(password);
+    let userName = await generateUserName(item.Firstname, item.Surname);
+
+    let existingStudent = await Student.findOne({ userName });
+    if (existingStudent) throw new BadRequestError("student already exist");
+
+    const student = new Student({
+      name: getFullName(item.Firstname, item.Surname),
+      userName,
+      email: userName,
+      password: hashedPassword,
+      authCode: password,
+    });
+
+    const schoolStudent = new SchoolStudent({
+      school: school._id,
+      student: student._id,
+    });
+    schools.push(schoolStudent.save());
+
+    let existingStudents = await StudentTeacherClass.findOne({
+      school: school._id,
+      student: student._id,
+    });
+    if (existingStudents) {
+      continue;
+    }
+
+    const studentClass = new StudentTeacherClass({
+      student: student._id,
+      class: teacherClass._id,
+      school: school._id,
+    });
+    classes.push(studentClass.save());
+
+    student.status = "In class";
+    promises.push(student.save());
+
+    teacherClass.students.push(student._id);
+    students.push(teacherClass.save());
+
+    const freePlan = await subscriptionService.getFreePlan();
+
+    const studentSubscription = new StudentSubscription({
+      school: school._id,
+      student: student._id,
+      subscriptionPlanId: freePlan._id,
+      endDate: addDaysToDate(freePlan.duration),
+      extensionDate: addDaysToDate(freePlan.duration),
+      autoRenew: false,
+    });
+    subscribers.push(studentSubscription.save());
+  }
+
+  await Promise.all([promises, schools, subscribers, classes, students]);
+
+    ServerResponse(req, res, 200, null, "student added to class sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
   }
 }
 
@@ -405,4 +601,7 @@ export default {
   sendLabToStudents,
   getSchools,
   updateProfile,
+  createSchoolClass,
+  addSchoolStudentToClass,
+  addSchoolStudentToClassInBulk,
 };

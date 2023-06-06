@@ -93,6 +93,7 @@ const teacherSchema = new mongoose.Schema<TeacherDoc>({
   ],
   school: { type: mongoose.Schema.Types.ObjectId, ref: "School" },
   schoolTeacher: { type: Boolean, default: false },
+  subAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "School" },
 });
 
 function validateTeacher(teacher) {

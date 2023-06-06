@@ -50,6 +50,15 @@ export const createTeacher = async (req, res) => {
   }
 };
 
+export const makeSubAdmin = async (req, res) => {
+  try {
+    await schoolAdminService.makeSubAdmin(req.school._id, req.params.teacherId);
+    ServerResponse(req, res, 201, null, "sub admin assigned sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 export const createStudent = async (req, res) => {
   try {
     const { error } = validateStudent(req.body);
