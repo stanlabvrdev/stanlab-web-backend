@@ -9,10 +9,11 @@ const env = envConfig.getAll();
 
 interface SchoolAttrs {
   adminName: string;
+  adminTitle: string;
   schoolName: string;
   password: string;
   email: string;
-  schoolEmail: string;
+  //schoolEmail: string;
   teachers: any[];
   students: any[];
   activities: any[];
@@ -22,10 +23,11 @@ interface SchoolAttrs {
 
 interface SchoolDoc extends mongoose.Document {
   adminName: string;
+  adminTitle: string;
   schoolName: string;
   password: string;
   email: string;
-  schoolEmail: string;
+  //schoolEmail: string;
   teachers: any[];
   students: any[];
   activities: any[];
@@ -38,10 +40,11 @@ interface SchoolModel extends mongoose.Model<SchoolDoc> {
 }
 const schoolAdminSchema = new mongoose.Schema<SchoolDoc>({
   adminName: { type: String, required: true, minLength: 3, maxlength: 255 },
+  adminTitle: { type: String, required: true },
   schoolName: { type: String, required: true, minLength: 3, maxlength: 255 },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  schoolEmail: { type: String, required: true, unique: true },
+  //schoolEmail: { type: String, required: true, unique: true },
   teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teacher" }],
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   activities: { type: Array },

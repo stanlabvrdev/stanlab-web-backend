@@ -3,9 +3,9 @@ import Joi from "joi";
 function validateSchoolAdmin(admin) {
   const schema = Joi.object({
     admin_name: Joi.string().min(3).max(255).required(),
+    admin_title: Joi.string().required(),
     school_name: Joi.string().min(3).max(255).required(),
     admin_email: Joi.string().email().required(),
-    school_email: Joi.string().email().required(),
     password: Joi.string().min(5).max(255).required(),
     country: Joi.string().required(),
   });
@@ -33,9 +33,9 @@ function validateStudent(admin) {
 function validateUpdateSchoolAdmin(admin) {
   const schema = Joi.object({
     admin_name: Joi.string().min(3).max(255),
+    admin_title: Joi.string(),
     school_name: Joi.string().min(3).max(255),
     admin_email: Joi.string().email(),
-    school_email: Joi.string().email(),
     password: Joi.string().min(5).max(255),
     country: Joi.string(),
   });
