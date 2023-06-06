@@ -83,7 +83,7 @@ export class StudentMCQClass {
     const notification = await Notification.findOne({ entity: assignment._id });
     notification.read = true;
     await notification.save();
-    // assignment.questions = this.maskCorrectOptionField(assignment.questions as GeneratedQuestion[]);
+    assignment.questions = this.maskCorrectOptionField(assignment.questions as GeneratedQuestion[]);
     return assignment;
   }
 
