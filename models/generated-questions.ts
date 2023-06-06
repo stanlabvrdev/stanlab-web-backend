@@ -1,11 +1,31 @@
 //This model is for questions generated through the question gen endpoint
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
+
+export interface GeneratedQuestion extends Document {
+  question?: string;
+  image?: string;
+  draft: Boolean;
+  options: {
+    answer: string;
+    isCorrect?: boolean;
+  }[];
+  type: "MCQ" | "TOF";
+  createdAt?: Date;
+}
+
+export interface QuestionGroup extends Document {
+  teacher: string;
+  subject: string;
+  topic: string;
+  school?: string;
+  questions: GeneratedQuestion[];
+}
 
 const questionSchema = new mongoose.Schema({
   question: {
     type: String,
-    required: true,
   },
+  image: String,
   options: {
     type: [
       {
@@ -18,13 +38,23 @@ const questionSchema = new mongoose.Schema({
     ],
     required: true,
   },
+  draft: {
+    type: Boolean,
+    default: true,
+    required: true,
+  },
+  type: {
+    type: String,
+    required: [true, "Questions should have types"],
+    enum: ["MCQ", "TOF"],
+  },
   createdAt: {
     type: Date,
     default: Date.now(),
   },
 });
 
-const GeneratedQuestions = mongoose.model("GeneratedQuestion", questionSchema);
+const GeneratedQuestions: Model<GeneratedQuestion> = mongoose.model<GeneratedQuestion>("GeneratedQuestion", questionSchema);
 
 const questionGroupSchema = new mongoose.Schema({
   teacher: {
@@ -48,10 +78,10 @@ const questionGroupSchema = new mongoose.Schema({
   ],
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "SchoolAdmin"
+    ref: "SchoolAdmin",
   },
 });
 
-const QuestionGroup = mongoose.model("QuestionGroup", questionGroupSchema);
+const QuestionGroup: Model<QuestionGroup> = mongoose.model<QuestionGroup>("QuestionGroup", questionGroupSchema);
 
 export { QuestionGroup, GeneratedQuestions };

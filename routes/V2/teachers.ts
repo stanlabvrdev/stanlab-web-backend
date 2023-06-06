@@ -1,10 +1,6 @@
 import express from "express";
 import multer from "multer";
 const router = express.Router();
-// import  passport from "passport"
-
-// import  { teacherPassport } from '../services/initPassport
-// import  passportAuth from '../middleware/teacherPassportAuth
 
 import teachersClassControllerV2 from "../../controllers/V2/teacherClassController";
 
@@ -12,23 +8,16 @@ import { teacherAuth } from "../../middleware/auth";
 import teachersController from "../../controllers/V2/teacherController";
 
 import { teacherMCQController } from "../../controllers/V2/teacherMCQ.controller";
-// const info;
-// login via google oauth
-
-// router.get(
-//     '/auth/google',
-//     teacherPassport.authenticate('google', { scope: ['profile', 'email'] }),
-// )
-// router.get('/auth/google/callback', passportAuth)
+import { techerProfileMiddleware } from "../../middleware/profile";
 
 // create a teacher
 router.post("/", teachersController.createTeacher);
 
 // get teacher students
 
-router.get("/students", teacherAuth, teachersController.getStudents);
+router.get("/students", techerProfileMiddleware.build(), teachersController.getStudents);
 
-router.get("/students/score", teacherAuth, teachersController.getStudentScores);
+router.get("/students/score", techerProfileMiddleware.build(), teachersController.getStudentScores);
 
 // delete only teacher student
 /**
@@ -46,7 +35,7 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // get teacher classes
 
-router.get("/classes", teacherAuth, teachersController.getClass);
+router.get("/classes", techerProfileMiddleware.build(), teachersController.getClass);
 
 // post: Teacher avatar
 
@@ -100,13 +89,14 @@ router.post("/invite-student", teacherAuth, teachersController.sendInviteToStude
 
 // teacher accept student invitation
 router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
-
-router.get("/mcq-assignments", teacherAuth, teacherMCQController.getAssignments);
+router.get("/mcq-assignments/assigned", teacherAuth, teacherMCQController.getAssignmentsAssigned);
+router.get("/mcq-assignments/completed", teacherAuth, teacherMCQController.getAssignmentsCompleted);
+router.get("/mcq-assignments/unassigned", teacherAuth, teacherMCQController.getAssignmentsUnassigned);
 // get a teacher
+
 router.get("/:id", teachersController.getTeacher);
 // Get: all students
 
 router.route("/mcq-assignments/:id").put(teacherAuth, teacherMCQController.editAssignment).delete(teacherAuth, teacherMCQController.deleteAssignment).get(teacherAuth, teacherMCQController.getAssignment);
 
-router.route("/:classID/mcq-assignments").get(teacherAuth, teacherMCQController.getAssignmentsByClass);
 export default router;

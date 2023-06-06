@@ -20,6 +20,9 @@ import BadRequestError from "../services/exceptions/bad-request";
 import studentService from "../services/student/student.service";
 import { Profile } from "../models/profile";
 import NotFoundError from "../services/exceptions/not-found";
+import teacherProfileService from "../services/teacher/profile.service";
+import { Request, Response } from "express";
+import { StudentTeacherClass } from "../models/teacherStudentClass";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -64,30 +67,52 @@ async function getClass(req, res) {
   try {
     // const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
 
-    let teacherCurrentSchool;
-    let teacherClasses;
+    let teacherCurrentSchool: string;
+    let teacherClasses: any;
+    let classes: any;
 
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
     if (profile) {
-        teacherCurrentSchool = profile.selectedSchool;
+      teacherCurrentSchool = profile.selectedSchool;
 
-        teacherClasses = await TeacherClass.find({
+      teacherClasses = await TeacherClass.find({
         school: teacherCurrentSchool,
-        });
+      });
+
+      classes = await Promise.all(
+        teacherClasses.map(async (e) => {
+          const teacherClass = await StudentTeacherClass.find({
+            school: teacherCurrentSchool,
+            class: e._id
+          })
+
+          return {
+            class: e,
+            numberOfStudents: teacherClass.length
+          }
+        })
+      )
     }
 
     if (!profile) {
-        teacherClasses = await teacherClassService.getAll({
-            teacher: req.teacher._id,
-        });
+      teacherClasses = await teacherClassService.getAll({
+        teacher: req.teacher._id,
+      });
+
+      classes = teacherClasses.map((e) => {
+        return {
+          class: e,
+          numberOfStudents: e.students.length
+        }
+      })
     }
 
     if (!teacherClasses) {
-        throw new NotFoundError("class not found");
+      throw new NotFoundError("class not found");
     }
 
-    ServerResponse(req, res, 200, teacherClasses, "classes fetched sucessfully");
+    ServerResponse(req, res, 200, classes, "classes fetched sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -335,12 +360,30 @@ async function getTeacher(req, res) {
   }
 }
 
-async function getStudents(req, res) {
+async function getStudents(req: Request, res: Response) {
   try {
-    const students = await studentTeacherService.getTeacherStudents(req.teacher._id);
+    const students = await studentTeacherService.getTeacherStudents(req);
 
     ServerResponse(req, res, 200, students, "student fetched successfully");
     res.send(students);
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+async function getSchools(req, res) {
+  try {
+    const schools = await teacherService.getSchools(req.teacher._id);
+
+    return ServerResponse(req, res, 200, schools, "schools fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+async function updateProfile(req, res) {
+  try {
+    const profile = await teacherProfileService.update(req.teacher._id, req.body);
+
+    return ServerResponse(req, res, 200, profile, "profile updated");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -360,4 +403,6 @@ export default {
   sendInviteToStudent,
   updateTeacher,
   sendLabToStudents,
+  getSchools,
+  updateProfile,
 };

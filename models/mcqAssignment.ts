@@ -6,8 +6,8 @@ export interface StudentWork extends Document {
 }
 
 export interface MCQAssignment extends Document {
-  questions: Schema.Types.ObjectId;
-  classId: Schema.Types.ObjectId;
+  questions: Schema.Types.ObjectId | undefined;
+  classId: string;
   startDate: Date;
   dueDate: Date;
   duration?: number;
@@ -15,8 +15,10 @@ export interface MCQAssignment extends Document {
   type: "Practice" | "Test";
   teacher: Schema.Types.ObjectId;
   comments?: string;
-  students: StudentWork[];
+  students: StudentWork[] | undefined;
   school?: Schema.Types.ObjectId;
+  subject: string;
+  topic: string;
 }
 
 //schema for scores since I plan on scores to be an embedded document within the mcq assignment schema
@@ -27,8 +29,10 @@ const studentsWork: Schema<StudentWork> = new mongoose.Schema({
 
 //To store questions for each
 const questionSchema = new mongoose.Schema({
-  question: { type: String, required: true },
+  question: { type: String },
+  image: String,
   options: { type: [{ answer: String, isCorrect: { type: Boolean, default: false } }], required: true },
+  type: { type: String, required: [true, "Questions must have a type"], enum: ["MCQ", "TOF"] },
 });
 
 //This model is the student's copy of the assignment
