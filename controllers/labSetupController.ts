@@ -4,8 +4,7 @@ import LabSetup from "../models/labSetup";
 import Experiment from "../models/experiment";
 import { TeacherClass } from "../models/teacherClass";
 import { Student } from "../models/student";
-import { StudentScore } from "../models/studentScore";
-import { LabExperiment } from "../models/labAssignment";
+
 import NotFoundError from "../services/exceptions/not-found";
 import { ServerResponse, ServerErrorHandler } from "../services/response/serverResponse";
 import { submittedScoreNotification } from "../services/student/notification";
@@ -107,7 +106,7 @@ async function postScore(req, res) {
   const studentId = req.student._id;
   const experimentId = req.body.experimentId;
   try {
-    const experiment = await LabExperiment.findOne({ _id: experimentId, student: studentId });
+    const experiment: any = await labAssignmentService.getByExperimentId(experimentId, { student: studentId });
 
     if (!experiment) throw new NotFoundError("experiment not found");
 

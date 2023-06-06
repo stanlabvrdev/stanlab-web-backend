@@ -1,0 +1,41 @@
+import request from "supertest";
+import app from "../../../app";
+import { AdminCreateTeacher } from "../../../test/school";
+import { SchoolTeacher } from "../../../models/schoolTeacher";
+import { Profile } from "../../../models/profile";
+
+const baseURL = global.baseURL;
+
+const url = `${baseURL}/schools/teachers`;
+it("can only be accessed if admin is signed in", async () => {
+  await request(app).post(url).send({}).expect(401);
+});
+
+it("should create a school teacher", async () => {
+  const school = await global.loginSchool();
+  let body = { name: "test teacher", email: "teacher@school.com" };
+  await AdminCreateTeacher(body, school._id);
+
+  const res = await request(app)
+    .post(url)
+    .set("x-auth-token", school.token)
+    .send({
+      name: "test teacher",
+      email: "schoolTeacher@school.com",
+    });
+
+  const schoolTeacher = await SchoolTeacher.findOne({
+    school: school._id,
+  });
+
+  const profile = await Profile.findOne({
+    selectedSchool: school._id,
+  });
+
+  expect(res.statusCode).toBe(201);
+  expect(res.body.data).toBe(null);
+  expect(schoolTeacher).toBeDefined();
+  expect(schoolTeacher.school.toString()).toBe(school._id.toString());
+  expect(profile).toBeDefined();
+  expect(profile.selectedSchool.toString()).toBe(school._id.toString());
+});

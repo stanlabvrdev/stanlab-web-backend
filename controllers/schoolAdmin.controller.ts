@@ -24,6 +24,7 @@ export const createSchoolAdmin = async (req, res) => {
       .header("access-control-expose-headers", "x-auth-token")
       .send({
         admin_name: data.admin.adminName,
+        admin_title: data.admin.adminTitle,
         email: data.admin.email,
         schoolEmail: data.admin.schoolEmail,
         schoolName: data.admin.schoolName,
@@ -42,11 +43,8 @@ export const createTeacher = async (req, res) => {
     const { error } = validateSchoolUser(req.body);
     if (error) throw new BadRequestError(error.details[0].message);
 
-    const teacher = await schoolAdminService.createTeacher(
-      req.body,
-      req.school._id
-    );
-    ServerResponse(req, res, 201, teacher, "invitation sent sucessfully");
+    await schoolAdminService.createTeacher(req.body, req.school._id);
+    ServerResponse(req, res, 201, null, "invitation sent sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -81,11 +79,8 @@ export const bulkCreateStudents = async (req, res) => {
 
 export const bulkCreateTeachers = async (req, res) => {
   try {
-    const teachers = await schoolAdminService.bulkCreateTeachers(
-      req,
-      req.school._id
-    );
-    ServerResponse(req, res, 201, teachers, "teachers added sucessfully");
+    await schoolAdminService.bulkCreateTeachers(req, req.school._id);
+    ServerResponse(req, res, 201, null, "teachers added sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }

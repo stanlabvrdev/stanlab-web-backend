@@ -7,7 +7,8 @@ import envConfig from "../config/env";
 
 const env = envConfig.getAll();
 
-interface TeacherAttrs {
+export interface TeacherAttrs {
+  _id: string;
   avatar: string;
   email: string;
   classes: any[];

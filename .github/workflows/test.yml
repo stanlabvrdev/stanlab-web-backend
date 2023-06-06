@@ -1,0 +1,15 @@
+name: test-ci
+
+on: [pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        env:
+          NODE_ENV: test
+          SENDGRID_API_KEY: "SG.test"
+          MAILGUN_API_KEY: "MG.test"
+
+      - run: npm install && npm run test:ci
