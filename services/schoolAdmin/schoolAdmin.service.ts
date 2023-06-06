@@ -125,6 +125,20 @@ class SchoolAdminService {
     await teacherProfile.save();
   }
 
+  async makeSubAdmin(schoolId: string, teacherId: string) {
+    const schoolTeacher = await SchoolTeacher.findOne({
+      school: schoolId,
+      teacher: teacherId,
+    });
+
+    if (schoolTeacher) {
+      let teacher = await Teacher.findById(schoolTeacher.teacher);
+
+      teacher.subAdmin = schoolId;
+      teacher.save()
+    }
+  }
+
   async createStudent(body, schoolId) {
     const { name } = body;
     let password = generateRandomString(7);
@@ -327,7 +341,7 @@ class SchoolAdminService {
 
   async getTeachers(schoolId) {
     const teachers = SchoolTeacher.find({ school: schoolId })
-      .populate({ path: "teacher", select: ["name", "email", "schoolTeacher"] })
+      .populate({ path: "teacher", select: ["name", "email", "schoolTeacher", "subAdmin"] })
       .select(["-_id", "-school", "-teacherApproved", "-createdAt", "-__v"]);
     return teachers;
   }
