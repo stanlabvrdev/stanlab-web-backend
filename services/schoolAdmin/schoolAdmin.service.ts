@@ -687,30 +687,62 @@ class SchoolAdminService {
   }
 
   async updateSchoolAdmin(body: any, schoolId: string) {
-    let {
-      admin_name,
-      admin_title,
-      school_name,
-      admin_email,
-      password,
-      country,
-    } = body;
-
-    let admin = await SchoolAdmin.findById({ _id: schoolId });
-    if (!admin) throw new BadRequestError("admin not found");
-
-    if (password) {
-      password = await passwordService.hash(password);
+    if (body.password) {
+      body.password = await passwordService.hash(body.password);
     }
 
-    admin.email = admin_email;
-    admin.adminName = admin_name;
-    admin.adminTitle = admin_title;
-    admin.schoolName = school_name;
-    admin.password = password;
-    admin.country = country;
+    let school = await SchoolAdmin.findOneAndUpdate({ _id: schoolId }, body, {
+      new: true,
+    });
 
-    return admin.save();
+    return school;
+  }
+
+  async removeStudent(schoolId: string, body: any) {
+    const students = await SchoolStudent.find({
+      school: schoolId,
+      student: body.studentlId,
+    });
+    if (!students) {
+      return true;
+    }
+
+    Promise.all(
+      students.map(async (s) => {
+        await Student.deleteMany({
+          _id: s.student,
+        });
+
+        await StudentTeacherClass.deleteMany({
+          student: s.student,
+        });
+
+        await StudentSubscription.deleteMany({
+          student: s.student,
+        });
+
+        await SchoolStudent.deleteMany({
+          student: s.student,
+        });
+
+        // let teacherClass = await TeacherClass.find({
+        //   students: s.student,
+        // });
+
+        // let a = await teacherClass.map((e) => {
+        //   e.students.filter((studentId) => {
+        //     return studentId == s.student.toString();
+        //   });
+        // });
+        // console.log("teacherClass", a);
+
+
+        // const studentIdObj = mongoose.Types.ObjectId(studentId);
+
+        // // Check if the studentId should be removed
+        // return !studentIdsToRemove.includes(studentIdObj.toString());
+      })
+    );
   }
 }
 
