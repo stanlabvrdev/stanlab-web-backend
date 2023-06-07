@@ -277,3 +277,12 @@ export const updateSchoolAdmin = async (req, res) => {
     ServerErrorHandler(req, res, error);
   }
 };
+
+export const removeStudent = async (req, res) => {
+  try {
+    await schoolAdminService.removeStudent(req.school._id, req.body);
+    ServerResponse(req, res, 200, null, "students removed sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
