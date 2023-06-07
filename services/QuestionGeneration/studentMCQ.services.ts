@@ -143,7 +143,7 @@ export class StudentMCQClass {
       .populate("teacher", "name")
       .select("-__v");
 
-    if (!assignment) throw new NotFoundError("Assigment not found");
+    if (!assignment) throw new NotFoundError("Assignment not found");
     if (this.assignmentExpired(assignment.dueDate)) throw new BadRequestError("Assignment expired, cannot make a submission");
     //This maps out the score of the student making the request
     let studentWork = assignment.students!.find((each) => each.student == studentID)!;
@@ -161,7 +161,7 @@ export class StudentMCQClass {
     return grade;
   }
 
-  async getAssignmentScore(req: Request): Promise<{ subject: string; topic: string; scores: StudentWork[] }[]> {
+  async getAssignmentScoresByClass(req: Request): Promise<{ subject: string; topic: string; scores: StudentWork[] }[]> {
     const extendedReq = req as ExtendedRequest;
     const studentID = extendedReq.student._id;
     const { id } = req.params;

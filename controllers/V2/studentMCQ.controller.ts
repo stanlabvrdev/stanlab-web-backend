@@ -31,9 +31,9 @@ class StudentMCQControllerClass {
     }
   };
 
-  getAssignmentScore = async (req: Request, res: Response): Promise<any> => {
+  getAssignmentScoresByClass = async (req: Request, res: Response): Promise<any> => {
     try {
-      const score = await studentMCQInstance.getAssignmentScore(req);
+      const score = await studentMCQInstance.getAssignmentScoresByClass(req);
       ServerResponse(req, res, 200, score, "Score fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
