@@ -33,17 +33,12 @@ class SchoolAdminService {
     if (admin)
       throw new BadRequestError("admin with this email already exists");
 
-    // let school = await SchoolAdmin.findOne({
-    //   schoolEmail: school_email,
-    // });
-    // if (school)
-    //   throw new BadRequestError("school with this email already exists");
-
     password = await passwordService.hash(password);
 
     admin = new SchoolAdmin({
       password,
       email: admin_email,
+      schoolEmail: admin_email,
       adminName: admin_name,
       adminTitle: admin_title,
       schoolName: school_name,
