@@ -57,9 +57,9 @@ describe("Student Assignment Service endpoints", () => {
     it("should return properly formatted assignments", async () => {
       const teacher = await global.loginTeacher();
       const student = await global.loginStudent();
-      await createAssignment(teacher._id, student._id);
-      await createAssignment(teacher._id, student._id, undefined, new Date());
-      await createAssignment(teacher._id, student._id, 90);
+      await createAssignment(teacher._id, student._id); // Creates a pending assignment
+      await createAssignment(teacher._id, student._id, undefined, new Date()); //Creates expired assignment
+      await createAssignment(teacher._id, student._id, 90); //Creates assignment with a submission
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments`).set("x-auth-token", student.token);
 
       expect(response.statusCode).toBe(200);
@@ -143,7 +143,7 @@ describe("Student Assignment Service endpoints", () => {
     });
   });
   describe("GET /v2/students/mcq-assignments/:id/scores - Get assignment scores by class", () => {
-    it("should return properly formatted assignments", async () => {
+    it("should return a error if there are no graded assignments at that time", async () => {
       const student = await global.loginStudent();
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc/scores`).set("x-auth-token", student.token);
 
