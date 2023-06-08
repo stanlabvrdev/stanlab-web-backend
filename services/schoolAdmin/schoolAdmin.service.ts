@@ -17,6 +17,7 @@ import { Profile } from "../../models/profile";
 import { StudentSubscription } from "../../models/student-subscription";
 import subscriptionService from "../subscription/subscription.service";
 import { addDaysToDate } from "../../helpers/dateHelper";
+import mongoose from "mongoose";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -709,38 +710,57 @@ class SchoolAdminService {
 
     Promise.all(
       students.map(async (s) => {
-        await Student.deleteMany({
-          _id: s.student,
-        });
-
-        await StudentTeacherClass.deleteMany({
-          student: s.student,
-        });
-
-        await StudentSubscription.deleteMany({
-          student: s.student,
-        });
-
-        await SchoolStudent.deleteMany({
-          student: s.student,
-        });
-
+        // await Student.deleteMany({
+        //   _id: s.student,
+        // });
+        // await StudentTeacherClass.deleteMany({
+        //   student: s.student,
+        // });
+        // await StudentSubscription.deleteMany({
+        //   student: s.student,
+        // });
+        // await SchoolStudent.deleteMany({
+        //   student: s.student,
+        // });
         // let teacherClass = await TeacherClass.find({
         //   students: s.student,
         // });
-
-        // let a = await teacherClass.map((e) => {
-        //   e.students.filter((studentId) => {
-        //     return studentId == s.student.toString();
-        //   });
+        // let cc = await teacherClass.map(async (e) => {
+        //   // s.student = s.student.toString();
+        //   // e.student = e.students.toString();
+        //   const index = e.students.indexOf(s.student);
+        //   let her = e.students.splice(index, s.student);
+        //   return her;
         // });
-        // console.log("teacherClass", a);
+
+        let teacherClass = await TeacherClass.find({
+          students: s.student,
+        });
+
+        let ids: any = [];
+
+        await teacherClass.map(async (e) => {
+          // s.student = s.student.toString();
+          // e.student = e.students.toString();
+
+          ids.push(e.students);
+          console.log("ids", ids[0].length);
+
+          let index: number = ids[0].indexOf(s.student);
+          console.log(index);
+
+          let her = await ids[0].splice(index, 1);
+
+          console.log("her", ids[0].length);
 
 
-        // const studentIdObj = mongoose.Types.ObjectId(studentId);
+          // const index = e.students.indexOf(s.student);
+          // let her = e.students.splice(index, s.student);
 
-        // // Check if the studentId should be removed
-        // return !studentIdsToRemove.includes(studentIdObj.toString());
+          // return her;
+        });
+
+        console.log("ids", ids[0]);
       })
     );
   }
