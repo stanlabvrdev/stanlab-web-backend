@@ -37,6 +37,7 @@ export class StudentMCQClass {
     return new Date() > dueDate;
   }
 
+
   private maskCorrectOptionField(questions: GeneratedQuestion[]): GeneratedQuestion[] {
     return questions.map((eachQuestion) => {
       const formattedOptions = eachQuestion.options.map((eachOption) => {
@@ -83,7 +84,9 @@ export class StudentMCQClass {
     const notification = await Notification.findOne({ entity: assignment._id });
     notification.read = true;
     await notification.save();
+
     assignment.questions = this.maskCorrectOptionField(assignment.questions as GeneratedQuestion[]);
+
     return assignment;
   }
 
@@ -144,12 +147,14 @@ export class StudentMCQClass {
       .select("-__v");
 
     if (!assignment) throw new NotFoundError("Assignment not found");
+
     if (this.assignmentExpired(assignment.dueDate)) throw new BadRequestError("Assignment expired, cannot make a submission");
     //This maps out the score of the student making the request
     let studentWork = assignment.students!.find((each) => each.student == studentID)!;
     if (assignment.type === "Test" && this.studentHasSubmitted(assignment, studentID)) throw new BadRequestError("Already submitted");
 
     const grade = await this.markSubmission(submission, assignment.questions as GeneratedQuestion[]);
+
     if (assignment.type === "Practice" || (assignment.type === "Test" && !this.studentHasSubmitted(assignment, studentID))) {
       studentWork.scores.push({
         score: grade.studentScore,
