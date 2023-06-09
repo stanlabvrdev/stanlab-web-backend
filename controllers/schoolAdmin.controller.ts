@@ -26,7 +26,6 @@ export const createSchoolAdmin = async (req, res) => {
         admin_name: data.admin.adminName,
         admin_title: data.admin.adminTitle,
         email: data.admin.email,
-        schoolEmail: data.admin.schoolEmail,
         schoolName: data.admin.schoolName,
         teachers: data.admin.teachers,
         students: data.admin.students,
