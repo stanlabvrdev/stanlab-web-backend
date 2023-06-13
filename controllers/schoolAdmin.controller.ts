@@ -4,6 +4,7 @@ import {
 } from "../services/response/serverResponse";
 import BadRequestError from "../services/exceptions/bad-request";
 import {
+  validateRemoveStudent,
   validateSchoolAdmin,
   validateSchoolUser,
   validateStudent,
@@ -280,6 +281,9 @@ export const updateSchoolAdmin = async (req, res) => {
 
 export const removeStudent = async (req, res) => {
   try {
+    const { error } = validateRemoveStudent(req.body);
+    if (error) throw new BadRequestError(error.details[0].message);
+    
     await schoolAdminService.removeStudent(req.school._id, req.body);
     ServerResponse(req, res, 200, null, "students removed sucessfully");
   } catch (error) {
