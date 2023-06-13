@@ -18,6 +18,9 @@ import { StudentSubscription } from "../../models/student-subscription";
 import subscriptionService from "../subscription/subscription.service";
 import { addDaysToDate } from "../../helpers/dateHelper";
 import mongoose from "mongoose";
+import { LabExperiment } from "../../models/labAssignment";
+import { StudentScore } from "../../models/studentScore";
+import mcqAssignment from "../../models/mcqAssignment";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -702,7 +705,7 @@ class SchoolAdminService {
   async removeStudent(schoolId: string, body: any) {
     const students = await SchoolStudent.find({
       school: schoolId,
-      student: body.studentlId,
+      student: body.studentId,
     });
     if (!students) {
       return true;
@@ -710,28 +713,19 @@ class SchoolAdminService {
 
     Promise.all(
       students.map(async (s) => {
-        // await Student.deleteMany({
-        //   _id: s.student,
-        // });
-        // await StudentTeacherClass.deleteMany({
-        //   student: s.student,
-        // });
-        // await StudentSubscription.deleteMany({
-        //   student: s.student,
-        // });
-        // await SchoolStudent.deleteMany({
-        //   student: s.student,
-        // });
-        // let teacherClass = await TeacherClass.find({
-        //   students: s.student,
-        // });
-        // let cc = await teacherClass.map(async (e) => {
-        //   // s.student = s.student.toString();
-        //   // e.student = e.students.toString();
-        //   const index = e.students.indexOf(s.student);
-        //   let her = e.students.splice(index, s.student);
-        //   return her;
-        // });
+        await Student.findOneAndDelete({
+          _id: s.student,
+        });
+        await StudentTeacherClass.findOneAndDelete({
+          student: s.student,
+        });
+        await StudentSubscription.findOneAndDelete({
+          student: s.student,
+        });
+
+        await SchoolStudent.findOneAndDelete({
+          student: s.student,
+        });
 
         let teacherClass = await TeacherClass.find({
           students: s.student,
@@ -740,27 +734,20 @@ class SchoolAdminService {
         let ids: any = [];
 
         await teacherClass.map(async (e) => {
-          // s.student = s.student.toString();
-          // e.student = e.students.toString();
-
           ids.push(e.students);
-          console.log("ids", ids[0].length);
 
-          let index: number = ids[0].indexOf(s.student);
-          console.log(index);
+          let index = ids[0].indexOf(s.student);
 
-          let her = await ids[0].splice(index, 1);
-
-          console.log("her", ids[0].length);
-
-
-          // const index = e.students.indexOf(s.student);
-          // let her = e.students.splice(index, s.student);
-
-          // return her;
+          ids[0].splice(index, 1);
         });
 
-        console.log("ids", ids[0]);
+        await TeacherClass.findOneAndUpdate(
+          { students: s.student },
+          { students: ids[0] },
+          {
+            new: true,
+          }
+        );
       })
     );
   }

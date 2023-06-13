@@ -43,9 +43,18 @@ function validateUpdateSchoolAdmin(admin) {
   return schema.validate(admin);
 }
 
+function validateRemoveStudent(admin) {
+  const schema = Joi.object({
+    studentId: Joi.array().length(1),
+  });
+
+  return schema.validate(admin);
+}
+
 export {
   validateSchoolAdmin,
   validateSchoolUser,
   validateStudent,
   validateUpdateSchoolAdmin,
+  validateRemoveStudent,
 };
