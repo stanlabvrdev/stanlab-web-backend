@@ -37,7 +37,6 @@ export class StudentMCQClass {
     return new Date() > dueDate;
   }
 
-
   private maskCorrectOptionField(questions: GeneratedQuestion[]): GeneratedQuestion[] {
     return questions.map((eachQuestion) => {
       const formattedOptions = eachQuestion.options.map((eachOption) => {
@@ -78,6 +77,7 @@ export class StudentMCQClass {
       .select("-__v")
       .lean();
     if (!assignment) throw new NotFoundError("Assignment not found");
+    if (new Date() < assignment.startDate) throw new CustomError(403, `You can start taking this assignment from ${assignment.startDate}`);
     if (this.assignmentExpired(assignment.dueDate)) throw new CustomError(403, "Assignment expired!");
     if (assignment.type === "Test" && this.studentHasSubmitted(assignment, student)) throw new CustomError(403, "Multiple attempts are not allowed for this type of assignment");
     assignment.students = undefined;
