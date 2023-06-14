@@ -1,8 +1,6 @@
-import { Teacher } from "../models/teacher";
 import { TeacherClass } from "../models/teacherClass";
-import { createTeacher } from "./school";
 
-export async function createClass(teacherId) {
+export async function createClass(teacherId: string) {
   const teacherClass = new TeacherClass({
     title: "test title",
     subject: "test subject",

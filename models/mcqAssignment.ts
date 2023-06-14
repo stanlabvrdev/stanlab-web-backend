@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { GeneratedQuestion } from "./generated-questions";
 
 export interface StudentWork extends Document {
   student: Schema.Types.ObjectId;
@@ -6,7 +7,7 @@ export interface StudentWork extends Document {
 }
 
 export interface MCQAssignment extends Document {
-  questions: Schema.Types.ObjectId | undefined;
+  questions: Schema.Types.ObjectId | undefined | GeneratedQuestion[];
   classId: string;
   startDate: Date;
   dueDate: Date;
