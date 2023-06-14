@@ -9,22 +9,37 @@ import { SchoolAdmin } from "../../models/schoolAdmin";
 import { Payment } from "../../models/payment";
 import { UserPayment } from "../../models/userPayment";
 import { addDaysToDate } from "../../helpers/dateHelper";
-import { PAYSTACK, FLUTTERWAVE, STRIPE } from "../../constants/locations";
+import { PAYSTACK, FLUTTERWAVE } from "../../constants/locations";
 import Flutterwave from "flutterwave-node-v3";
 import { Coupon } from "../../models/coupon";
 import { Webhook } from "../../models/webhook";
 import generator from "generate-password";
 import envConfig from "../../config/env";
 import { SETTINGS_CONSTANTS } from "../../constants/settings";
-import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../enums/transaction.enum";
+import {
+  TRANSACTION_STATUS,
+  TRANSACTION_TYPE,
+} from "../../enums/transaction.enum";
 import { Transaction } from "../../models/transaction";
 import { PAYMENT_TYPES } from "../../enums/payment-types";
+import { STRIPE } from "../../constants/locations";
 const env = envConfig.getAll();
 const stripe = require("stripe")(env.stripe_Secret_Key);
 
 class SubscriptionService {
   async createPlan(body: any, adminId: string) {
-    let { title, cost, currency, country, vat, description, coupon, student_count, duration, durationType } = body;
+    let {
+      title,
+      cost,
+      currency,
+      country,
+      vat,
+      description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+    } = body;
 
     let admin = await SuperAdmin.findById({ _id: adminId });
     if (!admin) throw new NotFoundError("admin not found");
@@ -67,7 +82,8 @@ class SubscriptionService {
   }
 
   async getFreePlan() {
-    const freeSubscriptionPlanTitle = SETTINGS_CONSTANTS.FREE_SUBSCRIPTION_TITLE;
+    const freeSubscriptionPlanTitle =
+      SETTINGS_CONSTANTS.FREE_SUBSCRIPTION_TITLE;
     const plan = await SubscriptionPlan.findOne({
       title: freeSubscriptionPlanTitle,
     });
@@ -112,7 +128,19 @@ class SubscriptionService {
   }
 
   async updatePlanById(body: any, planId: string) {
-    let { title, cost, currency, country, vat, description, coupon, student_count, duration, durationType, is_active } = body;
+    let {
+      title,
+      cost,
+      currency,
+      country,
+      vat,
+      description,
+      coupon,
+      student_count,
+      duration,
+      durationType,
+      is_active,
+    } = body;
 
     let plan = await SubscriptionPlan.findById({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
@@ -150,7 +178,10 @@ class SubscriptionService {
     studentId = [];
 
     subscribers.map((subscriber: any) => {
-      if (subscriber.subscriptionPlanId.toString() == freePlan._id.toString() || subscriber.isActive == false) {
+      if (
+        subscriber.subscriptionPlanId.toString() == freePlan._id.toString() ||
+        subscriber.isActive == false
+      ) {
         count++;
 
         studentId.push(subscriber.student);
@@ -177,10 +208,17 @@ class SubscriptionService {
 
     let response: any;
     let payment: any;
-    let extension: number = plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
     if (school.country in PAYSTACK) {
-      response = await paymentService.PaystackInitializePayment(school.email, totalCost * 100, plan.currency, `${env.redirect_URL}`);
+      response = await paymentService.PaystackInitializePayment(
+        school.email,
+        totalCost * 100,
+        plan.currency,
+        `${env.redirect_URL}`
+      );
+
       if (!response || response.status !== true) {
         throw new BadRequestError("unable to initialize payment");
       }
@@ -231,7 +269,13 @@ class SubscriptionService {
         numbers: true,
       });
 
-      response = await paymentService.FlutterwaveInitializePayment(generatedReference, totalCost, plan.currency, `${env.redirect_URL}`, school.email);
+      response = await paymentService.FlutterwaveInitializePayment(
+        generatedReference,
+        totalCost,
+        plan.currency,
+        `${env.redirect_URL}`,
+        school.email
+      );
 
       if (!response || response.status !== "success") {
         throw new BadRequestError("unable to initialize payment");
@@ -277,7 +321,12 @@ class SubscriptionService {
     }
 
     if (plan.country in STRIPE) {
-      response = await paymentService.StripeInitializePayment(school.email, totalCost * 100, plan.currency, plan.title);
+      response = await paymentService.StripeInitializePayment(
+        school.email,
+        totalCost * 100,
+        plan.currency,
+        plan.title
+      );
 
       if (!response || response.status !== "open") {
         throw new BadRequestError("unable to initialize payment");
@@ -397,7 +446,10 @@ class SubscriptionService {
     }
 
     if (payment.type === PAYMENT_TYPES.FLUTTERWAVE) {
-      const flw = new Flutterwave(env.flutterwave_public_key, env.flutterwave_secret_key);
+      const flw = new Flutterwave(
+        env.flutterwave_public_key,
+        env.flutterwave_secret_key
+      );
 
       const payload = await Webhook.findOne({ reference, isActive: true });
       if (!payload) {
@@ -409,7 +461,11 @@ class SubscriptionService {
       payload.isActive = false;
       await payload.save();
 
-      if (response.data.status !== "successful" && response.data.amount !== payment.cost && response.data.currency !== payment.currency) {
+      if (
+        response.data.status !== "successful" &&
+        response.data.amount !== payment.cost &&
+        response.data.currency !== payment.currency
+      ) {
         throw new BadRequestError(response.data.status);
       }
 
@@ -439,13 +495,18 @@ class SubscriptionService {
     if (payment.type === PAYMENT_TYPES.STRIPE) {
       response = await paymentService.StripeVerifyPayment(reference);
 
-      if (response.payment_status !== "paid" && response.status !== "complete") {
+      if (
+        response.payment_status !== "paid" &&
+        response.status !== "complete"
+      ) {
         throw new BadRequestError("payment is incomplete");
       }
 
       const paymentIntentId = response.payment_intent;
 
-      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        paymentIntentId
+      );
 
       if (paymentIntent.status !== "succeeded") {
         throw new BadRequestError(paymentIntent.status);
@@ -495,19 +556,32 @@ class SubscriptionService {
     return studentSub;
   }
 
-  async recurringSubscriptionPayment(schoolId: string, studentId: string, planId: string) {
+  async recurringSubscriptionPayment(
+    schoolId: string,
+    studentId: string,
+    planId: string
+  ) {
     const userPayment = await UserPayment.findOne({ school: schoolId });
 
     let plan = await SubscriptionPlan.findById({ _id: planId });
     if (!plan) throw new NotFoundError("subscription plan not found");
 
     let response: any;
-    let extension: number = plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
+    let extension: number =
+      plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
     if (userPayment.type === PAYMENT_TYPES.PAYSTACK) {
-      response = await paymentService.PaystackRecurringPayment(userPayment.authorizationCode, userPayment.email, plan.cost * 100);
+      response = await paymentService.PaystackRecurringPayment(
+        userPayment.authorizationCode,
+        userPayment.email,
+        plan.cost * 100
+      );
 
-      if (!response || response.status !== true || response.data.gateway_response.toLowerCase() !== "approved") {
+      if (
+        !response ||
+        response.status !== true ||
+        response.data.gateway_response.toLowerCase() !== "approved"
+      ) {
         throw new BadRequestError("unable to initialize recurring charge");
       }
 
@@ -555,9 +629,19 @@ class SubscriptionService {
         numbers: true,
       });
 
-      response = await paymentService.FlutterwaveRecurringPayment(userPayment.token, userPayment.email, plan.cost, userPayment.currency, generatedReference);
+      response = await paymentService.FlutterwaveRecurringPayment(
+        userPayment.token,
+        userPayment.email,
+        plan.cost,
+        userPayment.currency,
+        generatedReference
+      );
 
-      if (!response || response.status.toLowerCase() !== "success" || response.data.processor_response.toLowerCase() !== "approved") {
+      if (
+        !response ||
+        response.status.toLowerCase() !== "success" ||
+        response.data.processor_response.toLowerCase() !== "approved"
+      ) {
         throw new BadRequestError("unable to initialize recurring charge");
       }
 
@@ -600,7 +684,12 @@ class SubscriptionService {
     }
 
     if (userPayment.type === PAYMENT_TYPES.STRIPE) {
-      response = await paymentService.StripeRecurringPayment(userPayment.customerId, userPayment.paymentId, plan.cost * 100, userPayment.currency);
+      response = await paymentService.StripeRecurringPayment(
+        userPayment.customerId,
+        userPayment.paymentId,
+        plan.cost * 100,
+        userPayment.currency
+      );
 
       if (!response || response.status !== "succeeded") {
         throw new BadRequestError("unable to initialize recurring charge");
@@ -676,7 +765,9 @@ class SubscriptionService {
     });
 
     subscribers.map((subscriber: any) => {
-      if (subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()) {
+      if (
+        subscriber.subscriptionPlanId.toString() !== freePlan._id.toString()
+      ) {
         subscriber.autoRenew = false;
         subscriber.save();
       }
