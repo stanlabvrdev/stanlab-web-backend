@@ -28,14 +28,8 @@ export async function createSchool() {
 }
 
 export async function updateSchool(body: any, schoolId: string) {
-  let {
-    admin_name,
-    school_name,
-    admin_email,
-    admin_title,
-    password,
-    country,
-  } = body;
+  let { admin_name, school_name, admin_email, admin_title, password, country } =
+    body;
   let admin = await SchoolAdmin.findById({ _id: schoolId });
 
   password = await passwordService.hash(password);
@@ -104,6 +98,8 @@ export async function addStudentToClass(
     school: schoolId,
   });
   await studentClass.save();
+
+  return student;
 }
 
 export async function createTeacher(body: {
