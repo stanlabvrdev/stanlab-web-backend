@@ -1,10 +1,6 @@
 import request from "supertest";
 import app from "../../../app";
-import {
-  addStudentToClass,
-  createClass,
-  makePayment,
-} from "../../../test/school";
+import { addStudentToClass, createClass, makePayment } from "../../../test/school";
 import { createAdmin, createPlan } from "../../../test/super-admin";
 import { Student } from "../../../models/student";
 import axios from "axios";
@@ -33,9 +29,7 @@ it("should get all subscription plans based on their location", async () => {
 
   await createPlan(planBody, admin._id);
 
-  const res = await request(app)
-    .get(`${url}/get-plans`)
-    .set("x-auth-token", school.token);
+  const res = await request(app).get(`${url}/get-plans`).set("x-auth-token", school.token);
 
   expect(res.statusCode).toBe(200);
   expect(res.body.data).toBeDefined();
@@ -56,12 +50,16 @@ it("should pay for student subscription", async () => {
   const student = await Student.find();
 
   let data = {
-    authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
-    access_code: "c8nf5pmkf34pkzw",
-    reference: "kt152fr9hm",
+    status: true,
+    message: "Authorization URL created",
+    data: {
+      authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
+      access_code: "c8nf5pmkf34pkzw",
+      reference: "kt152fr9hm",
+    },
   };
 
-  jest.spyOn(axios, "get").mockResolvedValueOnce(data);
+  jest.spyOn(axios, "post").mockResolvedValueOnce({ data });
 
   const res = await request(app)
     .post(`${url}/make-payment`)
@@ -71,7 +69,7 @@ it("should pay for student subscription", async () => {
       studentId: [student[0]._id],
       autoRenew: false,
     });
-
+  console.log(res.body);
   expect(res.statusCode).toBe(200);
   expect(res.body.data).toBeDefined();
   expect(res.body.message).toBe("payment initialized successfully");
@@ -99,6 +97,8 @@ it("should pay for student subscription", async () => {
 
 //   const data: any = await makePayment(body, school._id);
 
+//   jest.spyOn(axios, "get").mockResolvedValueOnce(data);
+
 //   const res = await request(app)
 //     .post(`${url}/verify-payment`)
 //     .set("x-auth-token", school.token)
@@ -110,7 +110,7 @@ it("should pay for student subscription", async () => {
 //       studentId: [student[0]._id],
 //       autoRenew: false,
 //     });
-
+//   console.log(res.body);
 //   //This endpoint will always be incomplete because payment is
 //   //outside our application and we don't have direct controll over it
 //   expect(res.body.message).toBe("The transaction was not completed");
