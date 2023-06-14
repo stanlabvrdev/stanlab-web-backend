@@ -13,7 +13,7 @@ interface SchoolAttrs {
   schoolName: string;
   password: string;
   email: string;
-  //schoolEmail: string;
+  schoolEmail: string;
   teachers: any[];
   students: any[];
   activities: any[];
@@ -27,7 +27,7 @@ interface SchoolDoc extends mongoose.Document {
   schoolName: string;
   password: string;
   email: string;
-  //schoolEmail: string;
+  schoolEmail: string;
   teachers: any[];
   students: any[];
   activities: any[];
@@ -44,7 +44,7 @@ const schoolAdminSchema = new mongoose.Schema<SchoolDoc>({
   schoolName: { type: String, required: true, minLength: 3, maxlength: 255 },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  //schoolEmail: { type: String, required: true, unique: true },
+  schoolEmail: { type: String },
   teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Teacher" }],
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
   activities: { type: Array },
