@@ -40,7 +40,7 @@ class AssignmentHelperServiceClass {
   private async getTeacherClassStudentsByIDAndTeacher(classID: string, teacherID: string) {
     const teacherClass = await TeacherClass.findOne({ _id: classID, teacher: teacherID });
     if (!teacherClass) throw new NotFoundError("Class not found");
-    if (teacherClass.students.length < 1) throw new NotFoundError("No student in this class found");
+    if (teacherClass.students.length < 1) throw new NotFoundError("No student in this class");
     return teacherClass.students;
   }
 
@@ -75,7 +75,8 @@ class AssignmentServiceClass {
   private validateAssignmentDetails(type: string, duration: string | number) {
     let assignmentType = type === "Test" ? type : "Practice";
     let testDuration = duration ? +duration : undefined;
-    if (assignmentType === "Test" && testDuration !== undefined && !(testDuration > 0)) throw new BadRequestError("Enter a valid test duration");
+    const isInvalidDuration = assignmentType === "Test" && (testDuration === undefined || !(testDuration > 0));
+    if (isInvalidDuration) throw new BadRequestError("Enter a valid test duration");
     return { assignmentType, testDuration };
   }
 

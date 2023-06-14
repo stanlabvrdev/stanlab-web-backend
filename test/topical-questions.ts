@@ -1,4 +1,6 @@
 import { GeneratedQuestions, QuestionGroup } from "../models/generated-questions";
+import mcqAssignment from "../models/mcqAssignment";
+import { createClass } from "./teacher";
 
 export async function createGeneratedQuestion() {
   const question = new GeneratedQuestions({
@@ -24,4 +26,29 @@ export async function createQuestionGroup(teacherID: string) {
     questions,
   });
   return questGroup;
+}
+
+const laterDate = new Date(new Date().getTime() + 60 * 60 * 1000);
+
+export async function createAssignment(teacherID: string, studentID: string, score?: number, dueDate: Date = laterDate) {
+  const teacherClass = await createClass(teacherID);
+  const questGroup = await createQuestionGroup(teacherID);
+  const foundQuestions = questGroup.questions.map((eachQuestionGroup) => {
+    return { question: eachQuestionGroup.question, image: eachQuestionGroup.image, options: eachQuestionGroup.options, type: eachQuestionGroup.type };
+  });
+  let scores: any = [];
+  if (score) scores.push({ score });
+
+  return await mcqAssignment.create({
+    teacher: teacherID,
+    questions: foundQuestions,
+    subject: questGroup.subject,
+    topic: questGroup.topic,
+    classId: teacherClass._id,
+    startDate: new Date(),
+    dueDate,
+    duration: 3000,
+    type: "Test",
+    students: [{ student: studentID, scores }],
+  });
 }
