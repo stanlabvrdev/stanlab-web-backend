@@ -56,16 +56,9 @@ it("should pay for student subscription", async () => {
   const student = await Student.find();
 
   let data = {
-    message: "payment initialized successfully",
-    data: {
-      status: true,
-      message: "Authorization URL created",
-      data: {
-        authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
-        access_code: "c8nf5pmkf34pkzw",
-        reference: "kt152fr9hm",
-      },
-    },
+    authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
+    access_code: "c8nf5pmkf34pkzw",
+    reference: "kt152fr9hm",
   };
 
   jest.spyOn(axios, "get").mockResolvedValueOnce(data);
@@ -79,10 +72,10 @@ it("should pay for student subscription", async () => {
       autoRenew: false,
     });
 
-  //expect(res.statusCode).toBe(200);
+  expect(res.statusCode).toBe(200);
   expect(res.body.data).toBeDefined();
   expect(res.body.message).toBe("payment initialized successfully");
-}, 5000);
+});
 
 // it("should verify subscription payment", async () => {
 //   const school = await global.loginSchool();
