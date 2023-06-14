@@ -9,7 +9,9 @@ import { createAdmin, createPlan } from "../../../test/super-admin";
 import { Student } from "../../../models/student";
 import axios from "axios";
 import "jest";
+import env from "../../../config/env";
 
+const { paystack_secret_key: PAYSTACK_SECRET_KEY } = env.getAll();
 const baseURL = global.baseURL;
 
 const url = `${baseURL}/subscriptions`;
@@ -56,12 +58,16 @@ it("should pay for student subscription", async () => {
   const student = await Student.find();
 
   let data = {
-    authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
-    access_code: "c8nf5pmkf34pkzw",
-    reference: "kt152fr9hm",
+    status: true,
+    message: "Authorization URL created",
+    data: {
+      authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
+      access_code: "c8nf5pmkf34pkzw",
+      reference: "kt152fr9hm",
+    },
   };
 
-  jest.spyOn(axios, "get").mockResolvedValueOnce(data);
+  jest.spyOn(axios, "post").mockResolvedValueOnce({ data });
 
   const res = await request(app)
     .post(`${url}/make-payment`)
