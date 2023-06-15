@@ -68,5 +68,3 @@ export const verifyData = {
     subaccount: {},
   },
 };
-
-export const;
