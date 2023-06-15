@@ -5,6 +5,7 @@ import { createAdmin, createPlan } from "../../../test/super-admin";
 import { Student } from "../../../models/student";
 import axios from "axios";
 import "jest";
+import { verifyData } from "./data";
 
 const baseURL = global.baseURL;
 
@@ -69,50 +70,48 @@ it("should pay for student subscription", async () => {
       studentId: [student[0]._id],
       autoRenew: false,
     });
-  console.log(res.body);
+
   expect(res.statusCode).toBe(200);
   expect(res.body.data).toBeDefined();
   expect(res.body.message).toBe("payment initialized successfully");
 });
 
-// it("should verify subscription payment", async () => {
-//   const school = await global.loginSchool();
+it("should verify subscription payment", async () => {
+  const school = await global.loginSchool();
 
-//   let admin = await createAdmin();
+  let admin = await createAdmin();
 
-//   let plan = await createPlan(planBody, admin._id);
+  let plan = await createPlan(planBody, admin._id);
 
-//   const teacherClass = await createClass();
-//   let name = "test student";
+  const teacherClass = await createClass();
+  let name = "test student";
 
-//   await addStudentToClass(school._id, teacherClass._id, name);
+  await addStudentToClass(school._id, teacherClass._id, name);
 
-//   const student = await Student.find();
+  const student = await Student.find();
 
-//   let body = {
-//     planId: plan._id,
-//     studentId: [student[0]._id],
-//     autoRenew: false,
-//   };
+  let body = {
+    planId: plan._id,
+    studentId: [student[0]._id],
+    autoRenew: false,
+  };
 
-//   const data: any = await makePayment(body, school._id);
+  const data: any = await makePayment(body, school._id);
 
-//   jest.spyOn(axios, "get").mockResolvedValueOnce(data);
+  jest.spyOn(axios, "get").mockResolvedValueOnce({ data: verifyData });
 
-//   const res = await request(app)
-//     .post(`${url}/verify-payment`)
-//     .set("x-auth-token", school.token)
-//     .query({
-//       reference: data.reference,
-//     })
-//     .send({
-//       planId: plan._id,
-//       studentId: [student[0]._id],
-//       autoRenew: false,
-//     });
-//   console.log(res.body);
-//   //This endpoint will always be incomplete because payment is
-//   //outside our application and we don't have direct controll over it
-//   expect(res.body.message).toBe("The transaction was not completed");
-//   expect(res.body.data).toBe(null);
-// });
+  const res = await request(app)
+    .post(`${url}/verify-payment`)
+    .set("x-auth-token", school.token)
+    .query({
+      reference: data.reference,
+    })
+    .send({
+      planId: plan._id,
+      studentId: [student[0]._id],
+      autoRenew: false,
+    });
+
+  expect(res.statusCode).toBe(200);
+  // expect(res.body.data).toBe(null);
+});
