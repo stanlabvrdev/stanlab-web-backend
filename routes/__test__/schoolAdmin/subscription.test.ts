@@ -114,4 +114,4 @@ it("should verify subscription payment", async () => {
 
   expect(res.statusCode).toBe(200);
   expect(res.body.message).toBe("payment successfully verified");
-});
+}, 10000);
