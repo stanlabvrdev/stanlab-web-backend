@@ -41,7 +41,7 @@ class TeacherMCQControllerClass {
 
   getAssignmentsUnassigned = async (req: Request, res: Response) => {
     try {
-      const assignments = await teacherMCQService.getAssignmentsUnassigned(req);
+      const assignments = await teacherMCQService.getAsssignmentsUncompleted(req);
       ServerResponse(req, res, 200, assignments, "Assignments fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
