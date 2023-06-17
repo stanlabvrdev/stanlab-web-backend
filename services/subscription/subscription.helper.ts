@@ -30,3 +30,15 @@ export interface TransactionInterface {
   txnFrom: string;
   subscriptionPlanId: string;
 }
+
+export interface UserPaymentInterface {
+  token?: string;
+  signature?: string;
+  authorizationCode?: string;
+  customerId?: string;
+  paymentId?: string;
+  email: string;
+  currency: string;
+  school: string;
+  type?: PAYMENT_TYPES;
+}

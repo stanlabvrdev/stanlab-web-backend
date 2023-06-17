@@ -19,7 +19,7 @@ import { SETTINGS_CONSTANTS } from "../../constants/settings";
 import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../enums/transaction.enum";
 import { Transaction } from "../../models/transaction";
 import { PAYMENT_TYPES } from "../../enums/payment-types";
-import { PaymentInterface, TransactionInterface } from "./subscription.helper";
+import { PaymentInterface, TransactionInterface, UserPaymentInterface } from "./subscription.helper";
 const env = envConfig.getAll();
 const stripe = require("stripe")(env.stripe_Secret_Key);
 
@@ -139,7 +139,6 @@ class SubscriptionService {
     return { payment, transaction };
   }
 
-  //Make payment starts here
   async makePayment(body: any, schoolId: string) {
     let { planId, studentId, coupon, autoRenew } = body;
 
@@ -253,15 +252,11 @@ class SubscriptionService {
     }
   }
 
-  //Make payment stops here
-
-  async webhook(body: any, hash: string) {
+  async webhook(payload: any, hash: string) {
     const secretHash = env.flutterwave_secret_hash;
     const signature = hash;
 
     if (!signature || signature !== secretHash) throw new BadRequestError("this request isn't from Flutterwave; discard");
-
-    const payload = body;
 
     let webhookpayload = new Webhook({
       txId: payload.id,
@@ -272,31 +267,33 @@ class SubscriptionService {
     return payload;
   }
 
+  async createUserPayment(userPaymentObject: UserPaymentInterface): Promise<void> {
+    await UserPayment.create({ ...userPaymentObject });
+  }
+
   async verifyPayment(schoolId: string, reference: string) {
     let payment = await Payment.findOne({ school: schoolId, reference });
 
-    if (!payment) {
-      throw new NotFoundError("reference not found");
-    }
+    if (!payment) throw new NotFoundError("reference not found");
 
     let transaction = await Transaction.findOne({
       txnFrom: schoolId,
       paymentRef: reference,
     });
 
-    if (!transaction) {
-      throw new NotFoundError("transaction not found");
-    }
+    if (!transaction) throw new NotFoundError("transaction not found");
 
     let response: any;
-    let userPayment: any;
+    const userPaymentObject: UserPaymentInterface = {
+      email: payment.email,
+      currency: payment.currency,
+      school: payment.school,
+    };
 
     if (payment.type === PAYMENT_TYPES.PAYSTACK) {
       response = await paymentService.PaystackVerifyPayment(reference);
 
-      if (response.data.status.toLowerCase() !== "success") {
-        throw new BadRequestError(response.data.gateway_response);
-      }
+      if (response.data.status.toLowerCase() !== "success") throw new BadRequestError(response.data.gateway_response);
 
       payment.status = response.data.gateway_response;
 
@@ -304,31 +301,23 @@ class SubscriptionService {
       transaction.channel = response.data.channel;
       transaction.transactionDate = response.data.transaction_date;
 
-      userPayment = await UserPayment.findOne({
+      const userPayment = await UserPayment.findOne({
         school: schoolId,
         signature: response.data.authorization.signature,
       });
 
-      if (!userPayment) {
-        userPayment = new UserPayment({
-          authorizationCode: response.data.authorization.authorization_code,
-          signature: response.data.authorization.signature,
-          email: payment.email,
-          currency: payment.currency,
-          school: payment.school,
-          type: PAYMENT_TYPES.PAYSTACK,
-        });
-        userPayment.save();
-      }
+      userPaymentObject.authorizationCode = response.data.authorization.authorization_code;
+      userPaymentObject.signature = response.data.authorization.signature;
+      userPaymentObject.type = PAYMENT_TYPES.PAYSTACK;
+
+      if (!userPayment) await this.createUserPayment(userPaymentObject);
     }
 
     if (payment.type === PAYMENT_TYPES.FLUTTERWAVE) {
       const flw = new Flutterwave(env.flutterwave_public_key, env.flutterwave_secret_key);
 
       const payload = await Webhook.findOne({ reference, isActive: true });
-      if (!payload) {
-        throw new BadRequestError("cannot process this transaction");
-      }
+      if (!payload) throw new BadRequestError("cannot process this transaction");
 
       response = await flw.Transaction.verify({ id: payload.txId });
 
@@ -345,23 +334,16 @@ class SubscriptionService {
       transaction.channel = response.data.payment_type;
       transaction.transactionDate = response.data.created_at;
 
-      userPayment = await UserPayment.findOne({
+      const userPayment = await UserPayment.findOne({
         school: schoolId,
         token: response.data.card.token,
       });
 
-      if (!userPayment) {
-        userPayment = new UserPayment({
-          token: response.data.card.token,
-          email: payment.email,
-          currency: payment.currency,
-          school: payment.school,
-          type: PAYMENT_TYPES.FLUTTERWAVE,
-        });
-        userPayment.save();
-      }
-    }
+      userPaymentObject.token = response.data.card.token;
+      userPaymentObject.type = PAYMENT_TYPES.FLUTTERWAVE;
 
+      if (!userPayment) await this.createUserPayment(userPaymentObject);
+    }
     if (payment.type === PAYMENT_TYPES.STRIPE) {
       response = await paymentService.StripeVerifyPayment(reference);
 
@@ -383,42 +365,35 @@ class SubscriptionService {
       transaction.channel = response.payment_method_types[0];
       transaction.transactionDate = new Date(paymentIntent.created * 1000);
 
-      userPayment = await UserPayment.findOne({
+      const userPayment = await UserPayment.findOne({
         school: schoolId,
         customerId: paymentIntent.customer,
         paymentId: paymentIntent.payment_method,
       });
 
-      if (!userPayment) {
-        userPayment = new UserPayment({
-          customerId: paymentIntent.customer,
-          paymentId: paymentIntent.payment_method,
-          email: payment.email,
-          currency: payment.currency,
-          school: payment.school,
-          type: PAYMENT_TYPES.STRIPE,
-        });
-        userPayment.save();
-      }
+      userPaymentObject.customerId = paymentIntent.customer;
+      userPaymentObject.paymentId = paymentIntent.payment_method;
+      userPaymentObject.type = PAYMENT_TYPES.STRIPE;
+      if (!userPayment) await this.createUserPayment(userPaymentObject);
+
+      await payment.save();
+      await transaction.save();
+
+      const studentSub = await Promise.all(
+        payment.student.map(async (element: any) => {
+          let subscribe = await StudentSubscription.findOne({ student: element });
+          subscribe.subscriptionPlanId = payment!.subscriptionPlanId;
+          subscribe.endDate = payment!.endDate;
+          subscribe.extensionDate = payment!.extensionDate;
+          subscribe.autoRenew = payment!.autoRenew;
+          subscribe.isActive = true;
+
+          return subscribe.save();
+        })
+      );
+
+      return studentSub;
     }
-
-    await payment.save();
-    await transaction.save();
-
-    const studentSub = await Promise.all(
-      payment.student.map(async (element: string) => {
-        let subscribe = await StudentSubscription.findOne({ student: element });
-        subscribe.subscriptionPlanId = payment.subscriptionPlanId;
-        subscribe.endDate = payment.endDate;
-        subscribe.extensionDate = payment.extensionDate;
-        subscribe.autoRenew = payment.autoRenew;
-        subscribe.isActive = true;
-
-        return subscribe.save();
-      })
-    );
-
-    return studentSub;
   }
 
   async recurringSubscriptionPayment(schoolId: string, studentId: string, planId: string) {

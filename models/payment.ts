@@ -25,7 +25,7 @@ interface PaymentDoc extends mongoose.Document {
   cost: number;
   currency: string;
   country: string;
-  school: mongoose.Schema.Types.ObjectId;
+  school: string;
   student: mongoose.Schema.Types.ObjectId[];
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
   reference: string;
