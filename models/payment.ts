@@ -74,6 +74,6 @@ const paymentSchema = new mongoose.Schema({
   extensionDate: { type: Date },
 });
 
-const Payment = mongoose.model("Payment", paymentSchema);
+const Payment = mongoose.model<PaymentDoc>("Payment", paymentSchema);
 
 export { Payment };
