@@ -73,7 +73,7 @@ class TeacherMCQStudentClass {
     return assignmentsCompleted;
   }
 
-  async getAssignmentsUnassigned(req: Request) {
+  async getAssignmentsUncompleted(req: Request) {
     const assignmentUnassigned = await this.getAssignmentsByCriteria(req, {
       "students.scores": { $size: 0 },
       dueDate: { $lte: Date.now() },
