@@ -545,16 +545,28 @@ class SchoolAdminService {
 
     const data: any[] = await excelParserService.convertToJSON(obj);
 
+    let headings = Object.keys(data[0]);
+    if (
+      headings[0].toLowerCase() !== "firstname" ||
+      headings[1].toLowerCase() !== "surname"
+    ) {
+      throw new BadRequestError(
+        "Improper format! Kindly ensure your headings are Firstname and Surname respectively"
+      );
+    }
+
     for (let item of data) {
+      headings = Object.values(item);
+
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
-      let userName = await generateUserName(item.Firstname, item.Surname);
+      let userName = await generateUserName(headings[0], headings[1]);
 
       let existingStudent = await Student.findOne({ userName });
       if (existingStudent) throw new BadRequestError("student already exist");
 
       const student = new Student({
-        name: getFullName(item.Firstname, item.Surname),
+        name: getFullName(headings[0], headings[1]),
         userName,
         email: userName,
         password: hashedPassword,
@@ -728,7 +740,7 @@ class SchoolAdminService {
 
         let ids: any = [];
 
-        await teacherClass.map(async (e) => {
+         await teacherClass.map(async (e) => {
           ids.push(e.students);
 
           let index = ids[0].indexOf(s.student);
