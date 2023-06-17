@@ -28,14 +28,8 @@ export async function createSchool() {
 }
 
 export async function updateSchool(body: any, schoolId: string) {
-  let {
-    admin_name,
-    school_name,
-    admin_email,
-    admin_title,
-    password,
-    country,
-  } = body;
+  let { admin_name, school_name, admin_email, admin_title, password, country } =
+    body;
   let admin = await SchoolAdmin.findById({ _id: schoolId });
 
   password = await passwordService.hash(password);
@@ -62,13 +56,11 @@ export async function createTeacherSchool(teacherId: string) {
   return teacherSchool.save();
 }
 
-export async function createClass() {
-  const school = await createSchool();
-
+export async function createClass(schoolId) {
   const teacherClass = new TeacherClass({
     title: "test title",
     subject: "test subject",
-    school: school._id,
+    school: schoolId,
     colour: "test colour",
   });
 
@@ -141,4 +133,20 @@ export async function AdminCreateTeacher(
   });
 
   await teacherSchool.save();
+
+  return teacher;
+}
+
+export async function makeSubAdmin(teacherId: string, schoolId: string) {
+  // let body = {
+  //   name: "Pete test",
+  //   email: "pete@test.com",
+  // };
+
+  let teacher = await Teacher.findById(teacherId);
+
+  teacher.subAdmin = schoolId;
+  //teacher.save();
+
+  return teacher;
 }
