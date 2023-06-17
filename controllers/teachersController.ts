@@ -81,7 +81,7 @@ async function createSchoolClass(req, res) {
   try {
     let teacher = await Teacher.findById(req.teacher._id);
 
-    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin })
     if (!school) {
       throw new BadRequestError("unauthorized school sub admin");
     }
@@ -91,7 +91,7 @@ async function createSchoolClass(req, res) {
       subject,
       section,
       colour,
-      school: school._id,
+      school: teacher.subAdmind,
     });
 
     ServerResponse(req, res, 200, teacherClass, "class created successfully");
