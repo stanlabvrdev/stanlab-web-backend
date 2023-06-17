@@ -4,22 +4,10 @@ const env = envConfig.getAll();
 const stripe = require("stripe")(env.stripe_Secret_Key);
 
 class PaymentService {
-  async PaystackInitializePayment(
-    email: string,
-    amount: number,
-    currency: string,
-    redirect_url: string
-  ) {
-    const body = {
-      email: email,
-      amount: amount,
-      currency: currency,
-      callback_url: redirect_url,
-    };
-
-    const { data } = await axios.post(`${env.paystack_payment_URL}`, body, {
+  async makePostRequest(url: string, body: object, headers: object) {
+    const { data } = await axios.post(url, body, {
       headers: {
-        Authorization: `Bearer ${env.paystack_secret_key}`,
+        ...headers,
         "Content-Type": "application/json",
       },
     });
@@ -27,51 +15,44 @@ class PaymentService {
     return data;
   }
 
-  async PaystackVerifyPayment(reference: string) {
-    const { data } = await axios.get(
-      `${env.paystack_verification_URL}/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${env.paystack_secret_key}`,
-        },
-      }
-    );
+  async makeGetRequest(url: string, headers: object) {
+    const { data } = await axios.get(url, {
+      headers,
+    });
 
     return data;
   }
 
-  async PaystackRecurringPayment(
-    authorizationCode: string,
-    email: string,
-    amount: number
-  ) {
+  //Paystack initializae payment
+  async PaystackInitializePayment(email: string, amount: number, currency: string, redirect_url: string) {
+    const body = {
+      email: email,
+      amount: amount,
+      currency: currency,
+      callback_url: redirect_url,
+    };
+
+    return this.makePostRequest(env.paystack_payment_URL, body, { Authorization: `Bearer ${env.paystack_secret_key}` });
+  }
+
+  //Paystack verify payment
+  async PaystackVerifyPayment(reference: string) {
+    return this.makeGetRequest(`${env.paystack_verification_URL}/${reference}`, { Authorization: `Bearer ${env.paystack_secret_key}` });
+  }
+
+  //PayStack recurring payment
+  async PaystackRecurringPayment(authorizationCode: string, email: string, amount: number) {
     const body = {
       authorization_code: authorizationCode,
       email: email,
       amount: amount,
     };
 
-    const { data } = await axios.post(
-      `${env.paystack_recurring_payment_URL}`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${env.paystack_secret_key}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return data;
+    return this.makePostRequest(env.paystack_recurring_payment_URL, body, { Authorization: `Bearer ${env.paystack_secret_key}` });
   }
 
-  async FlutterwaveInitializePayment(
-    tx_ref: string,
-    amount: number,
-    currency: string,
-    redirect_url: string,
-    customer: any
-  ) {
+  //Flutterwave initialize payment
+  async FlutterwaveInitializePayment(tx_ref: string, amount: number, currency: string, redirect_url: string, customer: any) {
     const body = {
       tx_ref: tx_ref,
       amount: amount,
@@ -82,23 +63,10 @@ class PaymentService {
       },
     };
 
-    const { data } = await axios.post(`${env.flutterwave_payment_URL}`, body, {
-      headers: {
-        Authorization: `Bearer ${env.flutterwave_secret_key}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    return data;
+    return this.makePostRequest(env.flutterwave_payment_URL, body, { Authorization: `Bearer ${env.flutterwave_secret_key}` });
   }
 
-  async FlutterwaveRecurringPayment(
-    token: string,
-    email: string,
-    amount: number,
-    currency: string,
-    tx_ref: string
-  ) {
+  async FlutterwaveRecurringPayment(token: string, email: string, amount: number, currency: string, tx_ref: string) {
     const body = {
       token: token,
       email: email,
@@ -106,27 +74,10 @@ class PaymentService {
       amount: amount,
       tx_ref: tx_ref,
     };
-
-    const { data } = await axios.post(
-      `${env.flutterwave_recurring_payment_URL}`,
-      body,
-      {
-        headers: {
-          Authorization: `Bearer ${env.flutterwave_secret_key}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return data;
+    return this.makePostRequest(env.flutterwave_recurring_payment_URL, body, { Authorization: `Bearer ${env.flutterwave_secret_key}` });
   }
 
-  async StripeInitializePayment(
-    email: string,
-    amount: number,
-    currency: string,
-    name: string
-  ) {
+  async StripeInitializePayment(email: string, amount: number, currency: string, name: string) {
     const customer = await stripe.customers.create({
       email: email,
     });
@@ -158,12 +109,7 @@ class PaymentService {
     return session;
   }
 
-  async StripeRecurringPayment(
-    customerId: string,
-    paymentId: string,
-    amount: number,
-    currency: string
-  ) {
+  async StripeRecurringPayment(customerId: string, paymentId: string, amount: number, currency: string) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: currency,
