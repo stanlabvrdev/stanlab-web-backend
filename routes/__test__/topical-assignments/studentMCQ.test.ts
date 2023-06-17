@@ -167,7 +167,6 @@ describe("Student Assignment Service endpoints", () => {
       await createAssignments();
 
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${teacherClass._id}/scores`).set("x-auth-token", student.token);
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.message).toBe("Score fetched successfully");
       expect(response.body.data).not.toHaveLength(0);

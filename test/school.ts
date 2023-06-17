@@ -1,8 +1,5 @@
 import { PAYMENT_TYPES } from "../enums/payment-types";
-import {
-  TRANSACTION_STATUS,
-  TRANSACTION_TYPE,
-} from "../enums/transaction.enum";
+import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../enums/transaction.enum";
 import { addDaysToDate } from "../helpers/dateHelper";
 import { Payment } from "../models/payment";
 import { SchoolAdmin } from "../models/schoolAdmin";
@@ -41,14 +38,7 @@ export async function createSchool() {
 }
 
 export async function updateSchool(body: any, schoolId: string) {
-  let {
-    admin_name,
-    school_name,
-    admin_email,
-    admin_title,
-    password,
-    country,
-  } = body;
+  let { admin_name, school_name, admin_email, admin_title, password, country } = body;
   let admin = await SchoolAdmin.findById({ _id: schoolId });
 
   password = await passwordService.hash(password);
@@ -104,11 +94,7 @@ export async function createStudent(name: string) {
   return student.save();
 }
 
-export async function addStudentToClass(
-  schoolId: string,
-  classId: string,
-  name: string
-) {
+export async function addStudentToClass(schoolId: string, classId: string, name: string) {
   const student = await createStudent(name);
 
   const studentClass = new StudentTeacherClass({
@@ -131,11 +117,7 @@ export async function addStudentToClass(
   await studentSubscription.save();
 }
 
-export async function createTeacher(body: {
-  name: string;
-  email: string;
-  password: string;
-}) {
+export async function createTeacher(body: { name: string; email: string; password: string }) {
   const teacher = new Teacher({
     name: body.name,
     email: body.email,
@@ -144,10 +126,7 @@ export async function createTeacher(body: {
   return teacher.save();
 }
 
-export async function AdminCreateTeacher(
-  body: { name: string; email: string },
-  schoolId: string
-) {
+export async function AdminCreateTeacher(body: { name: string; email: string }, schoolId: string) {
   let password = generateRandomString(7);
   const hashedPassword = await passwordService.hash(password);
 
@@ -177,16 +156,15 @@ export async function makePayment(body: any, schoolId: string) {
 
   const school = await SchoolAdmin.findById({ _id: schoolId });
 
-  const response = await paymentService.PaystackInitializePayment(
-    school.email,
-    3000,
-    "NGN",
-    `https://www.google.com/`
-  );
-
-  if (!response || response.status !== true) {
-    throw new BadRequestError("unable to initialize payment");
-  }
+  let response = {
+    status: true,
+    message: "Authorization URL created",
+    data: {
+      authorization_url: "https://checkout.paystack.com/c8nf5pmkf34pkzw",
+      access_code: "c8nf5pmkf34pkzw",
+      reference: "kt152fr9hm",
+    },
+  };
 
   let payment: any = new Payment({
     email: school.email,
