@@ -58,7 +58,7 @@ global.loginStudent = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test student",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test@student.com",
     role: "Student",
   };
@@ -83,7 +83,7 @@ global.loginTeacher = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test teacher",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test@teacher.com",
     role: "Teacher",
   };
@@ -109,7 +109,7 @@ global.loginSchool = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test school",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test.admin@school.com",
     role: "School",
     adminName: "test admin",
