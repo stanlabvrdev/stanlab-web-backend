@@ -12,7 +12,7 @@ export interface PaymentInterface {
   reference?: string;
   accessCode?: string;
   authorizationUrl?: string;
-  status: TRANSACTION_STATUS;
+  status?: TRANSACTION_STATUS;
   autoRenew: Boolean;
   type?: PAYMENT_TYPES;
   endDate: string;
@@ -22,13 +22,15 @@ export interface PaymentInterface {
 export interface TransactionInterface {
   txnRef: string;
   paymentRef?: string;
-  cost: number;
+  cost?: number;
   currency: string;
   type: TRANSACTION_TYPE;
   status: TRANSACTION_STATUS;
   email: string;
   txnFrom: string;
   subscriptionPlanId: string;
+  channel?: string;
+  transactionDate?: string | Date;
 }
 
 export interface UserPaymentInterface {

@@ -48,8 +48,7 @@ class SubscriptionService {
   }
 
   async getPlans() {
-    let plans = await SubscriptionPlan.find();
-    return plans;
+    return await SubscriptionPlan.find();
   }
 
   async getPlansBySchool(schoolId: string) {
@@ -135,6 +134,7 @@ class SubscriptionService {
   async savePaymentAndTransaction(paymentBody: PaymentInterface, transactionBody: TransactionInterface) {
     const payment = await Payment.create({ ...paymentBody });
     transactionBody.paymentRef = payment.reference;
+    transactionBody.cost = payment.cost;
     const transaction = await Transaction.create({ ...transactionBody });
     return { payment, transaction };
   }
@@ -190,7 +190,6 @@ class SubscriptionService {
         length: 15,
         numbers: true,
       }),
-      cost: totalCost,
       currency: plan.currency,
       type: TRANSACTION_TYPE.SUBSCRIPTION,
       status: TRANSACTION_STATUS.PENDING,
@@ -405,6 +404,32 @@ class SubscriptionService {
     let response: any;
     let extension: number = plan.duration + SETTINGS_CONSTANTS.SUBSCRIPTION_EXTENSION;
 
+    const paymentObject: PaymentInterface = {
+      email: userPayment.email,
+      cost: plan.cost,
+      currency: plan.currency,
+      country: plan.country,
+      school: userPayment.school,
+      student: studentId,
+      subscriptionPlanId: plan._id,
+      autoRenew: true,
+      endDate: addDaysToDate(plan.duration),
+      extensionDate: addDaysToDate(extension),
+    };
+
+    const transactionObject: TransactionInterface = {
+      txnRef: generator.generate({
+        length: 15,
+        numbers: true,
+      }),
+      currency: plan.currency,
+      type: TRANSACTION_TYPE.SUBSCRIPTION,
+      status: TRANSACTION_STATUS.PENDING,
+      email: userPayment.email,
+      txnFrom: userPayment.school,
+      subscriptionPlanId: plan._id,
+    };
+
     if (userPayment.type === PAYMENT_TYPES.PAYSTACK) {
       response = await paymentService.PaystackRecurringPayment(userPayment.authorizationCode, userPayment.email, plan.cost * 100);
 
@@ -412,42 +437,14 @@ class SubscriptionService {
         throw new BadRequestError("unable to initialize recurring charge");
       }
 
-      let payment: any = new Payment({
-        email: userPayment.email,
-        cost: plan.cost,
-        currency: plan.currency,
-        country: plan.country,
-        school: userPayment.school,
-        student: studentId,
-        subscriptionPlanId: plan._id,
-        reference: response.data.reference,
-        status: response.data.status,
-        autoRenew: true,
-        type: PAYMENT_TYPES.PAYSTACK,
-        endDate: addDaysToDate(plan.duration),
-        extensionDate: addDaysToDate(extension),
-      });
+      paymentObject.reference = response.data.reference;
+      paymentObject.status = response.data.status;
+      paymentObject.type = PAYMENT_TYPES.PAYSTACK;
 
-      payment.save();
+      transactionObject.channel = response.data.channel;
+      transactionObject.transactionDate = response.data.transaction_date;
 
-      let transaction = new Transaction({
-        txnRef: generator.generate({
-          length: 15,
-          numbers: true,
-        }),
-        paymentRef: payment.reference,
-        cost: payment.cost,
-        currency: plan.currency,
-        type: TRANSACTION_TYPE.SUBSCRIPTION,
-        status: TRANSACTION_STATUS.COMPLETED,
-        channel: response.data.channel,
-        email: userPayment.email,
-        txnFrom: userPayment.school,
-        subscriptionPlanId: plan._id,
-        transactionDate: response.data.transaction_date,
-      });
-
-      transaction.save();
+      await this.savePaymentAndTransaction(paymentObject, transactionObject);
     }
 
     if (userPayment.type === PAYMENT_TYPES.FLUTTERWAVE) {
@@ -462,42 +459,14 @@ class SubscriptionService {
         throw new BadRequestError("unable to initialize recurring charge");
       }
 
-      let payment: any = new Payment({
-        email: userPayment.email,
-        cost: plan.cost,
-        currency: plan.currency,
-        country: plan.country,
-        school: userPayment.school,
-        student: studentId,
-        subscriptionPlanId: plan._id,
-        reference: generatedReference,
-        status: response.data.status,
-        autoRenew: true,
-        type: PAYMENT_TYPES.FLUTTERWAVE,
-        endDate: addDaysToDate(plan.duration),
-        extensionDate: addDaysToDate(extension),
-      });
+      paymentObject.reference = generatedReference;
+      paymentObject.status = response.data.status;
+      paymentObject.type = PAYMENT_TYPES.FLUTTERWAVE;
 
-      payment.save();
+      transactionObject.channel = response.data.payment_type;
+      transactionObject.transactionDate = response.data.created_at;
 
-      let transaction: any = new Transaction({
-        txnRef: generator.generate({
-          length: 15,
-          numbers: true,
-        }),
-        paymentRef: generatedReference,
-        cost: plan.cost,
-        currency: plan.currency,
-        type: TRANSACTION_TYPE.SUBSCRIPTION,
-        status: TRANSACTION_STATUS.COMPLETED,
-        channel: response.data.payment_type,
-        email: userPayment.email,
-        txnFrom: userPayment.school,
-        subscriptionPlanId: plan._id,
-        transactionDate: response.data.created_at,
-      });
-
-      transaction.save();
+      await this.savePaymentAndTransaction(paymentObject, transactionObject);
     }
 
     if (userPayment.type === PAYMENT_TYPES.STRIPE) {
@@ -506,43 +475,14 @@ class SubscriptionService {
       if (!response || response.status !== "succeeded") {
         throw new BadRequestError("unable to initialize recurring charge");
       }
+      paymentObject.reference = response.id;
+      paymentObject.status = response.status;
+      paymentObject.type = PAYMENT_TYPES.STRIPE;
 
-      let payment: any = new Payment({
-        email: userPayment.email,
-        cost: plan.cost,
-        currency: plan.currency,
-        country: plan.country,
-        school: userPayment.school,
-        student: studentId,
-        subscriptionPlanId: plan._id,
-        reference: response.id,
-        status: response.status,
-        autoRenew: true,
-        type: PAYMENT_TYPES.STRIPE,
-        endDate: addDaysToDate(plan.duration),
-        extensionDate: addDaysToDate(extension),
-      });
+      transactionObject.channel = response.payment_method_types[0];
+      transactionObject.transactionDate = new Date(response.created * 1000);
 
-      payment.save();
-
-      let transaction = new Transaction({
-        txnRef: generator.generate({
-          length: 15,
-          numbers: true,
-        }),
-        paymentRef: payment.reference,
-        cost: payment.cost,
-        currency: payment.currency,
-        type: TRANSACTION_TYPE.SUBSCRIPTION,
-        status: TRANSACTION_STATUS.COMPLETED,
-        channel: response.payment_method_types[0],
-        email: userPayment.email,
-        txnFrom: userPayment.school,
-        subscriptionPlanId: plan._id,
-        transactionDate: new Date(response.created * 1000),
-      });
-
-      transaction.save();
+      await this.savePaymentAndTransaction(paymentObject, transactionObject);
     }
 
     let subscriber = await StudentSubscription.findOne({
