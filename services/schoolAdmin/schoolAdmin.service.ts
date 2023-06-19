@@ -714,9 +714,6 @@ class SchoolAdminService {
       school: schoolId,
       student: body.studentId,
     });
-    if (!students) {
-      return true;
-    }
 
     Promise.all(
       students.map(async (s) => {
@@ -729,33 +726,31 @@ class SchoolAdminService {
         await StudentSubscription.findOneAndDelete({
           student: s.student,
         });
-
         await SchoolStudent.findOneAndDelete({
           student: s.student,
         });
-
-        let teacherClass = await TeacherClass.find({
-          students: s.student,
-        });
-
-        let ids: any = [];
-
-         await teacherClass.map(async (e) => {
-          ids.push(e.students);
-
-          let index = ids[0].indexOf(s.student);
-
-          ids[0].splice(index, 1);
-        });
-
-        await TeacherClass.findOneAndUpdate(
-          { students: s.student },
-          { students: ids[0] },
-          {
-            new: true,
-          }
-        );
       })
+    );
+
+    let teacherClass = await TeacherClass.find();
+
+    let ids: any = [];
+
+    teacherClass.map((classes: any) => {
+      classes.students.map((student: any) => {
+        student = student.toString();
+        ids.push(student);
+      });
+    });
+
+    ids = ids.filter((id) => !body.studentId.includes(id));
+
+    await TeacherClass.updateMany(
+      { school: schoolId },
+      { students: ids },
+      {
+        new: true,
+      }
     );
   }
 }
