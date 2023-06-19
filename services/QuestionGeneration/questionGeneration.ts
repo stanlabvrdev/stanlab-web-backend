@@ -7,18 +7,18 @@ import BadRequestError from "../exceptions/bad-request";
 const { question_generation_model: QUESTION_GENERATION_MODEL, true_or_false_model: TRUE_OR_FALSE_MODEL } = env.getAll();
 import { Document } from "mongoose";
 
-interface Questions {
+export interface Questions {
   question: string | undefined;
   options: Option[];
   type: string;
 }
 
-interface Option {
+export interface Option {
   answer: string;
   isCorrect: boolean;
 }
 
-interface QuizQuestion {
+export interface QuizQuestion {
   answer: string;
   context: string;
   extra_options: string[];
