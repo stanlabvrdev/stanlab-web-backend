@@ -234,20 +234,33 @@ class SchoolAdminService {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     const data: any[] = await excelParserService.convertToJSON(obj);
+
+    let headings = Object.keys(data[0]);
+    if (
+      headings[0].toLowerCase() !== "firstname" ||
+      headings[1].toLowerCase() !== "surname" ||
+      headings[2].toLowerCase() !== "email"
+    ) {
+      throw new BadRequestError(
+        "Improper format! Kindly ensure your headings are Firstname, Surname and Email respectively"
+      );
+    }
+
     const promises: any[] = [];
     const schools: any[] = [];
     const profile: any[] = [];
 
     for (let item of data) {
+      headings = Object.values(item);
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
 
-      let existingTeacher = await Teacher.findOne({ email: item.Email });
+      let existingTeacher = await Teacher.findOne({ email: headings[2] });
 
       if (!existingTeacher) {
         const teacher = new Teacher({
-          name: getFullName(item.Firstname, item.Surname),
-          email: item.Email,
+          name: getFullName(headings[0], headings[1]),
+          email: headings[2],
           password: hashedPassword,
           authCode: password,
           schoolTeacher: true,
