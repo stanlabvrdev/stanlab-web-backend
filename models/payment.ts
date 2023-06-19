@@ -25,7 +25,7 @@ interface PaymentDoc extends mongoose.Document {
   cost: number;
   currency: string;
   country: string;
-  school: mongoose.Schema.Types.ObjectId;
+  school: string;
   student: mongoose.Schema.Types.ObjectId[];
   subscriptionPlanId: mongoose.Schema.Types.ObjectId;
   reference: string;
@@ -74,6 +74,6 @@ const paymentSchema = new mongoose.Schema({
   extensionDate: { type: Date },
 });
 
-const Payment = mongoose.model("Payment", paymentSchema);
+const Payment = mongoose.model<PaymentDoc>("Payment", paymentSchema);
 
 export { Payment };
