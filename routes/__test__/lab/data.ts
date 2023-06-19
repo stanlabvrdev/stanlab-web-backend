@@ -9,9 +9,9 @@ export async function createLab(teacherId: string, is_teacher: boolean = true, s
   const classd = await createClass();
   const data = {
     experiment: {
-      _id: new mongoose.Types.ObjectId().toHexString(),
+      _id: new mongoose.Types.ObjectId(),
       name: "test experiment",
-      class: new mongoose.Types.ObjectId().toHexString(),
+      class: new mongoose.Types.ObjectId(),
       subject: "test-subject",
       code: "004",
       icon: "image-url",
@@ -24,7 +24,7 @@ export async function createLab(teacherId: string, is_teacher: boolean = true, s
     instruction: "some instruction",
     startDate: moment().add(1, "days").format("YYYY-MM-DD"),
     isCompleted: false,
-    student: studentId || new mongoose.Types.ObjectId().toHexString(),
+    student: studentId || new mongoose.Types.ObjectId(),
     teacher: is_teacher ? teacherId : null,
   };
 
