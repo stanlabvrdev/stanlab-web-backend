@@ -36,7 +36,6 @@ abstract class QuestionGenerator {
 class MCQQuestionGenerator extends QuestionGenerator {
   async generate(text: string): Promise<Questions[]> {
     const callToModel = await axios.post(QUESTION_GENERATION_MODEL!, { text, type: "mcq" });
-    console.log(callToModel.data.questions);
     const questions: QuizQuestion[] = callToModel.data.questions;
     return Object.keys(questions).length !== 0 ? formatQuestions.formatMCQ(questions) : [];
   }
