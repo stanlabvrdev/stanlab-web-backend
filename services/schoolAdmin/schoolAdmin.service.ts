@@ -3,7 +3,11 @@ import { Teacher } from "../../models/teacher";
 import { Student } from "../../models/student";
 import { SchoolTeacher } from "../../models/schoolTeacher";
 import { SchoolStudent } from "../../models/schoolStudent";
-import { sendEmailToSchoolAdmin, sendWelcomeEmailToTeacher } from "../email";
+import {
+  welcome_school_admin,
+  welcome_new_teacher,
+  private_teacher_added_to_school_account,
+} from "../email";
 import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
 import generateRandomString from "../../utils/randomStr";
@@ -47,7 +51,7 @@ class SchoolAdminService {
 
     const token = admin.generateAuthToken();
     await admin.save();
-    sendEmailToSchoolAdmin(admin);
+    welcome_school_admin(admin);
     return { admin, token };
   }
 
@@ -70,7 +74,7 @@ class SchoolAdminService {
       });
 
       await teacher.save();
-      sendWelcomeEmailToTeacher(teacher, password);
+      welcome_new_teacher(teacher, password);
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
@@ -105,7 +109,7 @@ class SchoolAdminService {
     teacher.schoolTeacher = true;
     await teacher.save();
 
-    // sendWelcomeEmailToTeacher(teacher, password);
+    private_teacher_added_to_school_account(teacher);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
@@ -250,7 +254,7 @@ class SchoolAdminService {
         });
         promises.push(teacher.save());
 
-        sendWelcomeEmailToTeacher(teacher, password);
+        welcome_new_teacher(teacher, password);
 
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
@@ -278,8 +282,6 @@ class SchoolAdminService {
         existingTeacher.schoolTeacher = true;
         await existingTeacher.save();
 
-        //sendWelcomeEmailToTeacher(existingTeacher, password);
-
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
           teacher: existingTeacher._id,
@@ -291,6 +293,8 @@ class SchoolAdminService {
           selectedSchool: school._id,
         });
         profile.push(teacherProfile.save());
+
+        private_teacher_added_to_school_account(existingTeacher);
       }
     }
 

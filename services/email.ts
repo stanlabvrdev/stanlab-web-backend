@@ -38,16 +38,16 @@ export function sendStudentInviteEmail(student, password) {
   });
 }
 
-export function sendTeacherWelcomeEmail(teacher, password) {
+export function welcome_new_teacher(teacher, password) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
     subject: "School invitation",
-    template: "welcome-teacher",
+    template: "welcome_new_teacher",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: teacher.email,
       password: password,
-      name: teacher.name,
+      teachersEmail: teacher.email,
+      teachersName: teacher.name,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -58,16 +58,14 @@ export function sendTeacherWelcomeEmail(teacher, password) {
   });
 }
 
-export function sendWelcomeEmailToTeacher(teacher, password) {
+export function private_teacher_added_to_school_account(teacher) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
     subject: "School invitation",
-    template: "welcome_teacher_new",
+    template: "private_teacher_added_to_school_account",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: teacher.email,
-      password: password,
-      name: teacher.name,
+      teachersName: teacher.name,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -75,15 +73,15 @@ export function sendWelcomeEmailToTeacher(teacher, password) {
   });
 }
 
-export function sendEmailToSchoolAdmin(admin) {
+export function welcome_school_admin(admin) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: admin.email,
     subject: "Welcome to StanLab",
-    template: "welcome-school-admin",
+    template: "welcome_school_admin",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: admin.email,
-      name: admin.name,
+      adminsName: admin.adminName,
+      schoolName: admin.schoolName,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -123,7 +121,9 @@ export async function sendResetPassword(student, token, isStudent = true) {
       email: student.email,
 
       name: student.name || student.email,
-      url: `https://app.stanlab.co/${isStudent ? "students" : "teachers"}/reset-password/${token}`,
+      url: `https://app.stanlab.co/${
+        isStudent ? "students" : "teachers"
+      }/reset-password/${token}`,
     }),
   };
 
@@ -135,12 +135,13 @@ export async function sendResetPassword(student, token, isStudent = true) {
   });
 }
 
+
+
 export default {
   doSendInvitationEmail,
-  sendEmailToSchoolAdmin,
-
+  welcome_school_admin,
   sendStudentInviteEmail,
   sendResetPassword,
-  sendTeacherWelcomeEmail,
-  sendWelcomeEmailToTeacher,
+  welcome_new_teacher,
+  private_teacher_added_to_school_account,
 };
