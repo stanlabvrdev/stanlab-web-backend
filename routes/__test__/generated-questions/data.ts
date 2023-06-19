@@ -1,4 +1,5 @@
 import { faker } from "@faker-js/faker";
+import { QuizQuestion } from "../../../services/QuestionGeneration/questionGeneration";
 
 function generateRandomPassage() {
   let passage = "";
@@ -9,26 +10,20 @@ function generateRandomPassage() {
 }
 
 function generateFakeMcqData() {
-  const data = {
-    data: {},
+  const Question: QuizQuestion = {
+    answer: faker.lorem.word(),
+    context: faker.lorem.sentence(),
+    extra_options: [faker.lorem.word(), faker.lorem.word()],
+    id: 1,
+    options: [faker.lorem.word(), faker.lorem.word()],
+    options_algorithm: "sense2vec",
+    question_statement: faker.lorem.sentence(),
+    question_type: "MCQ",
   };
 
-  for (let i = 0; i < 6; i++) {
-    const question = faker.lorem.sentence();
-    const options: string[] = [];
-
-    for (let j = 0; j < 4; j++) {
-      const option = faker.random.word();
-      options.push(option);
-    }
-
-    const answerIndex = faker.datatype.number({ min: 0, max: 3 });
-    options[answerIndex] = `Ans: ${options[answerIndex]}`;
-
-    data.data[question] = options;
-  }
-
-  return data;
+  return {
+    data: { questions: [Question, Question] },
+  };
 }
 
 function generateFakeOptions(numOptions: number) {
