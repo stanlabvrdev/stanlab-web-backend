@@ -1,7 +1,6 @@
 import mongoDB, { runSeeds } from "./utils/db";
 import { database, up } from "migrate-mongo";
 import mongooose from "mongoose";
-import { Db } from "mongodb";
 
 // import passport from "passport"
 
