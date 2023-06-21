@@ -1,3 +1,4 @@
+import { Profile } from "../models/profile";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SchoolTeacher } from "../models/schoolTeacher";
 import { Student } from "../models/student";
@@ -135,6 +136,13 @@ export async function AdminCreateTeacher(
     teacher: teacher._id,
     teacherApproved: true,
   });
-
   await teacherSchool.save();
+
+  const teacherProfile = new Profile({
+    teacher: teacher._id,
+    selectedSchool: schoolId,
+  });
+  await teacherProfile.save();
+
+  return teacher;
 }
