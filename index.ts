@@ -14,6 +14,7 @@ if (!env.jwtKey) {
 if (!env.mailgun_API_KEY) {
   Logger.info("FETAL ERROR: mailgun API Key is not set");
 }
+
 mongoDB
   .then(async (res) => {
     Logger.info("Connected to MongoDB...");
