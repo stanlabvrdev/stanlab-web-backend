@@ -7,6 +7,7 @@ import {
   welcome_school_admin,
   welcome_new_teacher,
   private_teacher_added_to_school_account,
+  teachers_get_started_email,
 } from "../email";
 import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
@@ -75,6 +76,7 @@ class SchoolAdminService {
 
       await teacher.save();
       welcome_new_teacher(teacher, password);
+      teachers_get_started_email(teacher);
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
@@ -109,7 +111,7 @@ class SchoolAdminService {
     teacher.schoolTeacher = true;
     await teacher.save();
 
-    private_teacher_added_to_school_account(teacher);
+    private_teacher_added_to_school_account(teacher, school.schoolName);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
@@ -255,6 +257,7 @@ class SchoolAdminService {
         promises.push(teacher.save());
 
         welcome_new_teacher(teacher, password);
+        teachers_get_started_email(teacher);
 
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
@@ -294,7 +297,10 @@ class SchoolAdminService {
         });
         profile.push(teacherProfile.save());
 
-        private_teacher_added_to_school_account(existingTeacher);
+        private_teacher_added_to_school_account(
+          existingTeacher,
+          school.schoolName
+        );
       }
     }
 
