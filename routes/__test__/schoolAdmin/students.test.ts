@@ -60,4 +60,5 @@ it("should remove a student", async () => {
 
   expect(res.statusCode).toBe(200);
   expect(res.body.data).toBe(null);
+  expect(res.body.message).toBe("students removed sucessfully");
 });

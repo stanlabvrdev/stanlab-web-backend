@@ -5,6 +5,7 @@ import {
 import BadRequestError from "../services/exceptions/bad-request";
 import {
   validateRemoveStudent,
+  validateRemoveTeacher,
   validateSchoolAdmin,
   validateSchoolUser,
   validateStudent,
@@ -285,6 +286,18 @@ export const removeStudent = async (req, res) => {
     
     await schoolAdminService.removeStudent(req.school._id, req.body);
     ServerResponse(req, res, 200, null, "students removed sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
+export const removeTeacher = async (req, res) => {
+  try {
+    const { error } = validateRemoveTeacher(req.body);
+    if (error) throw new BadRequestError(error.details[0].message);
+    
+    await schoolAdminService.removeTeacher(req.school._id, req.body);
+    ServerResponse(req, res, 200, null, "teachers removed sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }

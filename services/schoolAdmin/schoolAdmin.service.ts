@@ -766,6 +766,27 @@ class SchoolAdminService {
       }
     );
   }
+
+  async removeTeacher(schoolId: string, body: any) {
+    const teachers = await SchoolTeacher.find({
+      school: schoolId,
+      teacher: body.teacherId,
+    });
+
+    Promise.all(
+      teachers.map(async (t) => {
+        await Teacher.findOneAndDelete({
+          _id: t.teacher,
+        });
+        await Profile.findOneAndDelete({
+          teacher: t.teacher,
+        });
+        await SchoolTeacher.findOneAndDelete({
+          teacher: t.teacher,
+        });
+      })
+    );
+  }
 }
 
 export const schoolAdminService = new SchoolAdminService();
