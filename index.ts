@@ -1,6 +1,4 @@
 import mongoDB, { runSeeds } from "./utils/db";
-import { database, up } from "migrate-mongo";
-import mongooose from "mongoose";
 
 // import passport from "passport"
 
@@ -22,10 +20,6 @@ mongoDB
     Logger.info("Connected to MongoDB...");
 
     await runSeeds();
-
-    //Run pending migrations with mongo-server
-    const { db, client } = await database.connect();
-    await up(db, client);
   })
   .catch((err) => Logger.info("Could not connect to Database ", err));
 const port = env.port || 8000;
