@@ -7,6 +7,7 @@ import { Teacher } from "../models/teacher";
 import { passwordService } from "../services/passwordService";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SuperAdmin } from "../models/superAdmin";
+import { afterAll, beforeAll, beforeEach, jest } from "@jest/globals";
 
 interface LoginPayload {
   _id: string;
