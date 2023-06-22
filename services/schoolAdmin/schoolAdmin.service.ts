@@ -728,28 +728,26 @@ class SchoolAdminService {
       student: body.studentId,
     });
 
-    Promise.all(
-      students.map(async (s) => {
-        await Student.findOneAndDelete({
-          _id: s.student,
-        });
-        await StudentTeacherClass.findOneAndDelete({
-          student: s.student,
-        });
-        await StudentSubscription.findOneAndDelete({
-          student: s.student,
-        });
-        await SchoolStudent.findOneAndDelete({
-          student: s.student,
-        });
-      })
-    );
+    students.forEach(async (s) => {
+      await Student.findOneAndDelete({
+        _id: s.student,
+      });
+      await StudentTeacherClass.findOneAndDelete({
+        student: s.student,
+      });
+      await StudentSubscription.findOneAndDelete({
+        student: s.student,
+      });
+      await SchoolStudent.findOneAndDelete({
+        student: s.student,
+      });
+    });
 
     let teacherClass = await TeacherClass.find();
 
     let ids: any = [];
 
-    teacherClass.map((classes: any) => {
+    teacherClass.forEach((classes: any) => {
       classes.students.map((student: any) => {
         student = student.toString();
         ids.push(student);
@@ -764,27 +762,6 @@ class SchoolAdminService {
       {
         new: true,
       }
-    );
-  }
-
-  async removeTeacher(schoolId: string, body: any) {
-    const teachers = await SchoolTeacher.find({
-      school: schoolId,
-      teacher: body.teacherId,
-    });
-
-    Promise.all(
-      teachers.map(async (t) => {
-        await Teacher.findOneAndDelete({
-          _id: t.teacher,
-        });
-        await Profile.findOneAndDelete({
-          teacher: t.teacher,
-        });
-        await SchoolTeacher.findOneAndDelete({
-          teacher: t.teacher,
-        });
-      })
     );
   }
 }
