@@ -22,7 +22,6 @@ import {
   updateClass,
   updateSchoolAdmin,
   removeStudent,
-  removeTeacher,
 } from "../controllers/schoolAdmin.controller";
 import { schoolAuth } from "../middleware/auth";
 import {
@@ -71,6 +70,5 @@ router.get("/classes/:classId", schoolAuth, getClassById);
 router.put("/classes/:classId", schoolAuth, updateClass);
 router.put("/", schoolAuth, updateSchoolAdmin);
 router.delete("/remove-students", schoolAuth, removeStudent);
-router.delete("/remove-teachers", schoolAuth, removeTeacher);
 
 export default router;

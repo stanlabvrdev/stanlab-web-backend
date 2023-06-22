@@ -39,23 +39,3 @@ it("should create a school teacher", async () => {
   expect(profile).toBeDefined();
   expect(profile.selectedSchool.toString()).toBe(school._id.toString());
 });
-
-it("should remove a teacher", async () => {
-  const school = await global.loginSchool();
-
-  let body = { name: "teacher test", email: "test@teacher.com" };
-  let teacher = await AdminCreateTeacher(body, school._id);
-
-  const res = await request(app)
-    .delete(`${url}/remove-teachers`)
-    .set("x-auth-token", school.token)
-    .send({
-      teacherId: [teacher._id],
-    });
-
-  console.log(res)
-
-  expect(res.statusCode).toBe(200);
-  expect(res.body.data).toBe(null);
-  expect(res.body.message).toBe("teachers removed sucessfully");
-});
