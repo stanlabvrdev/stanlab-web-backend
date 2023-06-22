@@ -4,10 +4,10 @@ import { Student } from "../../models/student";
 import { SchoolTeacher } from "../../models/schoolTeacher";
 import { SchoolStudent } from "../../models/schoolStudent";
 import {
-  welcome_school_admin,
-  welcome_new_teacher,
-  private_teacher_added_to_school_account,
-  teachers_get_started_email,
+  welcomeSchoolAdmin,
+  welcomeNewTeacher,
+  privateTeacherAddedToSchoolAccount,
+  teachersGetStartedEmail,
 } from "../email";
 import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
@@ -52,7 +52,7 @@ class SchoolAdminService {
 
     const token = admin.generateAuthToken();
     await admin.save();
-    welcome_school_admin(admin);
+    welcomeSchoolAdmin(admin);
     return { admin, token };
   }
 
@@ -75,8 +75,8 @@ class SchoolAdminService {
       });
 
       await teacher.save();
-      welcome_new_teacher(teacher, password);
-      teachers_get_started_email(teacher);
+      welcomeNewTeacher(teacher, password);
+      teachersGetStartedEmail(teacher);
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
@@ -111,7 +111,7 @@ class SchoolAdminService {
     teacher.schoolTeacher = true;
     await teacher.save();
 
-    private_teacher_added_to_school_account(teacher, school.schoolName);
+    privateTeacherAddedToSchoolAccount(teacher, school.schoolName);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
@@ -256,8 +256,8 @@ class SchoolAdminService {
         });
         promises.push(teacher.save());
 
-        welcome_new_teacher(teacher, password);
-        teachers_get_started_email(teacher);
+        welcomeNewTeacher(teacher, password);
+        teachersGetStartedEmail(teacher);
 
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
@@ -297,7 +297,7 @@ class SchoolAdminService {
         });
         profile.push(teacherProfile.save());
 
-        private_teacher_added_to_school_account(
+        privateTeacherAddedToSchoolAccount(
           existingTeacher,
           school.schoolName
         );
