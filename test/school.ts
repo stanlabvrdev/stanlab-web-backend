@@ -129,20 +129,7 @@ export async function AdminCreateTeacher(
     password: hashedPassword,
     schoolTeacher: true,
   });
-  await teacher.save();
-
-  const teacherSchool = new SchoolTeacher({
-    school: schoolId,
-    teacher: teacher._id,
-    teacherApproved: true,
-  });
-  await teacherSchool.save();
-
-  const teacherProfile = new Profile({
-    teacher: teacher._id,
-    selectedSchool: schoolId,
-  });
-  await teacherProfile.save();
+  teacher.save();
 
   return teacher;
 }
