@@ -7,19 +7,26 @@ import BadRequestError from "../exceptions/bad-request";
 const { question_generation_model: QUESTION_GENERATION_MODEL, true_or_false_model: TRUE_OR_FALSE_MODEL } = env.getAll();
 import { Document } from "mongoose";
 
-interface Questions {
+export interface Questions {
   question: string | undefined;
   options: Option[];
   type: string;
 }
 
-interface Option {
+export interface Option {
   answer: string;
   isCorrect: boolean;
 }
 
-interface QuizQuestion {
-  [question: string]: string[];
+export interface QuizQuestion {
+  answer: string;
+  context: string;
+  extra_options: string[];
+  id: number;
+  options: string[];
+  options_algorithm: string;
+  question_statement: string;
+  question_type: string;
 }
 
 abstract class QuestionGenerator {
@@ -28,8 +35,8 @@ abstract class QuestionGenerator {
 
 class MCQQuestionGenerator extends QuestionGenerator {
   async generate(text: string): Promise<Questions[]> {
-    const callToModel = await axios.post(QUESTION_GENERATION_MODEL!, { context: text, option_set: "Wordnet" /*can take on another value such as "other"*/ });
-    const questions: QuizQuestion = callToModel.data;
+    const callToModel = await axios.post(QUESTION_GENERATION_MODEL!, { text, type: "mcq" });
+    const questions: QuizQuestion[] = callToModel.data.questions;
     return Object.keys(questions).length !== 0 ? formatQuestions.formatMCQ(questions) : [];
   }
 }
@@ -78,19 +85,19 @@ class QuestionGenerationService {
 }
 
 class FormatQuestionsClass {
-  formatMCQ(question: QuizQuestion): Questions[] {
-    const entries: [string, string[]][] = Object.entries(question);
-    const formattedQuestions = entries.map((entry: [string, string[]]): Questions => {
-      const [questionText, options] = entry;
-      const formattedOptions = options.map(
-        (option): Option => ({
-          answer: option.startsWith("Ans:") ? option.substring(5) : option,
-          isCorrect: option.startsWith("Ans:"),
-        })
-      );
+  formatMCQ(questions: QuizQuestion[]): Questions[] {
+    const formattedQuestions = questions.map((question: QuizQuestion) => {
+      const { options, extra_options, question_statement } = question;
 
-      return { question: questionText, options: formattedOptions, type: "MCQ" };
+      const completeOptions = options.concat(extra_options);
+
+      const formattedOptions: Option[] = completeOptions.map((eachOption) => {
+        return { answer: eachOption, isCorrect: false };
+      });
+      formattedOptions.push({ answer: question.answer, isCorrect: true });
+      return { question: question_statement, options: formattedOptions, type: "MCQ" };
     });
+
     return formattedQuestions;
   }
 
