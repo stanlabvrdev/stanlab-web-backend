@@ -38,7 +38,7 @@ export function sendStudentInviteEmail(student, password) {
   });
 }
 
-export function welcome_new_teacher(teacher, password) {
+export function welcomeNewTeacher(teacher, password) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
@@ -58,7 +58,7 @@ export function welcome_new_teacher(teacher, password) {
   });
 }
 
-export function welcome_private_teacher(teacher) {
+export function welcomePrivateTeacher(teacher) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
@@ -76,7 +76,7 @@ export function welcome_private_teacher(teacher) {
   });
 }
 
-export function teachers_get_started_email(teacher) {
+export function teachersGetStartedEmail(teacher) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
@@ -94,7 +94,7 @@ export function teachers_get_started_email(teacher) {
   });
 }
 
-export function private_teacher_added_to_school_account(teacher, schoolName) {
+export function privateTeacherAddedToSchoolAccount(teacher, schoolName) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
@@ -110,7 +110,7 @@ export function private_teacher_added_to_school_account(teacher, schoolName) {
   });
 }
 
-export function welcome_school_admin(admin) {
+export function welcomeSchoolAdmin(admin) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: admin.email,
@@ -148,32 +148,6 @@ export function doSendInvitationEmail(student, teacher, password) {
   });
 }
 
-// export async function sendResetPassword(student, token, isStudent = true) {
-//   const data = {
-//     from: "StanLab <info@stanlab.com>",
-//     to: student.email,
-//     subject: "Reset Password",
-//     template: "forgetpassword",
-//     "h:X-Mailgun-Variables": JSON.stringify({
-//       email: student.email,
-
-//       name: student.name || student.email,
-//       url: `https://app.stanlab.co/${
-//         isStudent ? "students" : "teachers"
-//       }/reset-password/${token}`,
-//     }),
-//   };
-
-//   Logger.info(`Sending data: ${JSON.stringify(data)}`);
-//   mg.messages().send(data, function (error, body) {
-//     if (error) {
-//       Logger.error(`error occured ${JSON.stringify(error)}`);
-//     }
-//   });
-// }
-
-// `https://app.stanlab.co/${entity}/reset-password/${token}`
-
 export async function sendResetPassword(user, token, entity) {
   const data = {
     from: "StanLab <info@stanlab.com>",
@@ -196,11 +170,11 @@ export async function sendResetPassword(user, token, entity) {
 
 export default {
   doSendInvitationEmail,
-  welcome_school_admin,
+  welcomeSchoolAdmin,
   sendStudentInviteEmail,
   sendResetPassword,
-  welcome_new_teacher,
-  private_teacher_added_to_school_account,
-  teachers_get_started_email,
-  welcome_private_teacher,
+  welcomeNewTeacher,
+  privateTeacherAddedToSchoolAccount,
+  teachersGetStartedEmail,
+  welcomePrivateTeacher,
 };
