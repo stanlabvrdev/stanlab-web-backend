@@ -141,7 +141,7 @@ global.loginAdmin = async () => {
 
   const payload: any = {
     name: "test admin",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     userName: "test adminUsername",
     email: "test@superadmin.com",
     role: "SuperAdmin",
