@@ -22,6 +22,10 @@ import { Profile } from "../../models/profile";
 import { StudentSubscription } from "../../models/student-subscription";
 import subscriptionService from "../subscription/subscription.service";
 import { addDaysToDate } from "../../helpers/dateHelper";
+import mongoose from "mongoose";
+import { LabExperiment } from "../../models/labAssignment";
+import { StudentScore } from "../../models/studentScore";
+import mcqAssignment from "../../models/mcqAssignment";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -236,20 +240,33 @@ class SchoolAdminService {
     let school = await SchoolAdmin.findOne({ _id: schoolId });
 
     const data: any[] = await excelParserService.convertToJSON(obj);
+
+    let headings = Object.keys(data[0]);
+    if (
+      headings[0].toLowerCase() !== "firstname" ||
+      headings[1].toLowerCase() !== "surname" ||
+      headings[2].toLowerCase() !== "email"
+    ) {
+      throw new BadRequestError(
+        "Improper format! Kindly ensure your headings are Firstname, Surname and Email respectively"
+      );
+    }
+
     const promises: any[] = [];
     const schools: any[] = [];
     const profile: any[] = [];
 
     for (let item of data) {
+      headings = Object.values(item);
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
 
-      let existingTeacher = await Teacher.findOne({ email: item.Email });
+      let existingTeacher = await Teacher.findOne({ email: headings[2] });
 
       if (!existingTeacher) {
         const teacher = new Teacher({
-          name: getFullName(item.Firstname, item.Surname),
-          email: item.Email,
+          name: getFullName(headings[0], headings[1]),
+          email: headings[2],
           password: hashedPassword,
           authCode: password,
           schoolTeacher: true,
@@ -551,16 +568,28 @@ class SchoolAdminService {
 
     const data: any[] = await excelParserService.convertToJSON(obj);
 
+    let headings = Object.keys(data[0]);
+    if (
+      headings[0].toLowerCase() !== "firstname" ||
+      headings[1].toLowerCase() !== "surname"
+    ) {
+      throw new BadRequestError(
+        "Improper format! Kindly ensure your headings are Firstname and Surname respectively"
+      );
+    }
+
     for (let item of data) {
+      headings = Object.values(item);
+
       let password = generateRandomString(7);
       const hashedPassword = await passwordService.hash(password);
-      let userName = await generateUserName(item.Firstname, item.Surname);
+      let userName = await generateUserName(headings[0], headings[1]);
 
       let existingStudent = await Student.findOne({ userName });
       if (existingStudent) throw new BadRequestError("student already exist");
 
       const student = new Student({
-        name: getFullName(item.Firstname, item.Surname),
+        name: getFullName(headings[0], headings[1]),
         userName,
         email: userName,
         password: hashedPassword,
@@ -692,30 +721,77 @@ class SchoolAdminService {
   }
 
   async updateSchoolAdmin(body: any, schoolId: string) {
-    let {
-      admin_name,
-      admin_title,
-      school_name,
-      admin_email,
-      password,
-      country,
-    } = body;
-
-    let admin = await SchoolAdmin.findById({ _id: schoolId });
-    if (!admin) throw new BadRequestError("admin not found");
-
-    if (password) {
-      password = await passwordService.hash(password);
+    if (body.password) {
+      body.password = await passwordService.hash(body.password);
     }
 
-    admin.email = admin_email;
-    admin.adminName = admin_name;
-    admin.adminTitle = admin_title;
-    admin.schoolName = school_name;
-    admin.password = password;
-    admin.country = country;
+    let school = await SchoolAdmin.findOneAndUpdate({ _id: schoolId }, body, {
+      new: true,
+    });
 
-    return admin.save();
+    return school;
+  }
+
+  async removeStudent(schoolId: string, body: any) {
+    const students = await SchoolStudent.find({
+      school: schoolId,
+      student: body.studentId,
+    });
+
+    students.forEach(async (s) => {
+      await Student.findOneAndDelete({
+        _id: s.student,
+      });
+      await StudentTeacherClass.findOneAndDelete({
+        student: s.student,
+      });
+      await StudentSubscription.findOneAndDelete({
+        student: s.student,
+      });
+      await SchoolStudent.findOneAndDelete({
+        student: s.student,
+      });
+    });
+
+    let teacherClass = await TeacherClass.find();
+
+    let ids: any = [];
+
+    teacherClass.forEach((classes: any) => {
+      classes.students.map((student: any) => {
+        student = student.toString();
+        ids.push(student);
+      });
+    });
+
+    ids = ids.filter((id) => !body.studentId.includes(id));
+
+    await TeacherClass.updateMany(
+      { school: schoolId },
+      { students: ids },
+      {
+        new: true,
+      }
+    );
+  }
+
+  async removeTeacher(schoolId: string, body: any) {
+    const teachers = await SchoolTeacher.find({
+      school: schoolId,
+      teacher: body.teacherId,
+    });
+
+    teachers.forEach(async (t) => {
+      await Teacher.findOneAndDelete({
+        _id: t.teacher,
+      });
+      await Profile.findOneAndDelete({
+        teacher: t.teacher,
+      });
+      await SchoolTeacher.findOneAndDelete({
+        teacher: t.teacher,
+      });
+    });
   }
 }
 
