@@ -26,6 +26,8 @@ import notificationRoutes from "./routes/V2/notification";
 import generatedQuestionRoutes from "./routes/V2/generated-questions";
 import superAdminRouter from "./routes/superAdmin";
 import subscriptionRouter from "./routes/subscription";
+import gradeBookRoutes from "./routes/V2/grade-book";
+
 import schedule from "node-schedule";
 import { checkSubscription, checkCoupon } from "./helpers/scheduler";
 
@@ -98,11 +100,10 @@ app.use("/api/v2/students", studentsV2Route);
 app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
 app.use("/api/v2/ai/questions", generatedQuestionRoutes);
+app.use("/api/v2/grade-book", gradeBookRoutes);
 
 //Scheduler
 schedule.scheduleJob("0 0 * * *", checkSubscription);
 schedule.scheduleJob("0 0 * * *", checkCoupon);
-
-
 
 export default app;
