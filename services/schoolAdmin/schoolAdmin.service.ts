@@ -3,7 +3,12 @@ import { Teacher } from "../../models/teacher";
 import { Student } from "../../models/student";
 import { SchoolTeacher } from "../../models/schoolTeacher";
 import { SchoolStudent } from "../../models/schoolStudent";
-import { sendEmailToSchoolAdmin, sendWelcomeEmailToTeacher } from "../email";
+import {
+  welcomeSchoolAdmin,
+  welcomeNewTeacher,
+  privateTeacherAddedToSchoolAccount,
+  teachersGetStartedEmail,
+} from "../email";
 import NotFoundError from "../exceptions/not-found";
 import { passwordService } from "../passwordService";
 import generateRandomString from "../../utils/randomStr";
@@ -47,7 +52,7 @@ class SchoolAdminService {
 
     const token = admin.generateAuthToken();
     await admin.save();
-    sendEmailToSchoolAdmin(admin);
+    welcomeSchoolAdmin(admin);
     return { admin, token };
   }
 
@@ -70,7 +75,8 @@ class SchoolAdminService {
       });
 
       await teacher.save();
-      sendWelcomeEmailToTeacher(teacher, password);
+      welcomeNewTeacher(teacher, password);
+      teachersGetStartedEmail(teacher);
 
       const schoolTeacher = new SchoolTeacher({
         school: school._id,
@@ -105,7 +111,7 @@ class SchoolAdminService {
     teacher.schoolTeacher = true;
     await teacher.save();
 
-    // sendWelcomeEmailToTeacher(teacher, password);
+    privateTeacherAddedToSchoolAccount(teacher, school.schoolName);
 
     const schoolTeacher = new SchoolTeacher({
       school: school._id,
@@ -250,7 +256,8 @@ class SchoolAdminService {
         });
         promises.push(teacher.save());
 
-        sendWelcomeEmailToTeacher(teacher, password);
+        welcomeNewTeacher(teacher, password);
+        teachersGetStartedEmail(teacher);
 
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
@@ -278,8 +285,6 @@ class SchoolAdminService {
         existingTeacher.schoolTeacher = true;
         await existingTeacher.save();
 
-        //sendWelcomeEmailToTeacher(existingTeacher, password);
-
         const schoolTeacher = new SchoolTeacher({
           school: school._id,
           teacher: existingTeacher._id,
@@ -291,6 +296,11 @@ class SchoolAdminService {
           selectedSchool: school._id,
         });
         profile.push(teacherProfile.save());
+
+        privateTeacherAddedToSchoolAccount(
+          existingTeacher,
+          school.schoolName
+        );
       }
     }
 
