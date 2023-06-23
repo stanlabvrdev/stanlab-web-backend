@@ -2,10 +2,12 @@
 import mongoose, { Model } from "mongoose";
 
 export interface GeneratedQuestion extends Document {
+  _id: string;
   question?: string;
   image?: string;
   draft: Boolean;
   options: {
+    _id: string;
     answer: string;
     isCorrect?: boolean;
   }[];

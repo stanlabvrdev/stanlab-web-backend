@@ -91,7 +91,7 @@ router.post("/invite-student", teacherAuth, teachersController.sendInviteToStude
 router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
 router.get("/mcq-assignments/assigned", teacherAuth, teacherMCQController.getAssignmentsAssigned);
 router.get("/mcq-assignments/completed", teacherAuth, teacherMCQController.getAssignmentsCompleted);
-router.get("/mcq-assignments/unassigned", teacherAuth, teacherMCQController.getAssignmentsUnassigned);
+router.get("/mcq-assignments/uncompleted", teacherAuth, teacherMCQController.getAssignmentsUncompleted);
 // get a teacher
 
 router.get("/:id", teachersController.getTeacher);
