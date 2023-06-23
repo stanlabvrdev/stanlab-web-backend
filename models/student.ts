@@ -7,6 +7,7 @@ import envConfig from "../config/env";
 
 const env = envConfig.getAll();
 
+export const studentIncludeAttributes = ["name", "_id", "email", "userName"];
 interface StudentAttrs {
   avatar: string;
   classes: any[];
