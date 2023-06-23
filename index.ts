@@ -1,4 +1,4 @@
-import mongoDB, { runSeeds } from "./utils/db";
+import mongoDB, { QuestionTypeMigration, runSeeds } from "./utils/db";
 
 // import passport from "passport"
 
@@ -20,6 +20,8 @@ mongoDB
     Logger.info("Connected to MongoDB...");
 
     await runSeeds();
+
+    await QuestionTypeMigration();
   })
   .catch((err) => Logger.info("Could not connect to Database ", err));
 const port = env.port || 8000;
