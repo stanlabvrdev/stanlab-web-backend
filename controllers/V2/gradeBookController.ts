@@ -25,6 +25,15 @@ class GradeBookController {
       ServerErrorHandler(req, res, err);
     }
   }
+
+  async getTopicalAssignmentGradesByClass(req: Request, res: Response): Promise<any> {
+    try {
+      const data = await gradeBookService.getTopicalAssignmentGradesByClass(req.params.classId, req.teacher._id);
+      ServerResponse(req, res, 200, data, "GradeBook Data successfully fetchd");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
 }
 
 const gradebookController = new GradeBookController();
