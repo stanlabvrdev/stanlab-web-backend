@@ -1,6 +1,8 @@
-import { Types } from "mongoose";
+import { Types, isValidObjectId } from "mongoose";
+import BadRequestError from "../exceptions/bad-request";
 
 export const topicalAssignmentPipeline = function (classID: string, teacherID: string): Array<object> {
+  if (!isValidObjectId(classID)) throw new BadRequestError("ClassID is invalid!");
   return [
     { $match: { _id: Types.ObjectId(classID), teacher: Types.ObjectId(teacherID) } },
     { $lookup: { from: "mcqassignments", localField: "_id", foreignField: "classId", as: "assignments" } },
