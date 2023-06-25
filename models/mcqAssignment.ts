@@ -37,29 +37,33 @@ const questionSchema = new mongoose.Schema({
 });
 
 //This model is the student's copy of the assignment
-const mcqAssignmentSchema: Schema<MCQAssignment> = new mongoose.Schema({
-  questions: {
-    type: [questionSchema],
-    validate: {
-      validator: function (questions: any[]) {
-        return questions.length > 0;
+const mcqAssignmentSchema: Schema<MCQAssignment> = new mongoose.Schema(
+  {
+    questions: {
+      select: false,
+      type: [questionSchema],
+      validate: {
+        validator: function (questions: any[]) {
+          return questions.length > 0;
+        },
       },
+      message: "Assignments must have atleast one question",
     },
-    message: "Assignments must have atleast one question",
+    subject: { type: String, required: true },
+    topic: { type: String, required: true },
+    classId: { type: Schema.Types.ObjectId, ref: "TeacherClass" },
+    startDate: Date,
+    dueDate: Date,
+    duration: Number,
+    instruction: String,
+    type: { type: String, enum: ["Practice", "Test"], default: "Practice" },
+    teacher: { type: Schema.Types.ObjectId, ref: "Teacher" },
+    comments: String,
+    students: [studentsWork],
+    school: { type: Schema.Types.ObjectId, ref: "SchoolAdmin" },
   },
-  subject: { type: String, required: true },
-  topic: { type: String, required: true },
-  classId: { type: Schema.Types.ObjectId, ref: "TeacherClass" },
-  startDate: Date,
-  dueDate: Date,
-  duration: Number,
-  instruction: String,
-  type: { type: String, enum: ["Practice", "Test"], default: "Practice" },
-  teacher: { type: Schema.Types.ObjectId, ref: "Teacher" },
-  comments: String,
-  students: [studentsWork],
-  school: { type: Schema.Types.ObjectId, ref: "SchoolAdmin" },
-});
+  { timestamps: true }
+);
 
 const mcqAssignment: Model<MCQAssignment> = mongoose.model<MCQAssignment>("mcqAssignment", mcqAssignmentSchema);
 
