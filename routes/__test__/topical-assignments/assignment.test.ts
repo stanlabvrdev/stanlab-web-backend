@@ -6,7 +6,7 @@ import axios from "axios";
 import { createClass } from "../../../test/teacher";
 import { createQuestionGroup } from "../../../test/topical-questions";
 import { createStudent } from "../../../test/school";
-
+import { jest, expect, describe, it } from "@jest/globals";
 const baseURL = global.baseURL;
 const assignNowEndpoint = `${baseURL}/v2/ai/questions/assign-now`;
 const assignLaterEndpoint = `${baseURL}/v2/ai/questions/assign-later`;

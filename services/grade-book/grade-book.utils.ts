@@ -1,6 +1,35 @@
 import { Types, isValidObjectId } from "mongoose";
 import BadRequestError from "../exceptions/bad-request";
 
+interface Student {
+  _id: string;
+  name: string;
+}
+
+interface Assignment {
+  _id: string;
+  topic: string;
+  subject: string;
+  students: {
+    student: string;
+    scores: number[];
+  };
+}
+
+export interface ProcessedData {
+  student: string;
+  assignments: {
+    topic: string;
+    subject: string;
+    studentScore: number[] | null;
+  }[];
+}
+
+type ProcessedPipelineData = {
+  uniqueStudents: { [studentId: string]: string };
+  uniqueAssignments: { [assignmentId: string]: { topic: string; subject: string; scores?: { [studentName: string]: number[] } } };
+};
+
 export const topicalAssignmentPipeline = function (classID: string, teacherID: string): Array<object> {
   if (!isValidObjectId(classID)) throw new BadRequestError("ClassID is invalid!");
   return [
@@ -58,33 +87,4 @@ export const formatJsonForTabularOutput = function (uniqueValues: ProcessedPipel
     });
     return { student: studentName, assignments };
   });
-};
-
-interface Student {
-  _id: string;
-  name: string;
-}
-
-interface Assignment {
-  _id: string;
-  topic: string;
-  subject: string;
-  students: {
-    student: string;
-    scores: number[];
-  };
-}
-
-export interface ProcessedData {
-  student: string;
-  assignments: {
-    topic: string;
-    subject: string;
-    studentScore: number[] | null;
-  }[];
-}
-
-type ProcessedPipelineData = {
-  uniqueStudents: { [studentId: string]: string };
-  uniqueAssignments: { [assignmentId: string]: { topic: string; subject: string; scores?: { [studentName: string]: number[] } } };
 };

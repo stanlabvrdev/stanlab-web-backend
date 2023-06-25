@@ -29,7 +29,7 @@ class GradeBookController {
   async getTopicalAssignmentGradesByClass(req: Request, res: Response): Promise<any> {
     try {
       const data = await gradeBookService.getTopicalAssignmentGradesByClass(req.params.classId, req.teacher._id);
-      ServerResponse(req, res, 200, data, "GradeBook Data successfully fetchd");
+      ServerResponse(req, res, 200, data, "GradeBook Data successfully fetched");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
