@@ -22,13 +22,11 @@ export interface MCQAssignment extends Document {
   topic: string;
 }
 
-//schema for scores since I plan on scores to be an embedded document within the mcq assignment schema
 const studentsWork: Schema<StudentWork> = new mongoose.Schema({
   student: { type: Schema.Types.ObjectId, ref: "Student" },
   scores: [{ score: Number, date: { type: Date, default: Date.now() } }],
 });
 
-//To store questions for each
 const questionSchema = new mongoose.Schema({
   question: { type: String },
   image: String,
@@ -36,30 +34,32 @@ const questionSchema = new mongoose.Schema({
   type: { type: String, required: [true, "Questions must have a type"], enum: ["MCQ", "TOF"] },
 });
 
-//This model is the student's copy of the assignment
-const mcqAssignmentSchema: Schema<MCQAssignment> = new mongoose.Schema({
-  questions: {
-    type: [questionSchema],
-    validate: {
-      validator: function (questions: any[]) {
-        return questions.length > 0;
+const mcqAssignmentSchema: Schema<MCQAssignment> = new mongoose.Schema(
+  {
+    questions: {
+      type: [questionSchema],
+      validate: {
+        validator: function (questions: any[]) {
+          return questions.length > 0;
+        },
       },
+      message: "Assignments must have atleast one question",
     },
-    message: "Assignments must have atleast one question",
+    subject: { type: String, required: true },
+    topic: { type: String, required: true },
+    classId: { type: Schema.Types.ObjectId, ref: "TeacherClass" },
+    startDate: Date,
+    dueDate: Date,
+    duration: Number,
+    instruction: String,
+    type: { type: String, enum: ["Practice", "Test"], default: "Practice" },
+    teacher: { type: Schema.Types.ObjectId, ref: "Teacher" },
+    comments: String,
+    students: [studentsWork],
+    school: { type: Schema.Types.ObjectId, ref: "SchoolAdmin" },
   },
-  subject: { type: String, required: true },
-  topic: { type: String, required: true },
-  classId: { type: Schema.Types.ObjectId, ref: "TeacherClass" },
-  startDate: Date,
-  dueDate: Date,
-  duration: Number,
-  instruction: String,
-  type: { type: String, enum: ["Practice", "Test"], default: "Practice" },
-  teacher: { type: Schema.Types.ObjectId, ref: "Teacher" },
-  comments: String,
-  students: [studentsWork],
-  school: { type: Schema.Types.ObjectId, ref: "SchoolAdmin" },
-});
+  { timestamps: true }
+);
 
 const mcqAssignment: Model<MCQAssignment> = mongoose.model<MCQAssignment>("mcqAssignment", mcqAssignmentSchema);
 
