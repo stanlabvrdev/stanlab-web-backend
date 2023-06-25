@@ -1,14 +1,15 @@
+import mongoose from "mongoose";
+import { ProcessedData, formatJsonForTabularOutput, processPipelineData, topicalAssignmentPipeline } from "./grade-book.utils";
 import { studentIncludeAttributes } from "../../models/student";
 import { StudentScore } from "../../models/studentScore";
+import { TeacherClass } from "../../models/teacherClass";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
 import BadRequestError from "../exceptions/bad-request";
+import NotFoundError from "../exceptions/not-found";
 
 class GradeBookService {
   async getAllByClass(classId: string): Promise<any[]> {
-    const classes = await StudentTeacherClass.find({ class: classId })
-      .populate({ path: "student", select: studentIncludeAttributes })
-      .lean()
-      .exec();
+    const classes = await StudentTeacherClass.find({ class: classId }).populate({ path: "student", select: studentIncludeAttributes }).lean().exec();
 
     if (classes.length == 0) return [];
 
@@ -37,6 +38,17 @@ class GradeBookService {
     }
 
     return Promise.all(promises);
+  }
+
+  async getTopicalAssignmentGradesByClass(classID: string, teacherID: string): Promise<ProcessedData[]> {
+    const pipeline = topicalAssignmentPipeline(classID, teacherID);
+
+    const result = await TeacherClass.aggregate(pipeline);
+    if (result.length === 0) throw new NotFoundError("You have not assigned any Topical assignments for this class yet");
+
+    const data = processPipelineData(result);
+
+    return formatJsonForTabularOutput(data);
   }
 }
 
