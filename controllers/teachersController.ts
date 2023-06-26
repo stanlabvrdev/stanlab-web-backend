@@ -3,7 +3,11 @@ import bcrypt from "bcryptjs";
 import _ from "lodash";
 import generator from "generate-password";
 
-import { Teacher, validateTeacher, validateUpdateTeacher } from "../models/teacher";
+import {
+  Teacher,
+  validateTeacher,
+  validateUpdateTeacher,
+} from "../models/teacher";
 import { Student } from "../models/student";
 import { TeacherClass, validateClass } from "../models/teacherClass";
 import QuizClasswork from "../models/quizClasswork";
@@ -11,7 +15,10 @@ import Experiment from "../models/experiment";
 import { doSendInvitationEmail } from "../services/email";
 import { LabExperiment } from "../models/labAssignment";
 
-import { ServerErrorHandler, ServerResponse } from "../services/response/serverResponse";
+import {
+  ServerErrorHandler,
+  ServerResponse,
+} from "../services/response/serverResponse";
 import studentTeacherService from "../services/teacherClass/teacher-student";
 import teacherClassService from "../services/teacherClass/teacherClass.service";
 import { doValidate } from "../services/exceptions/validator";
@@ -24,7 +31,10 @@ import teacherProfileService from "../services/teacher/profile.service";
 import { Request, Response } from "express";
 import { StudentTeacherClass } from "../models/teacherStudentClass";
 import { SchoolAdmin } from "../models/schoolAdmin";
-import { validateStudent } from "../validations/schoolAdmin.validation";
+import {
+  validateSchoolUser,
+  validateStudent,
+} from "../validations/schoolAdmin.validation";
 import generateRandomString from "../utils/randomStr";
 import { generateUserName, getFullName } from "../services/student/generator";
 import { passwordService } from "../services/passwordService";
@@ -33,6 +43,7 @@ import subscriptionService from "../services/subscription/subscription.service";
 import { StudentSubscription } from "../models/student-subscription";
 import { addDaysToDate } from "../helpers/dateHelper";
 import { excelParserService } from "../services/excelParserService";
+import schoolAdminService from "../services/schoolAdmin/schoolAdmin.service";
 
 async function deleteStudent(req, res) {
   const { studentId } = req.params;
@@ -41,10 +52,12 @@ async function deleteStudent(req, res) {
     let student = await Student.findOne({ _id: studentId });
 
     let updatedTeacher = teacher.removeStudent(studentId);
-    if (!updatedTeacher) return res.status(404).send({ message: "Student not found" });
+    if (!updatedTeacher)
+      return res.status(404).send({ message: "Student not found" });
 
     await updatedTeacher.save();
-    if (!student) return res.status(400).send({ message: "Something is wrong" });
+    if (!student)
+      return res.status(400).send({ message: "Something is wrong" });
 
     student = student.markTeacherAsRemoved(teacher._id);
     await student.save();
@@ -74,25 +87,20 @@ async function createClass(req, res) {
 }
 
 async function createSchoolClass(req, res) {
-  const { title, subject, section, colour } = req.body;
-
   doValidate(validateClass(req.body));
 
   try {
     let teacher = await Teacher.findById(req.teacher._id);
 
-    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin })
+    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin });
     if (!school) {
       throw new BadRequestError("unauthorized school sub admin");
     }
 
-    const teacherClass = await teacherClassService.create({
-      title,
-      subject,
-      section,
-      colour,
-      school: teacher.subAdmind,
-    });
+    let teacherClass = await schoolAdminService.createClass(
+      req.body,
+      teacher.subAdmin
+    );
 
     ServerResponse(req, res, 200, teacherClass, "class created successfully");
   } catch (error) {
@@ -101,70 +109,21 @@ async function createSchoolClass(req, res) {
 }
 
 async function addSchoolStudentToClass(req, res) {
-  try {
-    doValidate(validateStudent(req.body));
+  doValidate(validateStudent(req.body));
 
+  try {
     let teacher = await Teacher.findById(req.teacher._id);
 
-    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
     if (!school) {
       throw new NotFoundError("unauthorized school sub admin");
     }
 
-    const teacherClass = await TeacherClass.findOne({
-      _id: req.params.classId,
-      school: teacher.subAdmin
-    });
-    if (!teacherClass) throw new NotFoundError("class not found");
-
-    const { name } = req.body;
-    let password = generateRandomString(7);
-    let nameParts = name.split(" ");
-    let userName = await generateUserName(nameParts[0], nameParts[1]);
-
-    let student = await Student.findOne({ userName });
-    if (student) throw new BadRequestError("student already exist");
-
-    const hashedPassword = await passwordService.hash(password);
-
-    student = new Student({
-      name,
-      userName,
-      email: userName,
-      password: hashedPassword,
-      authCode: password,
-    });
-
-    const schoolStudent = new SchoolStudent({
-      school: school._id,
-      student: student._id,
-    });
-    await schoolStudent.save();
-  
-    const studentClass = new StudentTeacherClass({
-      student: student._id,
-      class: teacherClass._id,
-      school: school._id,
-    });
-    await studentClass.save();
-  
-    student.status = "In class";
-    await student.save();
-  
-    teacherClass.students.push(student._id);
-    await teacherClass.save();
-  
-    const freePlan = await subscriptionService.getFreePlan();
-  
-    const studentSubscription = new StudentSubscription({
-      school: school._id,
-      student: student._id,
-      subscriptionPlanId: freePlan._id,
-      endDate: addDaysToDate(freePlan.duration),
-      extensionDate: addDaysToDate(freePlan.duration),
-      autoRenew: false,
-    });
-    await studentSubscription.save();
+    await schoolAdminService.addStudentToClass(
+      teacher.subAdmin,
+      req.params.classId,
+      req.body
+    );
 
     ServerResponse(req, res, 200, null, "student added to class sucessfully");
   } catch (err) {
@@ -176,88 +135,93 @@ async function addSchoolStudentToClassInBulk(req, res) {
   try {
     let teacher = await Teacher.findById(req.teacher._id);
 
-    let school = await SchoolAdmin.findById(teacher.subAdmin)
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
     if (!school) {
       throw new NotFoundError("unauthorized school sub admin");
     }
 
-    const teacherClass = await TeacherClass.findOne({
-      _id: req.params.classId,
-      school: teacher.subAdmin
-    });
-    if (!teacherClass) throw new NotFoundError("class not found");
-
-    const promises: any[] = [];
-    const schools: any[] = [];
-    const subscribers: any[] = [];
-    const classes: any[] = [];
-    const students: any[] = [];
-
-    const data: any[] = await excelParserService.convertToJSON(req);
-
-    for (let item of data) {
-    let password = generateRandomString(7);
-    const hashedPassword = await passwordService.hash(password);
-    let userName = await generateUserName(item.Firstname, item.Surname);
-
-    let existingStudent = await Student.findOne({ userName });
-    if (existingStudent) throw new BadRequestError("student already exist");
-
-    const student = new Student({
-      name: getFullName(item.Firstname, item.Surname),
-      userName,
-      email: userName,
-      password: hashedPassword,
-      authCode: password,
-    });
-
-    const schoolStudent = new SchoolStudent({
-      school: school._id,
-      student: student._id,
-    });
-    schools.push(schoolStudent.save());
-
-    let existingStudents = await StudentTeacherClass.findOne({
-      school: school._id,
-      student: student._id,
-    });
-    if (existingStudents) {
-      continue;
-    }
-
-    const studentClass = new StudentTeacherClass({
-      student: student._id,
-      class: teacherClass._id,
-      school: school._id,
-    });
-    classes.push(studentClass.save());
-
-    student.status = "In class";
-    promises.push(student.save());
-
-    teacherClass.students.push(student._id);
-    students.push(teacherClass.save());
-
-    const freePlan = await subscriptionService.getFreePlan();
-
-    const studentSubscription = new StudentSubscription({
-      school: school._id,
-      student: student._id,
-      subscriptionPlanId: freePlan._id,
-      endDate: addDaysToDate(freePlan.duration),
-      extensionDate: addDaysToDate(freePlan.duration),
-      autoRenew: false,
-    });
-    subscribers.push(studentSubscription.save());
-  }
-
-  await Promise.all([promises, schools, subscribers, classes, students]);
+    await schoolAdminService.addStudentsToClassInBulk(
+      req,
+      teacher.subAdmin,
+      req.params.classId
+    );
 
     ServerResponse(req, res, 200, null, "student added to class sucessfully");
   } catch (err) {
     ServerErrorHandler(req, res, err);
   }
 }
+
+async function createSchoolTeacher(req, res) {
+  doValidate(validateSchoolUser(req.body));
+
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    await schoolAdminService.createTeacher(req.body, teacher.subAdmin);
+    ServerResponse(req, res, 201, null, "invitation sent sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
+
+async function createSchoolTeacherInBulk(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    await schoolAdminService.bulkCreateTeachers(req, teacher.subAdmin);
+    ServerResponse(req, res, 201, null, "teachers added sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
+
+// async function removeSchoolStudent(req, res) {
+//   doValidate(validateRemoveStudent(req.body));
+
+//   try {
+//     let teacher = await Teacher.findById(req.teacher._id);
+
+//     let school = await SchoolAdmin.findById(teacher.subAdmin);
+//     if (!school) {
+//       throw new NotFoundError("unauthorized school sub admin");
+//     }
+//     await schoolAdminService.removeStudent(teacher.subAdmin, req.body);
+
+//     ServerResponse(req, res, 200, null, "students removed sucessfully");
+//   } catch (err) {
+//     ServerErrorHandler(req, res, err);
+//   }
+// }
+
+// async function removeSchoolTeacher(req, res) {
+//   doValidate(validateRemoveTeacher(req.body));
+
+//   try {
+//     let teacher = await Teacher.findById(req.teacher._id);
+
+//     let school = await SchoolAdmin.findById(teacher.subAdmin);
+//     if (!school) {
+//       throw new NotFoundError("unauthorized school sub admin");
+//     }
+
+//     await schoolAdminService.removeTeacher(teacher.subAdmin, req.body);
+
+//     ServerResponse(req, res, 200, null, "teachers removed sucessfully");
+//   } catch (err) {
+//     ServerErrorHandler(req, res, err);
+//   }
+// }
 
 async function getClass(req, res) {
   try {
@@ -280,15 +244,15 @@ async function getClass(req, res) {
         teacherClasses.map(async (e) => {
           const teacherClass = await StudentTeacherClass.find({
             school: teacherCurrentSchool,
-            class: e._id
-          })
+            class: e._id,
+          });
 
           return {
             class: e,
-            numberOfStudents: teacherClass.length
-          }
+            numberOfStudents: teacherClass.length,
+          };
         })
-      )
+      );
     }
 
     if (!profile) {
@@ -299,9 +263,9 @@ async function getClass(req, res) {
       classes = teacherClasses.map((e) => {
         return {
           class: e,
-          numberOfStudents: e.students.length
-        }
-      })
+          numberOfStudents: e.students.length,
+        };
+      });
     }
 
     if (!teacherClasses) {
@@ -317,7 +281,10 @@ async function getClass(req, res) {
 async function createAvatar(req, res) {
   try {
     const teacher = await Teacher.findById(req.teacher._id);
-    teacher.avatar = await sharp(req.file.buffer).resize({ width: 180, height: 180 }).png().toBuffer();
+    teacher.avatar = await sharp(req.file.buffer)
+      .resize({ width: 180, height: 180 })
+      .png()
+      .toBuffer();
     await teacher.save();
     res.send({ message: "successful" });
   } catch (error) {
@@ -328,7 +295,8 @@ async function createAvatar(req, res) {
 async function getAvatar(req, res) {
   try {
     const teacher = await Teacher.findById(req.params.id);
-    if (!teacher || !teacher.avatar) return res.status(404).send({ message: "Not Found" });
+    if (!teacher || !teacher.avatar)
+      return res.status(404).send({ message: "Not Found" });
     res.set("Content-Type", "image/png").send(teacher.avatar);
   } catch (error) {
     ServerErrorHandler(req, res, error);
@@ -340,11 +308,15 @@ async function createTeacher(req, res) {
   let { name, email, password } = req.body;
   if (error) return res.status(400).send(error.details[0].message);
   const registeredStudent = await Student.findOne({ email });
-  if (registeredStudent) return res.status(401).send({ message: "You cannot use same email registered as Student" });
+  if (registeredStudent)
+    return res
+      .status(401)
+      .send({ message: "You cannot use same email registered as Student" });
   const salt = await bcrypt.genSalt(10);
   password = await bcrypt.hash(password, salt);
   let teacher = await Teacher.findOne({ email });
-  if (teacher) return res.status(400).send({ message: "Email already Registered" });
+  if (teacher)
+    return res.status(400).send({ message: "Email already Registered" });
   teacher = new Teacher({
     name,
     password,
@@ -361,7 +333,8 @@ async function createTeacher(req, res) {
 async function updateTeacher(req, res) {
   try {
     const teacher = await Teacher.findById(req.teacher._id);
-    if (!teacher) return res.status(404).send({ message: "teacher was not found" });
+    if (!teacher)
+      return res.status(404).send({ message: "teacher was not found" });
 
     const { email, name } = req.body;
     const { error } = validateUpdateTeacher(req.body);
@@ -381,10 +354,18 @@ async function sendQuizToStudents(req, res) {
   let { dueDate, students, questions, startDate } = req.body;
 
   if (!Array.isArray(students) && !Array.isArray(questions))
-    return res.status(400).send({ message: "students and question must be array of objectIds" });
+    return res
+      .status(400)
+      .send({ message: "students and question must be array of objectIds" });
 
-  if (questions.length === 0) return res.status(400).send({ message: "Please add questions to this class" });
-  if (students.length === 0) return res.status(400).send({ message: "Please add students to this class" });
+  if (questions.length === 0)
+    return res
+      .status(400)
+      .send({ message: "Please add questions to this class" });
+  if (students.length === 0)
+    return res
+      .status(400)
+      .send({ message: "Please add students to this class" });
 
   if (startDate) startDate = new Date(startDate);
   else startDate = Date.now;
@@ -426,10 +407,18 @@ async function sendLabToStudents(req, res) {
   let { dueDate, students, experiments, startDate } = req.body;
 
   if (!Array.isArray(students) && !Array.isArray(experiments))
-    return res.status(400).send({ message: "students and labs must be array of objectIds" });
+    return res
+      .status(400)
+      .send({ message: "students and labs must be array of objectIds" });
 
-  if (experiments.length === 0) return res.status(400).send({ message: "Please add experiment to this class" });
-  if (students.length === 0) return res.status(400).send({ message: "Please add students to this class" });
+  if (experiments.length === 0)
+    return res
+      .status(400)
+      .send({ message: "Please add experiment to this class" });
+  if (students.length === 0)
+    return res
+      .status(400)
+      .send({ message: "Please add students to this class" });
 
   if (startDate) startDate = new Date(startDate);
   else startDate = Date.now;
@@ -470,7 +459,8 @@ async function sendInviteToStudent(req, res) {
   // const { studentEmail, classId } = req.body
   const { studentEmail } = req.body;
   const { _id } = req.teacher;
-  if (!studentEmail) return res.status(400).send({ message: "Please include student Email" });
+  if (!studentEmail)
+    return res.status(400).send({ message: "Please include student Email" });
 
   try {
     let teacher = await teacherService.getOne({ _id });
@@ -510,7 +500,10 @@ async function sendInviteToStudent(req, res) {
     }
 
     const isStudent = teacher.checkStudentById(student._id);
-    if (isStudent) return res.status(400).send({ message: "Invitation already sent to this student" });
+    if (isStudent)
+      return res
+        .status(400)
+        .send({ message: "Invitation already sent to this student" });
 
     // add student to class
 
@@ -522,7 +515,10 @@ async function sendInviteToStudent(req, res) {
 
     await teacher.save();
     await student.save();
-    return res.send({ data: { id: student._id, email: student.email }, message: "Invitation sent!" });
+    return res.send({
+      data: { id: student._id, email: student.email },
+      message: "Invitation sent!",
+    });
   } catch (ex) {
     ServerErrorHandler(req, res, ex);
   }
@@ -538,7 +534,10 @@ async function acceptStudentInvite(req, res) {
 
     await student.save();
     await teacher.save();
-    const approved = await studentTeacherService.create(teacher._id, student._id);
+    const approved = await studentTeacherService.create(
+      teacher._id,
+      student._id
+    );
 
     ServerResponse(req, res, 200, approved, "Invite accepted");
   } catch (error) {
@@ -548,8 +547,13 @@ async function acceptStudentInvite(req, res) {
 
 async function getTeacher(req, res) {
   try {
-    const teacher = await Teacher.findById(req.params.id).select("-password -avatar");
-    if (!teacher) return res.status(404).send({ message: "Teacher with this ID was not found" });
+    const teacher = await Teacher.findById(req.params.id).select(
+      "-password -avatar"
+    );
+    if (!teacher)
+      return res
+        .status(404)
+        .send({ message: "Teacher with this ID was not found" });
     res.send(teacher);
   } catch (error) {
     ServerErrorHandler(req, res, error);
@@ -577,7 +581,10 @@ async function getSchools(req, res) {
 }
 async function updateProfile(req, res) {
   try {
-    const profile = await teacherProfileService.update(req.teacher._id, req.body);
+    const profile = await teacherProfileService.update(
+      req.teacher._id,
+      req.body
+    );
 
     return ServerResponse(req, res, 200, profile, "profile updated");
   } catch (error) {
@@ -604,4 +611,6 @@ export default {
   createSchoolClass,
   addSchoolStudentToClass,
   addSchoolStudentToClassInBulk,
+  createSchoolTeacher,
+  createSchoolTeacherInBulk
 };

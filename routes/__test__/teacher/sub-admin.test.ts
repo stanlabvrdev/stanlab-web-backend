@@ -2,45 +2,49 @@ import request from "supertest";
 import app from "../../../app";
 import {
   makeSubAdmin,
-  createSchool,
   createClass,
+  addStudentToClass,
   AdminCreateTeacher,
 } from "../../../test/school";
-import { SchoolAdmin } from "../../../models/schoolAdmin";
 import jwt from "jsonwebtoken";
+import { TeacherClass } from "../../../models/teacherClass";
+import { SchoolStudent } from "../../../models/schoolStudent";
+import { SchoolTeacher } from "../../../models/schoolTeacher";
+import { Profile } from "../../../models/profile";
 
 const baseURL = global.baseURL;
 
 const url = `${baseURL}/teachers`;
 
+it("can only be accessed if teacher is signed in", async () => {
+  await request(app).post(`${url}/create-school-class`).send({}).expect(401);
+});
+it("can only be accessed if teacher is signed in", async () => {
+  await request(app)
+    .put(`${url}/class-school-student/:classId`)
+    .send({})
+    .expect(401);
+});
+it("can only be accessed if teacher is signed in", async () => {
+  await request(app).post(`${url}/school-teacher`).send({}).expect(401);
+});
+it("can only be accessed if teacher is signed in", async () => {
+  await request(app).post(`${url}/school-teacher-bulk`).send({}).expect(401);
+});
+
 it("should create a school class", async () => {
-  const school = await createSchool();
-
-  let body = {
-    name: "Pete test",
-    email: "pete@test.com",
-  };
-
-  let teacher = await AdminCreateTeacher(body, school._id);
-  teacher = await makeSubAdmin(teacher._id, school._id);
-
-  console.log(teacher);
+  let teacher = await makeSubAdmin();
 
   const payload: any = {
     name: teacher.name,
     _id: teacher._id,
     email: teacher.email,
-    role: teacher.role,
+    role: "Teacher",
+    password: teacher.password,
+    subAdmin: teacher.subAdmin,
   };
 
   const token = jwt.sign(payload, process.env.JWT_KEY!);
-
-  // let teacher = await global.loginTeacher();
-  // console.log("teacher", teacher);
-
-  // let token = teacher.token;
-
-  // // let ss = await SchoolAdmin.findById({ _id: subAdmin.subAdmin})
 
   const res = await request(app)
     .post(`${url}/create-school-class`)
@@ -51,8 +55,92 @@ it("should create a school class", async () => {
       colour: "red",
     });
 
-  // // console.log("school", school);
-  // console.log("subAdmin", subAdmin);
-  console.log("token", token);
-  console.log("res", res.body);
+  const teacherClass = await TeacherClass.findOne({
+    school: teacher.subAdmin,
+  });
+
+  expect(teacherClass).toBeDefined();
+  expect(teacherClass.school.toString()).toBe(teacher.subAdmin.toString());
+  expect(res.statusCode).toBe(200);
+  expect(res.body.data).toBeDefined();
+  expect(res.body.message).toBe("class created successfully");
+});
+
+it("should add a student to a school class", async () => {
+  let teacher = await makeSubAdmin();
+
+  const payload: any = {
+    name: teacher.name,
+    _id: teacher._id,
+    email: teacher.email,
+    role: "Teacher",
+    password: teacher.password,
+    subAdmin: teacher.subAdmin,
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_KEY!);
+
+  const teacherClass = await createClass(teacher.subAdmin);
+  let name = "test student";
+
+  await addStudentToClass(teacher.subAdmin, teacherClass._id, name);
+
+  const res = await request(app)
+    .put(`${url}/class-school-student/${teacherClass._id}`)
+    .set("x-auth-token", token)
+    .send({
+      name,
+    });
+
+  const schoolStudent = await SchoolStudent.findOne({
+    school: teacher.subAdmin,
+  });
+
+  expect(schoolStudent).toBeDefined();
+  expect(schoolStudent.school.toString()).toBe(teacher.subAdmin.toString());
+  expect(res.statusCode).toBe(200);
+  expect(res.body.data).toBe(null);
+  expect(res.body.message).toBe("student added to class sucessfully");
+});
+
+it("should create a school teacher", async () => {
+  let teacher = await makeSubAdmin();
+
+  const payload: any = {
+    name: teacher.name,
+    _id: teacher._id,
+    email: teacher.email,
+    role: "Teacher",
+    password: teacher.password,
+    subAdmin: teacher.subAdmin,
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_KEY!);
+
+  let body = { name: "test teacher", email: "teacher@school.com" };
+  await AdminCreateTeacher(body, teacher.subAdmin);
+
+  const res = await request(app)
+    .post(`${url}/school-teacher`)
+    .set("x-auth-token", token)
+    .send({
+      name: "test teacher",
+      email: "pep@teacher.com",
+    });
+
+  const schoolTeacher = await SchoolTeacher.findOne({
+    school: teacher.subAdmin,
+  });
+
+  const profile = await Profile.findOne({
+    selectedSchool: teacher.subAdmin,
+  });
+
+  expect(res.statusCode).toBe(201);
+  expect(res.body.data).toBe(null);
+  expect(schoolTeacher).toBeDefined();
+  expect(schoolTeacher.school.toString()).toBe(teacher.subAdmin.toString());
+  expect(profile).toBeDefined();
+  expect(profile.selectedSchool.toString()).toBe(teacher.subAdmin.toString());
+  expect(res.body.message).toBe("invitation sent sucessfully");
 });

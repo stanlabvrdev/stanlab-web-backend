@@ -1,7 +1,11 @@
 import express from "express";
 import multer from "multer";
 const router = express.Router();
-import { uploadFile, createFileFilter, diskStorage } from "../middleware/fileUpload";
+import {
+  uploadFile,
+  createFileFilter,
+  diskStorage,
+} from "../middleware/fileUpload";
 
 const fileFilter = createFileFilter();
 const diskUpload = diskStorage();
@@ -30,7 +34,12 @@ router.post("/", teachersController.createTeacher);
 // get teacher students
 
 router.get("/schools", teacherAuth, teachersController.getSchools);
-router.get("/students", techerProfileMiddleware.build(), teacherAuth, teachersController.getStudents);
+router.get(
+  "/students",
+  techerProfileMiddleware.build(),
+  teacherAuth,
+  teachersController.getStudents
+);
 router.patch("/profile", teacherAuth, teachersController.updateProfile);
 
 // delete only teacher student
@@ -39,7 +48,11 @@ router.patch("/profile", teacherAuth, teachersController.updateProfile);
  * CHANGES THE STATUS OF STUDENT -> TEACHER = REMOVED
  *
  */
-router.delete("/students/:studentId", teacherAuth, teachersController.deleteStudent);
+router.delete(
+  "/students/:studentId",
+  teacherAuth,
+  teachersController.deleteStudent
+);
 
 // teacher create class
 /*
@@ -48,14 +61,34 @@ body => title, subject, section
 router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // create class as a sub admin
-router.post("/create-school-class", teacherAuth, teachersController.createSchoolClass);
+router.post(
+  "/create-school-class",
+  teacherAuth,
+  teachersController.createSchoolClass
+);
 
 // add students to class as a sub admin
-router.put("/class-school-student/:classId", teacherAuth, teachersController.addSchoolStudentToClass);
+router.put(
+  "/class-school-student/:classId",
+  teacherAuth,
+  teachersController.addSchoolStudentToClass
+);
+
+// create school teacher
+router.post(
+  "/school-teacher",
+  teacherAuth,
+  teachersController.createSchoolTeacher
+);
 
 // get teacher classes
 
-router.get("/classes", techerProfileMiddleware.build(), teacherAuth, teachersController.getClass);
+router.get(
+  "/classes",
+  techerProfileMiddleware.build(),
+  teacherAuth,
+  teachersController.getClass
+);
 
 // post: Teacher avatar
 
@@ -87,8 +120,21 @@ router.put(
   "/class-school-student-bulk/:classId",
   teacherAuth,
   uploadFile("student-file", fileFilter, diskUpload),
-  teachersController.addSchoolStudentToClassInBulk);
+  teachersController.addSchoolStudentToClassInBulk
+);
 
+router.post(
+  "/school-teacher-bulk/",
+  teacherAuth,
+  uploadFile("teacher-file", fileFilter, diskUpload),
+  teachersController.createSchoolTeacherInBulk
+);
+
+router.put(
+  "/class-school-student/:classId",
+  teacherAuth,
+  teachersController.addSchoolStudentToClass
+);
 
 // get teacher avatar
 router.get("/:id/avatar", teachersController.getAvatar);
@@ -98,7 +144,11 @@ router.put("/", teacherAuth, teachersController.updateTeacher);
 
 // teacher add student to class
 // by passing the studentId to the body of the request
-router.post("/add-student/:classId", teacherAuth, teachersClassControllerV2.addStudentToClass);
+router.post(
+  "/add-student/:classId",
+  teacherAuth,
+  teachersClassControllerV2.addStudentToClass
+);
 
 // Send questions to all students
 /**
@@ -107,9 +157,17 @@ router.post("/add-student/:classId", teacherAuth, teachersClassControllerV2.addS
  * classId
  * Due date
  */
-router.post("/send-quiz/:classId", teacherAuth, teachersController.sendQuizToStudents);
+router.post(
+  "/send-quiz/:classId",
+  teacherAuth,
+  teachersController.sendQuizToStudents
+);
 
-router.post("/send-lab/:classId", teacherAuth, teachersController.sendLabToStudents);
+router.post(
+  "/send-lab/:classId",
+  teacherAuth,
+  teachersController.sendLabToStudents
+);
 
 /*
  */
@@ -117,10 +175,18 @@ router.post("/send-lab/:classId", teacherAuth, teachersController.sendLabToStude
 // Teacher Invite student to join class using the student  email
 // the request body should contain the email of a student
 
-router.post("/invite-student", teacherAuth, teachersController.sendInviteToStudent);
+router.post(
+  "/invite-student",
+  teacherAuth,
+  teachersController.sendInviteToStudent
+);
 
 // teacher accept student invitation
-router.post("/accept-invite/:studentId", teacherAuth, teachersController.acceptStudentInvite);
+router.post(
+  "/accept-invite/:studentId",
+  teacherAuth,
+  teachersController.acceptStudentInvite
+);
 
 // get a teacher
 router.get("/:id", teachersController.getTeacher);

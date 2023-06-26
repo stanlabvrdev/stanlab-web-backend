@@ -126,27 +126,20 @@ export async function AdminCreateTeacher(
   });
   await teacher.save();
 
-  const teacherSchool = new SchoolTeacher({
-    school: schoolId,
-    teacher: teacher._id,
-    teacherApproved: true,
-  });
-
-  await teacherSchool.save();
-
   return teacher;
 }
 
-export async function makeSubAdmin(teacherId: string, schoolId: string) {
-  // let body = {
-  //   name: "Pete test",
-  //   email: "pete@test.com",
-  // };
+export async function makeSubAdmin() {
+  const school = await createSchool();
+  let body = {
+    name: "Pete test",
+    email: "pete@test.com",
+  };
 
-  let teacher = await Teacher.findById(teacherId);
+  let teacher: any = await AdminCreateTeacher(body, school._id);
 
-  teacher.subAdmin = schoolId;
-  //teacher.save();
+  teacher.subAdmin = school._id;
+  teacher.save();
 
   return teacher;
 }
