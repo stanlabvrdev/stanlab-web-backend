@@ -20,7 +20,7 @@ const studentScoreSchema = new mongoose.Schema(
     isCompleted: { type: Boolean, default: false },
     school: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SchoolAdmin"
+      ref: "SchoolAdmin",
     },
   },
   { toJSON: { virtuals: true } }
@@ -55,6 +55,19 @@ function validateClass(classObj) {
   return schema.validate(classObj);
 }
 
+function validateBulkUpdate(data) {
+  let scoreProp = Joi.object().keys({
+    id: Joi.string().required(),
+    score: Joi.number().required(),
+  });
+
+  const schema = Joi.object({
+    scores: Joi.array().items(scoreProp).required(),
+  });
+
+  return schema.validate(data);
+}
+
 const StudentScore = mongoose.model("StudentScore", studentScoreSchema);
 
-export { StudentScore, validateClass };
+export { StudentScore, validateClass, validateBulkUpdate };

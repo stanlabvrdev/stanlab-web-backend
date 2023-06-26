@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import envConfig from "../config/env";
 import { LabExperiment } from "../models/labAssignment";
 import Logger from "./logger";
+import { GeneratedQuestions } from "../models/generated-questions";
 
 const env = envConfig.getAll();
 
@@ -29,6 +30,15 @@ async function runEperimentLabelSeed() {
       counter--;
     }
   }
+}
+
+export async function QuestionTypeMigration() {
+  await GeneratedQuestions.updateMany(
+    { type: { $exists: false } },
+    {
+      $set: { type: "MCQ" },
+    }
+  );
 }
 
 export async function runSeeds() {

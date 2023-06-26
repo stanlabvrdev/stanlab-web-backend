@@ -12,7 +12,7 @@ import { Student } from "../models/student";
 import { TeacherClass, validateClass } from "../models/teacherClass";
 import QuizClasswork from "../models/quizClasswork";
 import Experiment from "../models/experiment";
-import { doSendInvitationEmail } from "../services/email";
+import { doSendInvitationEmail, teachersGetStartedEmail, welcomePrivateTeacher } from "../services/email";
 import { LabExperiment } from "../models/labAssignment";
 
 import {
@@ -324,6 +324,9 @@ async function createTeacher(req, res) {
   });
   await teacher.save();
   const token = teacher.generateAuthToken();
+  welcomePrivateTeacher(teacher)
+  teachersGetStartedEmail(teacher)
+
   res
     .header("x-auth-token", token)
     .header("access-control-expose-headers", "x-auth-token")
