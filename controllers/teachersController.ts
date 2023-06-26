@@ -9,10 +9,18 @@ import {
   validateUpdateTeacher,
 } from "../models/teacher";
 import { Student } from "../models/student";
-import { TeacherClass, validateClass } from "../models/teacherClass";
+import {
+  TeacherClass,
+  validateClass,
+  validateUpdateClass,
+} from "../models/teacherClass";
 import QuizClasswork from "../models/quizClasswork";
 import Experiment from "../models/experiment";
-import { doSendInvitationEmail, teachersGetStartedEmail, welcomePrivateTeacher } from "../services/email";
+import {
+  doSendInvitationEmail,
+  teachersGetStartedEmail,
+  welcomePrivateTeacher,
+} from "../services/email";
 import { LabExperiment } from "../models/labAssignment";
 
 import {
@@ -32,6 +40,8 @@ import { Request, Response } from "express";
 import { StudentTeacherClass } from "../models/teacherStudentClass";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import {
+  validateRemoveStudent,
+  validateRemoveTeacher,
   validateSchoolUser,
   validateStudent,
 } from "../validations/schoolAdmin.validation";
@@ -108,6 +118,63 @@ async function createSchoolClass(req, res) {
   }
 }
 
+async function getSchoolClasses(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin });
+    if (!school) {
+      throw new BadRequestError("unauthorized school sub admin");
+    }
+
+    const teacherClass = await schoolAdminService.getClasses(teacher.subAdmin);
+    ServerResponse(req, res, 200, teacherClass, "class successfully fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+
+async function getSchoolClassById(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin });
+    if (!school) {
+      throw new BadRequestError("unauthorized school sub admin");
+    }
+
+    const teacherClass = await schoolAdminService.getClassById(
+      teacher.subAdmin,
+      req.params.classId
+    );
+    ServerResponse(req, res, 200, teacherClass, "class successfully fetched");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+
+async function updateSchoolClass(req, res) {
+  doValidate(validateUpdateClass(req.body));
+
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findOne({ _id: teacher.subAdmin });
+    if (!school) {
+      throw new BadRequestError("unauthorized school sub admin");
+    }
+
+    await schoolAdminService.updateClass(
+      req.body,
+      teacher.subAdmin,
+      req.params.classId
+    );
+    ServerResponse(req, res, 200, null, "class updated sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+}
+
 async function addSchoolStudentToClass(req, res) {
   doValidate(validateStudent(req.body));
 
@@ -152,6 +219,22 @@ async function addSchoolStudentToClassInBulk(req, res) {
   }
 }
 
+async function getSchoolStudents(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    const students = await schoolAdminService.getStudents(teacher.subAdmin);
+    ServerResponse(req, res, 200, students, "students successfull fetched");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
+
 async function createSchoolTeacher(req, res) {
   doValidate(validateSchoolUser(req.body));
 
@@ -186,42 +269,58 @@ async function createSchoolTeacherInBulk(req, res) {
   }
 }
 
-// async function removeSchoolStudent(req, res) {
-//   doValidate(validateRemoveStudent(req.body));
+async function getSchoolTeachers(req, res) {
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
 
-//   try {
-//     let teacher = await Teacher.findById(req.teacher._id);
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
 
-//     let school = await SchoolAdmin.findById(teacher.subAdmin);
-//     if (!school) {
-//       throw new NotFoundError("unauthorized school sub admin");
-//     }
-//     await schoolAdminService.removeStudent(teacher.subAdmin, req.body);
+    const teachers = await schoolAdminService.getTeachers(teacher.subAdmin);
+    ServerResponse(req, res, 200, teachers, "teachers successfull fetched");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
 
-//     ServerResponse(req, res, 200, null, "students removed sucessfully");
-//   } catch (err) {
-//     ServerErrorHandler(req, res, err);
-//   }
-// }
+async function removeSchoolStudent(req, res) {
+  doValidate(validateRemoveStudent(req.body));
 
-// async function removeSchoolTeacher(req, res) {
-//   doValidate(validateRemoveTeacher(req.body));
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
 
-//   try {
-//     let teacher = await Teacher.findById(req.teacher._id);
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+    await schoolAdminService.removeStudent(teacher.subAdmin, req.body);
 
-//     let school = await SchoolAdmin.findById(teacher.subAdmin);
-//     if (!school) {
-//       throw new NotFoundError("unauthorized school sub admin");
-//     }
+    ServerResponse(req, res, 200, null, "students removed sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
 
-//     await schoolAdminService.removeTeacher(teacher.subAdmin, req.body);
+async function removeSchoolTeacher(req, res) {
+  doValidate(validateRemoveTeacher(req.body));
 
-//     ServerResponse(req, res, 200, null, "teachers removed sucessfully");
-//   } catch (err) {
-//     ServerErrorHandler(req, res, err);
-//   }
-// }
+  try {
+    let teacher = await Teacher.findById(req.teacher._id);
+
+    let school = await SchoolAdmin.findById(teacher.subAdmin);
+    if (!school) {
+      throw new NotFoundError("unauthorized school sub admin");
+    }
+
+    await schoolAdminService.removeTeacher(teacher.subAdmin, req.body);
+
+    ServerResponse(req, res, 200, null, "teachers removed sucessfully");
+  } catch (err) {
+    ServerErrorHandler(req, res, err);
+  }
+}
 
 async function getClass(req, res) {
   try {
@@ -324,8 +423,8 @@ async function createTeacher(req, res) {
   });
   await teacher.save();
   const token = teacher.generateAuthToken();
-  welcomePrivateTeacher(teacher)
-  teachersGetStartedEmail(teacher)
+  welcomePrivateTeacher(teacher);
+  teachersGetStartedEmail(teacher);
 
   res
     .header("x-auth-token", token)
@@ -612,8 +711,15 @@ export default {
   getSchools,
   updateProfile,
   createSchoolClass,
+  getSchoolClasses,
+  getSchoolClassById,
+  updateSchoolClass,
   addSchoolStudentToClass,
   addSchoolStudentToClassInBulk,
+  getSchoolStudents,
   createSchoolTeacher,
-  createSchoolTeacherInBulk
+  createSchoolTeacherInBulk,
+  getSchoolTeachers,
+  removeSchoolStudent,
+  removeSchoolTeacher,
 };

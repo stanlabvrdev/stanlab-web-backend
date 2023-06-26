@@ -142,7 +142,6 @@ export async function makeSubAdmin() {
   let teacher: any = await AdminCreateTeacher(body, school._id);
 
   teacher.subAdmin = school._id;
-  teacher.save();
 
   return teacher;
 }

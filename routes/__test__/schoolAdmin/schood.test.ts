@@ -1,7 +1,6 @@
 import request from "supertest";
 import app from "../../../app";
 import { AdminCreateTeacher, updateSchool } from "../../../test/school";
-import { Teacher } from "../../../models/teacher";
 
 const baseURL = global.baseURL;
 

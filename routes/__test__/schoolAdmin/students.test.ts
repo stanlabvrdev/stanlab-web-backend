@@ -46,7 +46,7 @@ it("should create a student and add them to the class", async () => {
 
 it("should remove a student", async () => {
   const school = await global.loginSchool();
-  const teacherClass = await createClass();
+  const teacherClass = await createClass(school._id);
   let name = "test student";
 
   let student = await addStudentToClass(school._id, teacherClass._id, name);
