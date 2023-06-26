@@ -6,6 +6,7 @@ import { Student } from "../models/student";
 import { Teacher } from "../models/teacher";
 import { passwordService } from "../services/passwordService";
 import { SchoolAdmin } from "../models/schoolAdmin";
+import { afterAll, beforeAll, beforeEach, jest } from "@jest/globals";
 
 interface LoginPayload {
   _id: string;
@@ -56,7 +57,7 @@ global.loginStudent = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test student",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test@student.com",
     role: "Student",
   };
@@ -81,7 +82,7 @@ global.loginTeacher = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test teacher",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test@teacher.com",
     role: "Teacher",
   };
@@ -107,7 +108,7 @@ global.loginSchool = async () => {
   // Build a JWT payload.  { id, email }
   const payload: any = {
     name: "test school",
-    _id: new mongoose.Types.ObjectId().toHexString(),
+    _id: new mongoose.Types.ObjectId(),
     email: "test.admin@school.com",
     role: "School",
     adminName: "test admin",

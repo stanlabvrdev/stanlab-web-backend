@@ -1,3 +1,4 @@
+import { Profile } from "../models/profile";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SchoolTeacher } from "../models/schoolTeacher";
 import { Student } from "../models/student";
@@ -96,6 +97,8 @@ export async function addStudentToClass(
     school: schoolId,
   });
   await studentClass.save();
+
+  return student;
 }
 
 export async function createTeacher(body: {
@@ -124,7 +127,7 @@ export async function AdminCreateTeacher(
     password: hashedPassword,
     schoolTeacher: true,
   });
-  await teacher.save();
+  teacher.save();
 
   return teacher;
 }
