@@ -62,23 +62,64 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // create class as a sub admin
 router.post(
-  "/create-school-class",
+  "/school-class",
   teacherAuth,
   teachersController.createSchoolClass
 );
-
+// get school classes as a sub admin
+router.get(
+  "/school-class",
+  teacherAuth,
+  teachersController.getSchoolClasses
+);
+// get a school class as a sub admin
+router.get(
+  "/school-class/:classId",
+  teacherAuth,
+  teachersController.getSchoolClassById
+);
+// update a school class as a sub admin
+router.put(
+  "/school-class/:classId",
+  teacherAuth,
+  teachersController.updateSchoolClass
+);
 // add students to class as a sub admin
 router.put(
   "/class-school-student/:classId",
   teacherAuth,
   teachersController.addSchoolStudentToClass
 );
-
+// get school students as a sub admin
+router.get(
+  "/school-student",
+  teacherAuth,
+  teachersController.getSchoolStudents
+);
 // create school teacher
 router.post(
   "/school-teacher",
   teacherAuth,
   teachersController.createSchoolTeacher
+);
+// get school teachers as a sub admin
+router.get(
+  "/school-teacher",
+  teacherAuth,
+  teachersController.getSchoolTeachers
+);
+// remove school student
+router.delete(
+  "/remove-school-student",
+  teacherAuth,
+  teachersController.removeSchoolStudent
+);
+
+// remove school teacher
+router.delete(
+  "/remove-school-teacher",
+  teacherAuth,
+  teachersController.removeSchoolTeacher
 );
 
 // get teacher classes
