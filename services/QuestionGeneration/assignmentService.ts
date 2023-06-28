@@ -9,6 +9,7 @@ import { QuestionManagementService } from "./generated-question-service";
 import { Request } from "express";
 import mcqAssignment from "../../models/mcqAssignment";
 import { Teacher } from "../../models/teacher";
+import { IStudentScore, StudentScore } from "../../models/studentScore";
 
 const populateOptions = {
   path: "questions",
@@ -86,21 +87,12 @@ class AssignmentServiceClass {
 
     const { assignmentType, testDuration } = this.validateAssignmentDetails(type, duration);
 
-    const teacher = await Teacher.findOne({ _id: extendedReq.teacher._id });
-
     const { questGroup, foundQuestions } = await AssignmentHelperService.extractQuestions(questGroupId, extendedReq.teacher._id);
 
     const { school, students } = await AssignmentHelperService.getTeacherStudentsAndSchool(classID, extendedReq.teacher._id);
 
-    const studentWork = students.map((studentID: string) => {
-      return {
-        student: studentID,
-        scores: [],
-      };
-    });
-
     const newAssignment = await mcqAssignment.create({
-      teacher: teacher._id,
+      teacher: extendedReq.teacher._id,
       questions: foundQuestions,
       subject: questGroup.subject,
       topic: questGroup.topic,
@@ -112,12 +104,22 @@ class AssignmentServiceClass {
       school: school,
       instruction,
       comments,
-      students: studentWork,
     });
+
+    const studentScores: IStudentScore[] = students.map((studentID: string): IStudentScore => {
+      return {
+        classId: classID,
+        assignmentId: newAssignment._id,
+        studentId: studentID,
+        teacherId: extendedReq.teacher._id,
+        school,
+      };
+    });
+
+    await StudentScore.insertMany(studentScores);
 
     const promises = students.map((studentID: string) => createTopicalMcqNotification(studentID, newAssignment._id));
     await Promise.all(promises);
-    newAssignment.students = undefined;
     newAssignment.questions = undefined;
     return newAssignment;
   }
