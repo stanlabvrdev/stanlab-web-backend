@@ -4,6 +4,8 @@ import envConfig from "../config/env";
 import { LabExperiment } from "../models/labAssignment";
 import Logger from "./logger";
 import { GeneratedQuestions } from "../models/generated-questions";
+import mcqAssignment, { ScoreObject } from "../models/mcqAssignment";
+import { IStudentScore, StudentScore } from "../models/studentScore";
 
 const env = envConfig.getAll();
 
@@ -39,6 +41,51 @@ export async function QuestionTypeMigration() {
       $set: { type: "MCQ" },
     }
   );
+}
+
+function findHighestScore(scores: ScoreObject[]): number {
+  let highestScore = -Infinity;
+
+  for (const scoreObj of scores) {
+    const score = scoreObj.score;
+    if (score > highestScore) {
+      highestScore = score;
+    }
+  }
+
+  return highestScore;
+}
+
+export async function AssignmentScoresMigration(): Promise<void> {
+  try {
+    const assignments = await mcqAssignment.find();
+    const newDocsArr: IStudentScore[] = [];
+
+    for (const assignment of assignments) {
+      if (assignment.students && assignment.students.length > 0) {
+        for (const student of assignment.students) {
+          const studentDoc: IStudentScore = {
+            classId: assignment.classId,
+            assignmentId: assignment._id,
+            studentId: student.student,
+            teacherId: assignment.teacher,
+            school: assignment.school,
+          };
+          if (student.scores && student.scores.length > 0) {
+            const score = findHighestScore(student.scores);
+            studentDoc.score = score;
+          }
+          if (studentDoc.score) {
+            studentDoc.isCompleted = true;
+          }
+          newDocsArr.push(studentDoc);
+        }
+      }
+    }
+    await StudentScore.insertMany(newDocsArr);
+  } catch (error) {
+    Logger.error(`Migration Error: ${error}`);
+  }
 }
 
 export async function runSeeds() {

@@ -6,6 +6,11 @@ export interface StudentWork extends Document {
   scores: { score: number; date: Date }[];
 }
 
+export interface ScoreObject {
+  score: number;
+  date: Date;
+}
+
 export interface MCQAssignment extends Document {
   questions: Schema.Types.ObjectId | undefined | GeneratedQuestion[];
   classId: string;

@@ -1,6 +1,17 @@
 import mongoose from "mongoose";
 import Joi from "joi";
 
+export interface IStudentScore {
+  classId: mongoose.Types.ObjectId;
+  experimentId?: mongoose.Types.ObjectId;
+  assignmentId: mongoose.Types.ObjectId;
+  studentId: mongoose.Types.ObjectId;
+  teacherId: mongoose.Types.ObjectId;
+  score?: number;
+  isCompleted?: boolean;
+  school?: mongoose.Types.ObjectId;
+}
+
 const studentScoreSchema = new mongoose.Schema(
   {
     classId: {
@@ -8,6 +19,7 @@ const studentScoreSchema = new mongoose.Schema(
       ref: "TeacherClass",
     },
     experimentId: { type: mongoose.Schema.Types.ObjectId, ref: "LabExperiment" },
+    assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: "mcqAssignment" },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
