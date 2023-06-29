@@ -83,6 +83,7 @@ export async function AssignmentScoresMigration(): Promise<void> {
       }
     }
     await StudentScore.insertMany(newDocsArr);
+    await mcqAssignment.updateMany({ students: { $exists: true } }, { $unset: { students: 1 } });
   } catch (error) {
     Logger.error(`Migration Error: ${error}`);
   }
