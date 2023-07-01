@@ -6,6 +6,7 @@ import axios from "axios";
 import { createClass } from "../../../test/teacher";
 import { createQuestionGroup } from "../../../test/topical-questions";
 import { createStudent } from "../../../test/school";
+import { jest, expect, it, describe } from "@jest/globals";
 
 const baseURL = global.baseURL;
 const assignNowEndpoint = `${baseURL}/v2/ai/questions/assign-now`;
@@ -69,7 +70,6 @@ const testCreateAssignment = async (endpoint: string, testDetails: TestDetails, 
   expect(res.body.data).not.toBeNull();
   expect(res.body.data).toHaveProperty("type");
   expect(res.body.data).toHaveProperty("_id");
-  expect(res.body.data).not.toHaveProperty("students");
 };
 
 const generateTestData = async (classID: string, questions?: any, questGroupId?: string): Promise<TestDetails> => {

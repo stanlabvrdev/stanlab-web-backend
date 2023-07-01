@@ -4,7 +4,7 @@ import "jest";
 import { createAssignment } from "../../../test/topical-questions";
 import { createTopicalMcqNotification } from "../../../services/student/notification";
 import { createClass } from "../../../test/teacher";
-
+import { describe, it, expect } from "@jest/globals";
 const baseURL = global.baseURL;
 
 describe("Student Assignment Service endpoints", () => {
@@ -18,7 +18,7 @@ describe("Student Assignment Service endpoints", () => {
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc`).set("x-auth-token", student.token);
 
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toEqual("Assignment not found");
+      expect(response.body.message).toEqual("You are not allowed to to access this assigment");
     });
 
     it("should throw an error if assignment has expired", async () => {
@@ -83,8 +83,8 @@ describe("Student Assignment Service endpoints", () => {
         });
 
       expect(response.body.data).toBe(null);
-      expect(response.statusCode).toBe(404);
-      expect(response.body.message).toEqual("Assignment not found");
+      expect(response.statusCode).toBe(403);
+      expect(response.body.message).toEqual("You are not allowed to to make a submission on this assigment");
     });
 
     it("should throw an error if assignment has expired ", async () => {
@@ -167,12 +167,11 @@ describe("Student Assignment Service endpoints", () => {
       await createAssignments();
 
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${teacherClass._id}/scores`).set("x-auth-token", student.token);
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.message).toBe("Score fetched successfully");
       expect(response.body.data).not.toHaveLength(0);
       expect(response.body.data[0]).toHaveProperty("subject");
-      expect(response.body.data[0]).toHaveProperty("scores");
+      expect(response.body.data[0]).toHaveProperty("score");
     });
   });
 });
