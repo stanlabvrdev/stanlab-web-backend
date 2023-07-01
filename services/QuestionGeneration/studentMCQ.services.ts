@@ -2,19 +2,11 @@ import { Request } from "express";
 import NotFoundError from "../exceptions/not-found";
 import BadRequestError from "../exceptions/bad-request";
 import mcqAssignment, { MCQAssignment } from "../../models/mcqAssignment";
-import { LeanDocument } from "mongoose";
+import { LeanDocument, Types } from "mongoose";
 import CustomError from "../exceptions/custom";
 import Notification from "../../models/notification";
 import { GeneratedQuestion } from "../../models/generated-questions";
-
-interface ExtendedRequest extends Request {
-  student: any;
-}
-
-interface StudentWork {
-  score: number;
-  date: Date;
-}
+import { StudentScore } from "../../models/studentScore";
 
 interface Accumulator {
   pending: LeanDocument<MCQAssignment>[];
@@ -28,11 +20,6 @@ interface Grade {
 }
 
 export class StudentMCQClass {
-  private studentHasSubmitted(assignment: LeanDocument<MCQAssignment>, studentID: any): Boolean {
-    let studentWork = assignment.students!.find((each) => each.student == studentID)!;
-    return studentWork.scores.length > 0;
-  }
-
   private assignmentExpired(dueDate: Date): Boolean {
     return new Date() > dueDate;
   }
@@ -65,22 +52,16 @@ export class StudentMCQClass {
   }
 
   async getAssignment(req: Request): Promise<LeanDocument<MCQAssignment>> {
-    const extendedReq = req as ExtendedRequest;
-    const student = extendedReq.student._id;
-    const assignment = await mcqAssignment
-      .findOne({
-        _id: extendedReq.params.id,
-        students: { $elemMatch: { student } },
-      })
-      .populate("classId", "title")
-      .populate("teacher", "name")
-      .select("-__v")
-      .lean();
+    const studentId = req.student._id;
+    const studentAttempt = await StudentScore.findOne({ assignmentId: req.params.id, studentId });
+    if (!studentAttempt) throw new CustomError(403, "You are not allowed to to access this assigment");
+
+    const assignment = await mcqAssignment.findById(req.params.id).populate("classId", "title").populate("teacher", "name").select("-__v").lean();
     if (!assignment) throw new NotFoundError("Assignment not found");
+
     if (new Date() < assignment.startDate) throw new CustomError(403, `You can start taking this assignment from ${assignment.startDate}`);
     if (this.assignmentExpired(assignment.dueDate)) throw new CustomError(403, "Assignment expired!");
-    if (assignment.type === "Test" && this.studentHasSubmitted(assignment, student)) throw new CustomError(403, "Multiple attempts are not allowed for this type of assignment");
-    assignment.students = undefined;
+    if (assignment.type === "Test" && studentAttempt.score) throw new CustomError(403, "Multiple attempts are not allowed for this type of assignment");
     const notification = await Notification.findOne({ entity: assignment._id });
     notification.read = true;
     await notification.save();
@@ -91,26 +72,20 @@ export class StudentMCQClass {
   }
 
   async getAssignments(req: Request): Promise<Accumulator> {
-    const extendedReq = req as ExtendedRequest;
-    const student = extendedReq.student._id;
-    const assignments: LeanDocument<MCQAssignment>[] = await mcqAssignment
-      .find({
-        students: { $elemMatch: { student } },
-      })
-      .populate("classId", "title")
-      .populate("teacher", "name")
-      .select("-__v -questions")
-      .lean();
+    const studentId = Types.ObjectId(req.student._id);
+    const studentWorks = await StudentScore.aggregate([{ $match: { studentId: studentId } }, { $lookup: { from: "mcqassignments", localField: "assignmentId", foreignField: "_id", as: "assignment" } }, { $unwind: "$assignment" }]);
+    if (studentWorks.length < 1) throw new NotFoundError("You have no assignments yet");
 
-    const formattedAssignments = assignments.reduce(
-      (acc: Accumulator, assignment: LeanDocument<MCQAssignment>) => {
+    const formattedAssignments = studentWorks.reduce(
+      (acc: Accumulator, studentWork) => {
+        const assignment = studentWork.assignment;
         if (assignment.type === "Practice" && !this.assignmentExpired(assignment.dueDate)) {
           acc.pending.push(assignment);
-        } else if (assignment.type === "Practice" && this.studentHasSubmitted(assignment, student)) {
+        } else if (assignment.type === "Practice" && studentWork.isCompleted) {
           acc.submitted.push(assignment);
-        } else if (assignment.type === "Practice" && !this.studentHasSubmitted(assignment, student)) {
+        } else if (assignment.type === "Practice" && !studentWork.isCompleted) {
           acc.expired.push(assignment);
-        } else if (assignment.type === "Test" && this.studentHasSubmitted(assignment, student)) {
+        } else if (assignment.type === "Test" && studentWork.isCompleted) {
           acc.submitted.push(assignment);
         } else if (assignment.type === "Test" && this.assignmentExpired(assignment.dueDate)) {
           acc.expired.push(assignment);
@@ -118,6 +93,7 @@ export class StudentMCQClass {
           acc.pending.push(assignment);
         }
         assignment.students = undefined;
+        assignment.questions = undefined;
 
         return acc;
       },
@@ -132,54 +108,43 @@ export class StudentMCQClass {
   }
 
   async makeSubmission(req: Request): Promise<Grade> {
-    const extendedReq = req as ExtendedRequest;
-    const { submission } = extendedReq.body;
-    const studentID = extendedReq.student._id;
+    const { submission } = req.body;
+    const studentId = req.student._id;
     if (!submission) throw new BadRequestError("Make a valid submission");
 
-    const assignment: MCQAssignment | null = await mcqAssignment
-      .findOne({
-        students: { $elemMatch: { student: studentID } },
-        _id: extendedReq.params.id,
-      })
-      .populate("classId", "title")
-      .populate("teacher", "name")
-      .select("-__v");
+    const studentAttempt = await StudentScore.findOne({ assignmentId: req.params.id, studentId });
+    if (!studentAttempt) throw new CustomError(403, "You are not allowed to to make a submission on this assigment");
 
+    const assignment: MCQAssignment | null = await mcqAssignment.findOne({ _id: req.params.id }).populate("classId", "title").populate("teacher", "name").select("-__v");
     if (!assignment) throw new NotFoundError("Assignment not found");
 
     if (this.assignmentExpired(assignment.dueDate)) throw new BadRequestError("Assignment expired, cannot make a submission");
-    //This maps out the score of the student making the request
-    let studentWork = assignment.students!.find((each) => each.student == studentID)!;
-    if (assignment.type === "Test" && this.studentHasSubmitted(assignment, studentID)) throw new BadRequestError("Already submitted");
+    if (assignment.type === "Test" && studentAttempt.score) throw new BadRequestError("Already submitted");
 
     const grade = await this.markSubmission(submission, assignment.questions as GeneratedQuestion[]);
 
-    if (assignment.type === "Practice" || (assignment.type === "Test" && !this.studentHasSubmitted(assignment, studentID))) {
-      studentWork.scores.push({
-        score: grade.studentScore,
-        date: new Date(),
-      });
+    if (assignment.type === "Practice" || (assignment.type === "Test" && !studentAttempt.score)) {
+      studentAttempt.score = grade.studentScore;
+      await studentAttempt.save();
     }
-    assignment.markModified("students");
-    await assignment.save({ validateModifiedOnly: true });
+
     return grade;
   }
 
-  async getAssignmentScoresByClass(req: Request): Promise<{ subject: string; topic: string; scores: StudentWork[] }[]> {
-    const extendedReq = req as ExtendedRequest;
-    const studentID = extendedReq.student._id;
+  async getAssignmentScoresByClass(req: Request): Promise<{ subject: string; topic: string; score: number }[]> {
+    const studentId = Types.ObjectId(req.student._id);
     const { id } = req.params;
-    const assignments = await mcqAssignment.find({ classId: id, students: { $elemMatch: { student: studentID } } }).select("-__v -questions");
-    if (!assignments || assignments.length < 1) throw new NotFoundError("No graded assignments at this moment");
+    const studentWorks = await StudentScore.aggregate([
+      { $match: { studentId, isCompleted: true } },
+      { $lookup: { from: "mcqassignments", localField: "assignmentId", foreignField: "_id", as: "assignment" } },
+      { $unwind: "$assignment" },
+      { $match: { "assignment.classId": Types.ObjectId(id) } },
+    ]);
 
-    const studentWork = assignments.reduce((result: { subject: string; topic: string; scores: StudentWork[] }[], eachAssignment: MCQAssignment) => {
-      const work = eachAssignment.students!.find((eachStudentWork) => eachStudentWork.student == studentID);
-      if (work && work.scores.length > 0) {
-        result.push({ subject: eachAssignment.subject, topic: eachAssignment.topic, scores: work.scores });
-      }
-      return result;
-    }, []);
+    if (studentWorks.length < 1) throw new NotFoundError("No graded assignments at this moment");
+    const studentWork = studentWorks.map((eachWork) => {
+      return { subject: eachWork.assignment.subject, topic: eachWork.assignment.topic, score: eachWork.score };
+    });
     return studentWork;
   }
 }
