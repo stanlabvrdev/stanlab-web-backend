@@ -65,23 +65,9 @@ async function createClass(req, res) {
   }
 }
 
-async function getClass(req, res) {
+async function getClass(req: Request, res: Response) {
   try {
     const teacherClasses = await teacherClassService.getAll({ teacher: req.teacher._id });
-
-    // if (!teacherClasses) {
-    //     throw new NotFoundError("class not found");
-    // }
-
-    // let picked = teacherClasses.classes;
-    // if (picked.length > 0)
-    //     picked = picked.map((cl) => ({
-    //         _id: cl._id,
-    //         isPublished: cl.isPublished,
-    //         title: cl.title,
-    //         subject: cl.subject,
-    //         section: cl.section,
-    //     }));
 
     ServerResponse(req, res, 200, teacherClasses, "classes successfully fetched");
   } catch (error) {
