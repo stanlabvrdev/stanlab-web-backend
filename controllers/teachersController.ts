@@ -65,11 +65,9 @@ async function createClass(req, res) {
 
 async function getClass(req, res) {
   try {
-    // const teacherClasses = await Teacher.findOne({ _id: req.teacher._id }).populate("classes").select("classes");
-
     let teacherCurrentSchool: string;
     let teacherClasses: any;
-    let classes: any;
+    let results: any[] = [];
 
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
@@ -80,19 +78,17 @@ async function getClass(req, res) {
         school: teacherCurrentSchool,
       });
 
-      classes = await Promise.all(
-        teacherClasses.map(async (e) => {
-          const teacherClass = await StudentTeacherClass.find({
-            school: teacherCurrentSchool,
-            class: e._id
-          })
+      for (let clas of teacherClasses) {
+        const teacherClass = await StudentTeacherClass.find({
+          school: teacherCurrentSchool,
+          class: clas._id,
+        });
 
-          return {
-            class: e,
-            numberOfStudents: teacherClass.length
-          }
-        })
-      )
+        results.push({
+          class: clas,
+          numberOfStudents: teacherClass.length,
+        });
+      }
     }
 
     if (!profile) {
@@ -100,19 +96,24 @@ async function getClass(req, res) {
         teacher: req.teacher._id,
       });
 
-      classes = teacherClasses.map((e) => {
-        return {
-          class: e,
-          numberOfStudents: e.students.length
-        }
-      })
+      for (let clas of teacherClasses) {
+        const teacherClass = await StudentTeacherClass.find({
+          teacher: req.teacher._id,
+          class: clas._id,
+        });
+
+        results.push({
+          class: clas,
+          numberOfStudents: teacherClass.length,
+        });
+      }
     }
 
     if (!teacherClasses) {
       throw new NotFoundError("class not found");
     }
 
-    ServerResponse(req, res, 200, classes, "classes fetched sucessfully");
+    ServerResponse(req, res, 200, results, "classes fetched sucessfully");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
