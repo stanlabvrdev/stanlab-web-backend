@@ -8,6 +8,11 @@ import Notification from "../../models/notification";
 import { GeneratedQuestion } from "../../models/generated-questions";
 import { StudentScore } from "../../models/studentScore";
 
+enum AssignmentType {
+  Practice = "Practice",
+  Test = "Test",
+}
+
 interface Accumulator {
   pending: LeanDocument<MCQAssignment>[];
   submitted: LeanDocument<MCQAssignment>[];
@@ -76,33 +81,37 @@ export class StudentMCQClass {
     const studentWorks = await StudentScore.aggregate([{ $match: { studentId: studentId } }, { $lookup: { from: "mcqassignments", localField: "assignmentId", foreignField: "_id", as: "assignment" } }, { $unwind: "$assignment" }]);
     if (studentWorks.length < 1) throw new NotFoundError("You have no assignments yet");
 
-    const formattedAssignments = studentWorks.reduce(
-      (acc: Accumulator, studentWork) => {
-        const assignment = studentWork.assignment;
-        if (assignment.type === "Practice" && !this.assignmentExpired(assignment.dueDate)) {
-          acc.pending.push(assignment);
-        } else if (assignment.type === "Practice" && studentWork.isCompleted) {
-          acc.submitted.push(assignment);
-        } else if (assignment.type === "Practice" && !studentWork.isCompleted) {
-          acc.expired.push(assignment);
-        } else if (assignment.type === "Test" && studentWork.isCompleted) {
-          acc.submitted.push(assignment);
-        } else if (assignment.type === "Test" && this.assignmentExpired(assignment.dueDate)) {
-          acc.expired.push(assignment);
-        } else if (assignment.type === "Test" && !this.assignmentExpired(assignment.dueDate)) {
-          acc.pending.push(assignment);
-        }
-        assignment.students = undefined;
-        assignment.questions = undefined;
+    const formattedAssignments: Accumulator = {
+      pending: [],
+      submitted: [],
+      expired: [],
+    };
 
-        return acc;
-      },
-      {
-        pending: [],
-        submitted: [],
-        expired: [],
+    for (const studentWork of studentWorks) {
+      const assignment = studentWork.assignment;
+      switch (assignment.type) {
+        case AssignmentType.Practice:
+          if (!this.assignmentExpired(assignment.dueDate)) {
+            formattedAssignments.pending.push(assignment);
+          } else if (studentWork.isCompleted) {
+            formattedAssignments.submitted.push(assignment);
+          } else {
+            formattedAssignments.expired.push(assignment);
+          }
+          break;
+        case AssignmentType.Test:
+          if (studentWork.isCompleted) {
+            formattedAssignments.submitted.push(assignment);
+          } else if (this.assignmentExpired(assignment.dueDate)) {
+            formattedAssignments.expired.push(assignment);
+          } else {
+            formattedAssignments.pending.push(assignment);
+          }
+          break;
       }
-    );
+      assignment.students = undefined;
+      assignment.questions = undefined;
+    }
 
     return formattedAssignments;
   }
@@ -140,10 +149,8 @@ export class StudentMCQClass {
       { $unwind: "$assignment" },
       { $match: { "assignment.classId": Types.ObjectId(id) } },
     ]);
-
-    if (studentWorks.length < 1) throw new NotFoundError("No graded assignments at this moment");
-    const studentWork = studentWorks.map((eachWork) => {
-      return { subject: eachWork.assignment.subject, topic: eachWork.assignment.topic, score: eachWork.score };
+    const studentWork = studentWorks.map((work) => {
+      return { subject: work.assignment.subject, topic: work.assignment.topic, score: work.score };
     });
     return studentWork;
   }
