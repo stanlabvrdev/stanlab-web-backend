@@ -748,23 +748,21 @@ class SchoolAdminService {
   }
 
   async filterIds(doc: any, body: any) {
-    await Promise.all(
-      doc.map(async (classes: TeacherClassDoc) => {
-        const students = classes.students;
-        const filteredStudents: any = [];
+    for (const classes of doc) {
+      const students = classes.students;
+      const filteredStudents: any = [];
 
-        for (let i = 0; i < students.length; i++) {
-          const student = students[i].toString();
-          if (!body.studentId.includes(student)) {
-            filteredStudents.push(students[i]);
-          }
+      for (const student of students) {
+        const studentId = student.toString();
+        if (!body.studentId.includes(studentId)) {
+          filteredStudents.push(student);
         }
+      }
 
-        classes.students = filteredStudents;
-        classes.markModified("students");
-        await classes.save();
-      })
-    );
+      classes.students = filteredStudents;
+      classes.markModified("students");
+      await classes.save();
+    }
   }
 
   async removeStudent(schoolId: string, body: any) {
@@ -773,7 +771,8 @@ class SchoolAdminService {
       student: body.studentId,
     });
 
-    const deletePromises = students.map(async (s) => {
+    const deletePromises: any = [];
+    for (const s of students) {
       const deleteOperations = [
         Student.findOneAndDelete({ _id: s.student }),
         StudentTeacherClass.findOneAndDelete({ student: s.student }),
@@ -785,8 +784,8 @@ class SchoolAdminService {
         SchoolStudent.findOneAndDelete({ student: s.student }),
       ];
 
-      return Promise.all(deleteOperations);
-    });
+      deletePromises.push(Promise.all(deleteOperations));
+    }
 
     await Promise.all(deletePromises);
 
@@ -795,16 +794,6 @@ class SchoolAdminService {
 
     let experiment = await Experiment.find({ classId: teacherClass._id });
     await this.filterIds(experiment, body);
-
-    // let assignment = await mcqAssignment.find();
-
-    // await mcqAssignment.updateMany(
-    //   { school: schoolId },
-    //   { students: ids },
-    //   {
-    //     new: true,
-    //   }
-    // );
   }
 
   async removeTeacher(schoolId: string, body: any) {
@@ -813,7 +802,9 @@ class SchoolAdminService {
       teacher: body.teacherId,
     });
 
-    const deletePromises = teachers.map(async (t) => {
+    const deletePromises: any = [];
+
+    for (const t of teachers) {
       const deleteOperations = [
         Profile.findOneAndDelete({ teacher: t.teacher }),
         Teacher.updateMany(
@@ -823,9 +814,8 @@ class SchoolAdminService {
         ),
         SchoolTeacher.findOneAndDelete({ teacher: t.teacher }),
       ];
-
-      return Promise.all(deleteOperations);
-    });
+      deletePromises.push(Promise.all(deleteOperations));
+    }
 
     await Promise.all(deletePromises);
   }
