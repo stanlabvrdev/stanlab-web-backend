@@ -143,8 +143,8 @@ describe("Student Assignment Service endpoints", () => {
       const student = await global.loginStudent();
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc/scores`).set("x-auth-token", student.token);
 
-      expect(response.statusCode).toBe(404);
-      expect(response.body.data).toBe(null);
+      expect(response.statusCode).toBe(200);
+      expect(response.body.data).toHaveLength(0);
     });
 
     it("should return student's scores based on selected class", async () => {
