@@ -17,7 +17,7 @@ const baseURL = global.baseURL;
 const url = `${baseURL}/teachers`;
 
 it("can only be accessed if teacher is signed in", async () => {
-  await request(app).post(`${url}/school-class`).send({}).expect(401);
+  await request(app).post(`${url}/schools/classes`).send({}).expect(401);
 });
 
 it("should create a school class", async () => {
@@ -35,7 +35,7 @@ it("should create a school class", async () => {
   const token = jwt.sign(payload, process.env.JWT_KEY!);
 
   const res = await request(app)
-    .post(`${url}/school-class`)
+    .post(`${url}/schools/classes`)
     .set("x-auth-token", token)
     .send({
       title: "CHM test",
@@ -71,7 +71,7 @@ it("should get school classes", async () => {
   await createClass(teacher.subAdmin);
 
   const res = await request(app)
-    .get(`${url}/school-class`)
+    .get(`${url}/schools/classes`)
     .set("x-auth-token", token)
     .send({});
 
@@ -97,7 +97,7 @@ it("should get a class by Id", async () => {
   let teacherClass = await createClass(teacher.subAdmin);
 
   const res = await request(app)
-    .get(`${url}/school-class/${teacherClass._id}`)
+    .get(`${url}/schools/classes/${teacherClass._id}`)
     .set("x-auth-token", token)
     .send();
 
@@ -123,7 +123,7 @@ it("should update a class", async () => {
   let teacherClass = await createClass(teacher.subAdmin);
 
   const res = await request(app)
-    .put(`${url}/school-class/${teacherClass._id}`)
+    .put(`${url}/schools/classes/${teacherClass._id}`)
     .set("x-auth-token", token)
     .send({
       title: "PHY 201",
@@ -157,7 +157,7 @@ it("should add a student to a school class", async () => {
   await addStudentToClass(teacher.subAdmin, teacherClass._id, name);
 
   const res = await request(app)
-    .put(`${url}/class-school-student/${teacherClass._id}`)
+    .put(`${url}/schools/classes/${teacherClass._id}/students`)
     .set("x-auth-token", token)
     .send({
       name,
@@ -194,7 +194,7 @@ it("should get students", async () => {
   await addStudentToClass(teacher.subAdmin, teacherClass._id, name);
 
   const res = await request(app)
-    .get(`${url}/school-student`)
+    .get(`${url}/schools/class/students`)
     .set("x-auth-token", token)
     .send({});
 
@@ -220,7 +220,7 @@ it("should create a school teacher", async () => {
   await AdminCreateTeacher(body, teacher.subAdmin);
 
   const res = await request(app)
-    .post(`${url}/school-teacher`)
+    .post(`${url}/schools/classes/teacher`)
     .set("x-auth-token", token)
     .send({
       name: "test teacher",
@@ -262,7 +262,7 @@ it("should get school teacher", async () => {
   await AdminCreateTeacher(body, teacher.subAdmin);
 
   const res = await request(app)
-    .get(`${url}/school-teacher`)
+    .get(`${url}/schools/class/teachers`)
     .set("x-auth-token", token)
     .send();
 
@@ -293,7 +293,7 @@ it("should remove a student", async () => {
   );
 
   const res = await request(app)
-    .delete(`${url}/remove-school-student`)
+    .delete(`${url}/schools/classes/student`)
     .set("x-auth-token", token)
     .send({
       studentId: [student._id],
@@ -322,7 +322,7 @@ it("should remove a teacher", async () => {
   let teachers = await AdminCreateTeacher(body, teacher.subAdmin);
 
   const res = await request(app)
-    .delete(`${url}/remove-school-teacher`)
+    .delete(`${url}/schools/classes/teacher`)
     .set("x-auth-token", token)
     .send({
       teacherId: [teachers._id],
@@ -332,11 +332,3 @@ it("should remove a teacher", async () => {
   expect(res.body.data).toBe(null);
   expect(res.body.message).toBe("teachers removed sucessfully");
 });
-
-// it("can only be accessed if teacher is signed in", async () => {
-//   await request(app).get(`${url}/school-student`).send({}).expect(401);
-// });
-
-// it("can only be accessed if teacher is signed in", async () => {
-//   await request(app).get(`${url}/school-teacher`).send({}).expect(401);
-// });

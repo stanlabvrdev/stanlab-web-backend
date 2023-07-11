@@ -16,6 +16,7 @@ const diskUpload = diskStorage();
 
 import { teacherAuth } from "../middleware/auth";
 import teachersController from "../controllers/teachersController";
+import schoolClassController from "../controllers/schoolClassController";
 
 import teachersClassControllerV2 from "../controllers/V2/teacherClassController";
 import { techerProfileMiddleware } from "../middleware/profile";
@@ -62,64 +63,64 @@ router.post("/create-class", teacherAuth, teachersController.createClass);
 
 // create class as a sub admin
 router.post(
-  "/school-class",
+  "/schools/classes",
   teacherAuth,
-  teachersController.createSchoolClass
+  schoolClassController.create
 );
 // get school classes as a sub admin
 router.get(
-  "/school-class",
+  "/schools/classes",
   teacherAuth,
-  teachersController.getSchoolClasses
+  schoolClassController.getList
 );
 // get a school class as a sub admin
 router.get(
-  "/school-class/:classId",
+  "/schools/classes/:id",
   teacherAuth,
-  teachersController.getSchoolClassById
+  schoolClassController.getById
 );
 // update a school class as a sub admin
 router.put(
-  "/school-class/:classId",
+  "/schools/classes/:id",
   teacherAuth,
-  teachersController.updateSchoolClass
+  schoolClassController.update
 );
 // add students to class as a sub admin
 router.put(
-  "/class-school-student/:classId",
+  "/schools/classes/:classId/students",
   teacherAuth,
-  teachersController.addSchoolStudentToClass
+  schoolClassController.addStudent
 );
 // get school students as a sub admin
 router.get(
-  "/school-student",
+  "/schools/class/students",
   teacherAuth,
-  teachersController.getSchoolStudents
+  schoolClassController.getStudents
 );
 // create school teacher
 router.post(
-  "/school-teacher",
+  "/schools/classes/teacher",
   teacherAuth,
-  teachersController.createSchoolTeacher
+  schoolClassController.addTeacher
 );
 // get school teachers as a sub admin
 router.get(
-  "/school-teacher",
+  "/schools/class/teachers",
   teacherAuth,
-  teachersController.getSchoolTeachers
+  schoolClassController.getTeachers
 );
 // remove school student
 router.delete(
-  "/remove-school-student",
+  "/schools/classes/student",
   teacherAuth,
-  teachersController.removeSchoolStudent
+  schoolClassController.removeStudent
 );
 
 // remove school teacher
 router.delete(
-  "/remove-school-teacher",
+  "/schools/classes/teacher",
   teacherAuth,
-  teachersController.removeSchoolTeacher
+  schoolClassController.removeTeacher
 );
 
 // get teacher classes
@@ -158,23 +159,17 @@ router.post(
 
 // add students to class in bulk as a sub admin
 router.put(
-  "/class-school-student-bulk/:classId",
+  "/schools/classes/bulk/:classId/students",
   teacherAuth,
   uploadFile("student-file", fileFilter, diskUpload),
-  teachersController.addSchoolStudentToClassInBulk
+  schoolClassController.addBulkStudents
 );
 
 router.post(
-  "/school-teacher-bulk/",
+  "/schools/classes/bulk/teacher",
   teacherAuth,
   uploadFile("teacher-file", fileFilter, diskUpload),
-  teachersController.createSchoolTeacherInBulk
-);
-
-router.put(
-  "/class-school-student/:classId",
-  teacherAuth,
-  teachersController.addSchoolStudentToClass
+  schoolClassController.addBulkTeachers
 );
 
 // get teacher avatar
