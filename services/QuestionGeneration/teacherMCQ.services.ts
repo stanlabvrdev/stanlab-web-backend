@@ -6,6 +6,12 @@ import { StudentScore } from "../../models/studentScore";
 import { StudentAttrs } from "../../models/student";
 import { Types } from "mongoose";
 
+enum AssignmentState {
+  Assigned = "assigned",
+  Completed = "completed",
+  Uncompleted = "uncompleted",
+}
+
 class TeacherMCQStudentClass {
   async editAssignment(req: Request): Promise<MCQAssignment> {
     const { id } = req.params;
@@ -87,20 +93,19 @@ class TeacherMCQStudentClass {
   }
 
   private async assigmnentFilter(status: string, assignmentId: string) {
-    if (status === "assigned" || status === "uncompleted") {
+    if (status === AssignmentState.Assigned || status === AssignmentState.Uncompleted) {
       const students = await StudentScore.find({ assignmentId, isCompleted: false }).populate({ path: "studentId", select: "name" });
-      const studentNames = students.filter((eachStudent) => (eachStudent.studentId as StudentAttrs).name !== null).map((eachStudent) => (eachStudent.studentId as StudentAttrs).name);
+      const studentNames = students.filter((student) => (student.studentId as StudentAttrs).name !== null).map((student) => (student.studentId as StudentAttrs).name);
       if (studentNames.length < 1) {
         return status === "assigned" ? "No students currently doing this assignment" : "All students have made submissions";
       }
       return studentNames;
-    } else if (status === "completed") {
+    } else if (status === AssignmentState.Completed) {
       const students = await StudentScore.find({ assignmentId, isCompleted: true }).populate({ path: "studentId", select: "name" });
-      const studentNames = students
-        .filter((eachStudent) => (eachStudent.studentId as StudentAttrs).name !== null)
-        .map((eachStudent) => {
-          return { name: (eachStudent.studentId as StudentAttrs).name, score: eachStudent.score };
-        });
+      const validStudents = students.filter((student) => (student.studentId as StudentAttrs).name !== null);
+      const studentNames = validStudents.map((student) => {
+        return { name: (student.studentId as StudentAttrs).name, score: student.score };
+      });
       if (studentNames.length < 1) return "No submissions yet for this assignment";
       return studentNames;
     }
@@ -109,8 +114,8 @@ class TeacherMCQStudentClass {
   async getAssignment(req: Request) {
     const { id } = req.params;
     const { status } = req.query;
-    const validQueries = ["assigned", "completed", "uncompleted"];
-    if (!status || !validQueries.includes(status as string)) throw new BadRequestError("Invalid Request");
+    const validQueries = [AssignmentState.Assigned, AssignmentState.Completed, AssignmentState.Uncompleted];
+    if (!status || !validQueries.includes(status as AssignmentState)) throw new BadRequestError("Invalid Request");
     const assignment = await mcqAssignment.findOne({ teacher: req.teacher._id, _id: id }, { _id: 1, classId: 1 }).populate({ path: "classId", select: "title" });
     if (!assignment) throw new NotFoundError("Assignment not found");
     const result = await this.assigmnentFilter(status as string, assignment._id);
