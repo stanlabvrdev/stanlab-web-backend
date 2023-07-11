@@ -1,7 +1,11 @@
 import { PAYMENT_TYPES } from "../enums/payment-types";
-import { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../enums/transaction.enum";
+import {
+  TRANSACTION_STATUS,
+  TRANSACTION_TYPE,
+} from "../enums/transaction.enum";
 import { addDaysToDate } from "../helpers/dateHelper";
 import { Payment } from "../models/payment";
+import { Profile } from "../models/profile";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SchoolTeacher } from "../models/schoolTeacher";
 import { Student } from "../models/student";
@@ -38,7 +42,8 @@ export async function createSchool() {
 }
 
 export async function updateSchool(body: any, schoolId: string) {
-  let { admin_name, school_name, admin_email, admin_title, password, country } = body;
+  let { admin_name, school_name, admin_email, admin_title, password, country } =
+    body;
   let admin = await SchoolAdmin.findById({ _id: schoolId });
 
   password = await passwordService.hash(password);
@@ -94,7 +99,11 @@ export async function createStudent(name: string) {
   return student.save();
 }
 
-export async function addStudentToClass(schoolId: string, classId: string, name: string) {
+export async function addStudentToClass(
+  schoolId: string,
+  classId: string,
+  name: string
+) {
   const student = await createStudent(name);
 
   const studentClass = new StudentTeacherClass({
@@ -115,9 +124,14 @@ export async function addStudentToClass(schoolId: string, classId: string, name:
     autoRenew: false,
   });
   await studentSubscription.save();
+  return student;
 }
 
-export async function createTeacher(body: { name: string; email: string; password: string }) {
+export async function createTeacher(body: {
+  name: string;
+  email: string;
+  password: string;
+}) {
   const teacher = new Teacher({
     name: body.name,
     email: body.email,
@@ -126,7 +140,10 @@ export async function createTeacher(body: { name: string; email: string; passwor
   return teacher.save();
 }
 
-export async function AdminCreateTeacher(body: { name: string; email: string }, schoolId: string) {
+export async function AdminCreateTeacher(
+  body: { name: string; email: string },
+  schoolId: string
+) {
   let password = generateRandomString(7);
   const hashedPassword = await passwordService.hash(password);
 
@@ -136,15 +153,9 @@ export async function AdminCreateTeacher(body: { name: string; email: string }, 
     password: hashedPassword,
     schoolTeacher: true,
   });
-  await teacher.save();
+  teacher.save();
 
-  const teacherSchool = new SchoolTeacher({
-    school: schoolId,
-    teacher: teacher._id,
-    teacherApproved: true,
-  });
-
-  await teacherSchool.save();
+  return teacher;
 }
 
 export async function makePayment(body: any, schoolId: string) {

@@ -5,6 +5,7 @@ const emailTokenSchema = new mongoose.Schema({
   expiredAt: { type: String, required: true },
   student: { type: mongoose.Schema.Types.ObjectId, ref: "Student" },
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher" },
+  admin: { type: mongoose.Schema.Types.ObjectId, ref: "SchoolAdmin" },
 });
 
 const EmailToken = mongoose.model("EmailToken", emailTokenSchema);
