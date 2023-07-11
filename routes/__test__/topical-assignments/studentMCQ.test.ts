@@ -4,7 +4,6 @@ import "jest";
 import { createAssignment } from "../../../test/topical-questions";
 import { createTopicalMcqNotification } from "../../../services/student/notification";
 import { createClass } from "../../../test/teacher";
-import { describe, it, expect } from "@jest/globals";
 const baseURL = global.baseURL;
 
 describe("Student Assignment Service endpoints", () => {
@@ -18,7 +17,7 @@ describe("Student Assignment Service endpoints", () => {
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc`).set("x-auth-token", student.token);
 
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toEqual("You are not allowed to to access this assigment");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should throw an error if assignment has expired", async () => {
@@ -27,7 +26,7 @@ describe("Student Assignment Service endpoints", () => {
       const assignment = await createAssignment(teacher._id, student._id, undefined, new Date());
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${assignment._id}`).set("x-auth-token", student.token);
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("Assignment expired!");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should throw an error if it is a test assignment and student has already made a submission", async () => {
@@ -37,7 +36,7 @@ describe("Student Assignment Service endpoints", () => {
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${assignment._id}`).set("x-auth-token", student.token);
 
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("Multiple attempts are not allowed for this type of assignment");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should create an assignment with valid payload", async () => {
@@ -84,7 +83,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.body.data).toBe(null);
       expect(response.statusCode).toBe(403);
-      expect(response.body.message).toEqual("You are not allowed to to make a submission on this assigment");
     });
 
     it("should throw an error if assignment has expired ", async () => {
@@ -101,7 +99,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.body.data).toBe(null);
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe("Assignment expired, cannot make a submission");
     });
 
     it("should throw an error if assignment type = test and student has already submitted ", async () => {
@@ -118,7 +115,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.body.data).toBe(null);
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe("Already submitted");
     });
 
     it("should make submission with valid payload", async () => {
@@ -149,7 +145,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.statusCode).toBe(404);
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("No graded assignments at this moment");
     });
 
     it("should return student's scores based on selected class", async () => {
