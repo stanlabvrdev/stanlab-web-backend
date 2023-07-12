@@ -3,6 +3,7 @@ import express from "express";
 import {
   createSchoolAdmin,
   createTeacher,
+  makeSubAdmin,
   createStudent,
   bulkCreateStudents,
   bulkCreateTeachers,
@@ -37,6 +38,7 @@ const diskUpload = diskStorage();
 const router = express.Router();
 router.post("/", createSchoolAdmin);
 router.post("/teachers", schoolAuth, createTeacher);
+router.put("/teachers/:teacherId", schoolAuth, makeSubAdmin);
 router.post("/students", schoolAuth, createStudent);
 router.post(
   "/students/bulk",
