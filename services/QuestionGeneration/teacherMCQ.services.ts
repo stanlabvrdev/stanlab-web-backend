@@ -73,7 +73,7 @@ class TeacherMCQStudentClass {
     return assignmentsCompleted;
   }
 
-  async getAssignmentsUnassigned(req: Request) {
+  async getAssignmentsUncompleted(req: Request) {
     const assignmentUnassigned = await this.getAssignmentsByCriteria(req, {
       "students.scores": { $size: 0 },
       dueDate: { $lte: Date.now() },
@@ -83,20 +83,20 @@ class TeacherMCQStudentClass {
   }
 
   private assigmnentFilter(studentsArr, status: string) {
-    if (status === "assigned") {
-      const studentNames = studentsArr.filter((each) => each.scores.length < 1).map((each) => each.student.name);
-      if (studentNames.length < 1) return "No students currently doing this assignment";
-      return studentNames;
+    if (status === "assigned" || status === "uncompleted") {
+      const filteredStudentsNames = studentsArr.filter((each) => each.scores.length < 1).map((each) => each.student.name);
+      if (filteredStudentsNames.length < 1) {
+        return status === "assigned" ? "No students currently doing this assignment" : "All students have made submissions";
+      }
+      return filteredStudentsNames;
     } else if (status === "completed") {
-      const studentWork = studentsArr
-        .filter((each) => each.scores.length > 0)
-        .map((each) => {
-          return {
-            name: each.student.name,
-            scores: each.scores,
-          };
-        });
-      if (studentWork.length < 1) return "No submissions yet for this assignment";
+      const filteredStudents = studentsArr.filter((each) => each.scores.length > 0);
+      if (filteredStudents.length < 1) return "No submissions yet for this assignment";
+
+      const studentWork = filteredStudents.map((each) => ({
+        name: each.student.name,
+        scores: each.scores,
+      }));
       return studentWork;
     }
   }
@@ -105,7 +105,7 @@ class TeacherMCQStudentClass {
     const extendedReq = req as ExtendedRequest;
     const { id } = req.params;
     const { status } = req.query;
-    const validQueries = ["assigned", "completed"];
+    const validQueries = ["assigned", "completed", "uncompleted"];
     if (!status || !validQueries.includes(status as string)) throw new BadRequestError("Invalid Request");
     const assigment = await mcqAssignment.findOne({ teacher: extendedReq.teacher._id, _id: id }, { _id: 0, students: 1, classId: 1 }).populate({ path: "students.student", select: "name" }).populate({ path: "classId", select: "title" });
     if (!assigment) throw new NotFoundError("Assignment not found");

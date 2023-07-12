@@ -1,3 +1,4 @@
+import { Profile } from "../models/profile";
 import { SchoolAdmin } from "../models/schoolAdmin";
 import { SchoolTeacher } from "../models/schoolTeacher";
 import { Student } from "../models/student";
@@ -28,14 +29,8 @@ export async function createSchool() {
 }
 
 export async function updateSchool(body: any, schoolId: string) {
-  let {
-    admin_name,
-    school_name,
-    admin_email,
-    admin_title,
-    password,
-    country,
-  } = body;
+  let { admin_name, school_name, admin_email, admin_title, password, country } =
+    body;
   let admin = await SchoolAdmin.findById({ _id: schoolId });
 
   password = await passwordService.hash(password);
@@ -104,6 +99,8 @@ export async function addStudentToClass(
     school: schoolId,
   });
   await studentClass.save();
+
+  return student;
 }
 
 export async function createTeacher(body: {
@@ -132,13 +129,7 @@ export async function AdminCreateTeacher(
     password: hashedPassword,
     schoolTeacher: true,
   });
-  await teacher.save();
+  teacher.save();
 
-  const teacherSchool = new SchoolTeacher({
-    school: schoolId,
-    teacher: teacher._id,
-    teacherApproved: true,
-  });
-
-  await teacherSchool.save();
+  return teacher;
 }
