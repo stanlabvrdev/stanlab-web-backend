@@ -38,16 +38,16 @@ export function sendStudentInviteEmail(student, password) {
   });
 }
 
-export function sendTeacherWelcomeEmail(teacher, password) {
+export function welcomeNewTeacher(teacher, password) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
     subject: "School invitation",
-    template: "welcome-teacher",
+    template: "welcome_new_teacher",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: teacher.email,
       password: password,
-      name: teacher.name,
+      teachersEmail: teacher.email,
+      teachersName: teacher.name,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -58,16 +58,51 @@ export function sendTeacherWelcomeEmail(teacher, password) {
   });
 }
 
-export function sendWelcomeEmailToTeacher(teacher, password) {
+export function welcomePrivateTeacher(teacher) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: teacher.email,
     subject: "School invitation",
-    template: "welcome_teacher_new",
+    template: "welcome_private_teacher",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: teacher.email,
-      password: password,
-      name: teacher.name,
+      teachersName: teacher.name,
+    }),
+  };
+  mg.messages().send(data, function (error, body) {
+    if (error) {
+      console.log(error);
+      Logger.error(`error occured ${JSON.stringify(error)}`);
+    }
+  });
+}
+
+export function teachersGetStartedEmail(teacher) {
+  const data = {
+    from: "StanLab <info@stanlab.com>",
+    to: teacher.email,
+    subject: "School invitation",
+    template: "teachers_get_started_email",
+    "h:X-Mailgun-Variables": JSON.stringify({
+      teachersName: teacher.name,
+    }),
+  };
+  mg.messages().send(data, function (error, body) {
+    if (error) {
+      console.log(error);
+      Logger.error(`error occured ${JSON.stringify(error)}`);
+    }
+  });
+}
+
+export function privateTeacherAddedToSchoolAccount(teacher, schoolName) {
+  const data = {
+    from: "StanLab <info@stanlab.com>",
+    to: teacher.email,
+    subject: "School invitation",
+    template: "private_teacher_added_to_school_account",
+    "h:X-Mailgun-Variables": JSON.stringify({
+      schoolName: schoolName,
+      teachersName: teacher.name,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -75,15 +110,15 @@ export function sendWelcomeEmailToTeacher(teacher, password) {
   });
 }
 
-export function sendEmailToSchoolAdmin(admin) {
+export function welcomeSchoolAdmin(admin) {
   const data = {
     from: "StanLab <info@stanlab.com>",
     to: admin.email,
     subject: "Welcome to StanLab",
-    template: "welcome-school-admin",
+    template: "welcome_school_admin",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: admin.email,
-      name: admin.name,
+      adminsName: admin.adminName,
+      schoolName: admin.schoolName,
     }),
   };
   mg.messages().send(data, function (error, body) {
@@ -113,17 +148,15 @@ export function doSendInvitationEmail(student, teacher, password) {
   });
 }
 
-export async function sendResetPassword(student, token, isStudent = true) {
+export async function sendResetPassword(user, token, entity) {
   const data = {
     from: "StanLab <info@stanlab.com>",
-    to: student.email,
+    to: user.email,
     subject: "Reset Password",
-    template: "forgetpassword",
+    template: "stanlab_password_reset",
     "h:X-Mailgun-Variables": JSON.stringify({
-      email: student.email,
-
-      name: student.name || student.email,
-      url: `https://app.stanlab.co/${isStudent ? "students" : "teachers"}/reset-password/${token}`,
+      name: user.name || user.adminName,
+      resetlink: `https://app.stanlab.co/${entity}/reset-password/${token}`,
     }),
   };
 
@@ -137,10 +170,11 @@ export async function sendResetPassword(student, token, isStudent = true) {
 
 export default {
   doSendInvitationEmail,
-  sendEmailToSchoolAdmin,
-
+  welcomeSchoolAdmin,
   sendStudentInviteEmail,
   sendResetPassword,
-  sendTeacherWelcomeEmail,
-  sendWelcomeEmailToTeacher,
+  welcomeNewTeacher,
+  privateTeacherAddedToSchoolAccount,
+  teachersGetStartedEmail,
+  welcomePrivateTeacher,
 };
