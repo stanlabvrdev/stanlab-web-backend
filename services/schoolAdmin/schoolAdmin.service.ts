@@ -15,17 +15,18 @@ import generateRandomString from "../../utils/randomStr";
 import { generateUserName, getFullName } from "../student/generator";
 import BadRequestError from "../exceptions/bad-request";
 import { excelParserService } from "../excelParserService";
-import { TeacherClass } from "../../models/teacherClass";
+import { TeacherClass, TeacherClassDoc } from "../../models/teacherClass";
 import { StudentTeacherClass } from "../../models/teacherStudentClass";
 import { csvUploaderService } from "../csv-uploader";
 import { Profile } from "../../models/profile";
 import { StudentSubscription } from "../../models/student-subscription";
 import subscriptionService from "../subscription/subscription.service";
 import { addDaysToDate } from "../../helpers/dateHelper";
-import mongoose from "mongoose";
 import { LabExperiment } from "../../models/labAssignment";
 import { StudentScore } from "../../models/studentScore";
 import mcqAssignment from "../../models/mcqAssignment";
+import Experiment from "../../models/experiment";
+import { StudentTeacher } from "../../models/teacherStudent";
 
 class SchoolAdminService {
   async createSchoolAdmin(body) {
@@ -128,6 +129,20 @@ class SchoolAdminService {
       selectedSchool: school._id,
     });
     await teacherProfile.save();
+  }
+
+  async makeSubAdmin(schoolId: string, teacherId: string) {
+    const schoolTeacher = await SchoolTeacher.findOne({
+      school: schoolId,
+      teacher: teacherId,
+    });
+
+    if (schoolTeacher) {
+      let teacher = await Teacher.findById(schoolTeacher.teacher);
+
+      teacher.subAdmin = schoolId;
+      teacher.save();
+    }
   }
 
   async createStudent(body, schoolId) {
@@ -314,10 +329,7 @@ class SchoolAdminService {
         });
         profile.push(teacherProfile.save());
 
-        privateTeacherAddedToSchoolAccount(
-          existingTeacher,
-          school.schoolName
-        );
+        privateTeacherAddedToSchoolAccount(existingTeacher, school.schoolName);
       }
     }
 
@@ -349,7 +361,10 @@ class SchoolAdminService {
 
   async getTeachers(schoolId) {
     const teachers = SchoolTeacher.find({ school: schoolId })
-      .populate({ path: "teacher", select: ["name", "email", "schoolTeacher"] })
+      .populate({
+        path: "teacher",
+        select: ["name", "email", "schoolTeacher", "subAdmin"],
+      })
       .select(["-_id", "-school", "-teacherApproved", "-createdAt", "-__v"]);
     return teachers;
   }
@@ -732,47 +747,53 @@ class SchoolAdminService {
     return school;
   }
 
+  async filterIds(doc: any, body: any) {
+    for (const classes of doc) {
+      const students = classes.students;
+      const filteredStudents: any = [];
+
+      for (const student of students) {
+        const studentId = student.toString();
+        if (!body.studentId.includes(studentId)) {
+          filteredStudents.push(student);
+        }
+      }
+
+      classes.students = filteredStudents;
+      classes.markModified("students");
+      await classes.save();
+    }
+  }
+
   async removeStudent(schoolId: string, body: any) {
     const students = await SchoolStudent.find({
       school: schoolId,
       student: body.studentId,
     });
 
-    students.forEach(async (s) => {
-      await Student.findOneAndDelete({
-        _id: s.student,
-      });
-      await StudentTeacherClass.findOneAndDelete({
-        student: s.student,
-      });
-      await StudentSubscription.findOneAndDelete({
-        student: s.student,
-      });
-      await SchoolStudent.findOneAndDelete({
-        student: s.student,
-      });
-    });
+    const deletePromises: any = [];
+    for (const s of students) {
+      const deleteOperations = [
+        Student.findOneAndDelete({ _id: s.student }),
+        StudentTeacherClass.findOneAndDelete({ student: s.student }),
+        StudentSubscription.findOneAndDelete({ student: s.student }),
+        StudentScore.findOneAndDelete({ studentId: s.student }),
+        LabExperiment.findOneAndDelete({ student: s.student }),
+        StudentTeacher.findOneAndDelete({ student: s.student }),
+        StudentTeacherClass.findOneAndDelete({ student: s.student }),
+        SchoolStudent.findOneAndDelete({ student: s.student }),
+      ];
 
-    let teacherClass = await TeacherClass.find();
+      deletePromises.push(Promise.all(deleteOperations));
+    }
 
-    let ids: any = [];
+    await Promise.all(deletePromises);
 
-    teacherClass.forEach((classes: any) => {
-      classes.students.map((student: any) => {
-        student = student.toString();
-        ids.push(student);
-      });
-    });
+    let teacherClass = await TeacherClass.find({ school: schoolId });
+    await this.filterIds(teacherClass, body);
 
-    ids = ids.filter((id) => !body.studentId.includes(id));
-
-    await TeacherClass.updateMany(
-      { school: schoolId },
-      { students: ids },
-      {
-        new: true,
-      }
-    );
+    let experiment = await Experiment.find({ classId: teacherClass._id });
+    await this.filterIds(experiment, body);
   }
 
   async removeTeacher(schoolId: string, body: any) {
@@ -781,17 +802,22 @@ class SchoolAdminService {
       teacher: body.teacherId,
     });
 
-    teachers.forEach(async (t) => {
-      await Teacher.findOneAndDelete({
-        _id: t.teacher,
-      });
-      await Profile.findOneAndDelete({
-        teacher: t.teacher,
-      });
-      await SchoolTeacher.findOneAndDelete({
-        teacher: t.teacher,
-      });
-    });
+    const deletePromises: any = [];
+
+    for (const t of teachers) {
+      const deleteOperations = [
+        Profile.findOneAndDelete({ teacher: t.teacher }),
+        Teacher.updateMany(
+          { _id: t.teacher },
+          { schoolTeacher: false },
+          { new: true }
+        ),
+        SchoolTeacher.findOneAndDelete({ teacher: t.teacher }),
+      ];
+      deletePromises.push(Promise.all(deleteOperations));
+    }
+
+    await Promise.all(deletePromises);
   }
 }
 
