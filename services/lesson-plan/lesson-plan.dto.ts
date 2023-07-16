@@ -14,7 +14,7 @@ export const CreateLessonPlanSchema = Joi.object({
 });
 
 export const UpdateLessonPlanSchema = Joi.object({
-  lessonPlan: Joi.string().optional(),
+  lessonPlan: Joi.string().required(),
   subject: Joi.string().optional(),
   grade: Joi.string().optional(),
   topic: Joi.string().optional(),
