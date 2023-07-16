@@ -4,8 +4,9 @@ import { Request, Response } from "express";
 import { LessonPlanService } from "../../services/lesson-plan/lesson-plan.service";
 import { OpenAIService } from "../../services/openai/openai.service";
 const lessonPlanService = new LessonPlanService();
+import { sanitizeMarkdown } from "../../utils/sanitize-markdown";
 
-export class LessonPlanController /*implements ILessonPlanController*/ {
+export class LessonPlanController implements ILessonPlanController {
   async generateLessonPlan(req: Request, res: Response): Promise<void> {
     try {
     } catch (err) {
@@ -36,7 +37,10 @@ export class LessonPlanController /*implements ILessonPlanController*/ {
 
   async createLessonPlan(req: Request, res: Response): Promise<void> {
     try {
-      const lessonPlan = await lessonPlanService.createLessonPlan();
+      const sanitizedMarkdown = sanitizeMarkdown(req.body.lessonPlan);
+      const teacherId = req.teacher._id;
+      const { subject, grade, topic } = req.body;
+      const lessonPlan = await lessonPlanService.createLessonPlan(teacherId, { subject, grade, topic, lessonPlan: sanitizedMarkdown });
       ServerResponse(req, res, 200, lessonPlan, "Lesson Plan Created");
     } catch (err) {
       ServerErrorHandler(req, res, err);
@@ -47,7 +51,8 @@ export class LessonPlanController /*implements ILessonPlanController*/ {
     try {
       const { Id } = req.params;
       const teacherId = req.teacher._id;
-      const lessonPlan = await lessonPlanService.updateLessonPlan(Id, teacherId);
+      const sanitizedMarkdown = sanitizeMarkdown(req.body.lessonPlan);
+      const lessonPlan = await lessonPlanService.updateLessonPlan(Id, teacherId, sanitizedMarkdown);
       ServerResponse(req, res, 200, lessonPlan, "Lesson Plan Updated");
     } catch (err) {
       ServerErrorHandler(req, res, err);
