@@ -63,6 +63,7 @@
     "multer-s3": "^2.10.0",
     "node-fetch": "^2.6.1",
     "node-schedule": "^2.1.1",
+    "openai": "^3.3.0",
     "passport": "^0.4.1",
     "passport-google-oauth20": "^2.0.0",
     "pdf-parse": "^1.1.1",
