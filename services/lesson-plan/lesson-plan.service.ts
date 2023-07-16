@@ -27,7 +27,7 @@ export class LessonPlanService implements ILessonPlanService {
   }
 
   async updateLessonPlan(lessonId: string, teacherId: string, updatedLessonPlan: string): Promise<ILessonPlanModel> {
-    const lessonPlan = await LessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, { updatedLessonPlan }, { new: true }).exec();
+    const lessonPlan = await LessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, { lessonPlan: updatedLessonPlan }, { new: true }).exec();
     if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
     return lessonPlan;
   }
