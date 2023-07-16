@@ -27,6 +27,7 @@ import generatedQuestionRoutes from "./routes/V2/generated-questions";
 import superAdminRouter from "./routes/superAdmin";
 import subscriptionRouter from "./routes/subscription";
 import gradeBookRoutes from "./routes/V2/grade-book";
+import lessonPlanRoutes from "./routes/V2/lesson-plan.routes";
 
 import schedule from "node-schedule";
 import { checkSubscription, checkCoupon } from "./helpers/scheduler";
@@ -39,6 +40,7 @@ import TeacherPassport from "./services/teacherPassport";
 TeacherPassport(teacherPassport);
 
 import StudentPassport from "./services/studentPassport";
+
 StudentPassport(studentPassport);
 
 const app = express();
@@ -101,6 +103,7 @@ app.use("/api/v2/teachers/classes", teacherClassV2Route);
 app.use("/api/v2/notifications", notificationRoutes);
 app.use("/api/v2/ai/questions", generatedQuestionRoutes);
 app.use("/api/v2/grade-book", gradeBookRoutes);
+app.use("/api/v2/lesson-plan", lessonPlanRoutes);
 
 //Scheduler
 schedule.scheduleJob("0 0 * * *", checkSubscription);
