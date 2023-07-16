@@ -1,6 +1,6 @@
 import { ILessonPlanModel, LessonPlanModel } from "../../models/lesson-plan.model";
 import NotFoundError from "../exceptions/not-found";
-import { ILessonPlanService } from "./lesson-plan.types";
+import { CreateLessonPlan, ILessonPlanService } from "./lesson-plan.types";
 import { OpenAIService } from "../openai/openai.service";
 
 export class LessonPlanService implements ILessonPlanService {
@@ -16,12 +16,18 @@ export class LessonPlanService implements ILessonPlanService {
     return await LessonPlanModel.find({ teacher: teacherId }).exec();
   }
 
-  async createLessonPlan(): Promise<ILessonPlanModel> {
-    return await LessonPlanModel.create({});
+  async createLessonPlan(teacherId: string, { subject, grade, topic, lessonPlan }: CreateLessonPlan): Promise<ILessonPlanModel> {
+    return await LessonPlanModel.create({
+      teacher: teacherId,
+      subject,
+      grade,
+      lessonPlan,
+      topic,
+    });
   }
 
-  async updateLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel> {
-    const lessonPlan = await LessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, {}, { new: true }).exec();
+  async updateLessonPlan(lessonId: string, teacherId: string, updatedLessonPlan: string): Promise<ILessonPlanModel> {
+    const lessonPlan = await LessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, { updatedLessonPlan }, { new: true }).exec();
     if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
     return lessonPlan;
   }
@@ -32,6 +38,3 @@ export class LessonPlanService implements ILessonPlanService {
     return lessonPlan;
   }
 }
-
-//TODO : Middleware to validate request body for post requests and check that ID is valid for requests expecting an ID
-//TODO: Create dtos, interfaces and finish up model
