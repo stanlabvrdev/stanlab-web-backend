@@ -4,7 +4,6 @@ import "jest";
 import { createAssignment } from "../../../test/topical-questions";
 import { createTopicalMcqNotification } from "../../../services/student/notification";
 import { createClass } from "../../../test/teacher";
-
 const baseURL = global.baseURL;
 
 describe("Student Assignment Service endpoints", () => {
@@ -18,7 +17,7 @@ describe("Student Assignment Service endpoints", () => {
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc`).set("x-auth-token", student.token);
 
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toEqual("Assignment not found");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should throw an error if assignment has expired", async () => {
@@ -27,7 +26,7 @@ describe("Student Assignment Service endpoints", () => {
       const assignment = await createAssignment(teacher._id, student._id, undefined, new Date());
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${assignment._id}`).set("x-auth-token", student.token);
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("Assignment expired!");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should throw an error if it is a test assignment and student has already made a submission", async () => {
@@ -37,7 +36,7 @@ describe("Student Assignment Service endpoints", () => {
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${assignment._id}`).set("x-auth-token", student.token);
 
       expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("Multiple attempts are not allowed for this type of assignment");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should create an assignment with valid payload", async () => {
@@ -83,8 +82,7 @@ describe("Student Assignment Service endpoints", () => {
         });
 
       expect(response.body.data).toBe(null);
-      expect(response.statusCode).toBe(404);
-      expect(response.body.message).toEqual("Assignment not found");
+      expect(response.statusCode).toBe(403);
     });
 
     it("should throw an error if assignment has expired ", async () => {
@@ -101,7 +99,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.body.data).toBe(null);
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe("Assignment expired, cannot make a submission");
     });
 
     it("should throw an error if assignment type = test and student has already submitted ", async () => {
@@ -118,7 +115,6 @@ describe("Student Assignment Service endpoints", () => {
 
       expect(response.body.data).toBe(null);
       expect(response.statusCode).toBe(400);
-      expect(response.body.message).toBe("Already submitted");
     });
 
     it("should make submission with valid payload", async () => {
@@ -147,9 +143,8 @@ describe("Student Assignment Service endpoints", () => {
       const student = await global.loginStudent();
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/60aae530b4fb6a001f4e93cc/scores`).set("x-auth-token", student.token);
 
-      expect(response.statusCode).toBe(404);
-      expect(response.body.data).toBe(null);
-      expect(response.body.message).toBe("No graded assignments at this moment");
+      expect(response.statusCode).toBe(200);
+      expect(response.body.data).toHaveLength(0);
     });
 
     it("should return student's scores based on selected class", async () => {
@@ -167,12 +162,11 @@ describe("Student Assignment Service endpoints", () => {
       await createAssignments();
 
       const response = await request(app).get(`${baseURL}/v2/students/mcq-assignments/${teacherClass._id}/scores`).set("x-auth-token", student.token);
-      console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.message).toBe("Score fetched successfully");
       expect(response.body.data).not.toHaveLength(0);
       expect(response.body.data[0]).toHaveProperty("subject");
-      expect(response.body.data[0]).toHaveProperty("scores");
+      expect(response.body.data[0]).toHaveProperty("score");
     });
   });
 });

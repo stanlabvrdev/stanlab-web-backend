@@ -1,4 +1,4 @@
-import mongoDB, { QuestionTypeMigration, runSeeds } from "./utils/db";
+import mongoDB, { AssignmentScoresMigration, QuestionTypeMigration, runSeeds } from "./utils/db";
 
 // import passport from "passport"
 
@@ -22,6 +22,8 @@ mongoDB
     await runSeeds();
 
     await QuestionTypeMigration();
+
+    await AssignmentScoresMigration();
   })
   .catch((err) => Logger.info("Could not connect to Database ", err));
 const port = env.port || 8000;

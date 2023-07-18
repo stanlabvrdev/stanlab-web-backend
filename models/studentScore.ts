@@ -1,5 +1,28 @@
 import mongoose from "mongoose";
 import Joi from "joi";
+import { StudentAttrs } from "./student";
+
+export interface IStudentScore {
+  classId: mongoose.Types.ObjectId;
+  experimentId?: mongoose.Types.ObjectId;
+  assignmentId?: mongoose.Types.ObjectId;
+  studentId: mongoose.Types.ObjectId;
+  teacherId: mongoose.Types.ObjectId;
+  score?: number;
+  isCompleted?: boolean;
+  school?: mongoose.Types.ObjectId;
+}
+
+export interface StudentScoreDoc extends Document {
+  classId: string;
+  experimentId?: string;
+  assignmentId?: string;
+  studentId: string | StudentAttrs;
+  teacherId: string;
+  score?: number;
+  isCompleted?: boolean;
+  school?: string;
+}
 
 const studentScoreSchema = new mongoose.Schema(
   {
@@ -8,6 +31,7 @@ const studentScoreSchema = new mongoose.Schema(
       ref: "TeacherClass",
     },
     experimentId: { type: mongoose.Schema.Types.ObjectId, ref: "LabExperiment" },
+    assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: "mcqAssignment" },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
@@ -68,6 +92,6 @@ function validateBulkUpdate(data) {
   return schema.validate(data);
 }
 
-const StudentScore = mongoose.model("StudentScore", studentScoreSchema);
+const StudentScore = mongoose.model<StudentScoreDoc>("StudentScore", studentScoreSchema);
 
 export { StudentScore, validateClass, validateBulkUpdate };

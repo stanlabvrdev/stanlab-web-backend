@@ -1,6 +1,6 @@
 import request from "supertest";
 import app from "../../../app";
-import { updateSchool } from "../../../test/school";
+import { AdminCreateTeacher, updateSchool } from "../../../test/school";
 
 const baseURL = global.baseURL;
 
@@ -52,4 +52,23 @@ it("should update a school admin profile", async () => {
 
   expect(res.statusCode).toBe(200);
   expect(res.body.data._id).toBe(school._id.toString());
+});
+
+it("should make a teacher sub-admin", async () => {
+  const school = await global.loginSchool();
+
+  let body = {
+    name: "Jinja test",
+    email: "jinja@test.com",
+  };
+
+  let teacher = await AdminCreateTeacher(body, school._id);
+
+  const res = await request(app)
+    .put(`${url}/teachers/${teacher._id}`)
+    .set("x-auth-token", school.token);
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.message).toBe("sub admin assigned sucessfully");
+  expect(res.body.data).toBe(null);
 });

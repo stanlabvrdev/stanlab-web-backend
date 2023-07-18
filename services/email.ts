@@ -52,7 +52,7 @@ export function welcomeNewTeacher(teacher, password) {
   };
   mg.messages().send(data, function (error, body) {
     if (error) {
-      console.log(error);
+      //console.log(error);
       Logger.error(`error occured ${JSON.stringify(error)}`);
     }
   });
@@ -88,7 +88,7 @@ export function teachersGetStartedEmail(teacher) {
   };
   mg.messages().send(data, function (error, body) {
     if (error) {
-      console.log(error);
+      //console.log(error);
       Logger.error(`error occured ${JSON.stringify(error)}`);
     }
   });

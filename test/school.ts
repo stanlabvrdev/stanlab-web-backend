@@ -57,13 +57,11 @@ export async function createTeacherSchool(teacherId: string) {
   return teacherSchool.save();
 }
 
-export async function createClass() {
-  const school = await createSchool();
-
+export async function createClass(schoolId) {
   const teacherClass = new TeacherClass({
     title: "test title",
     subject: "test subject",
-    school: school._id,
+    school: schoolId,
     colour: "test colour",
   });
 
@@ -130,6 +128,20 @@ export async function AdminCreateTeacher(
     schoolTeacher: true,
   });
   teacher.save();
+
+  return teacher;
+}
+
+export async function makeSubAdmin() {
+  const school = await createSchool();
+  let body = {
+    name: "Pete test",
+    email: "pete@test.com",
+  };
+
+  let teacher: any = await AdminCreateTeacher(body, school._id);
+
+  teacher.subAdmin = school._id;
 
   return teacher;
 }

@@ -51,6 +51,15 @@ export const createTeacher = async (req, res) => {
   }
 };
 
+export const makeSubAdmin = async (req, res) => {
+  try {
+    await schoolAdminService.makeSubAdmin(req.school._id, req.params.teacherId);
+    ServerResponse(req, res, 200, null, "sub admin assigned sucessfully");
+  } catch (error) {
+    ServerErrorHandler(req, res, error);
+  }
+};
+
 export const createStudent = async (req, res) => {
   try {
     const { error } = validateStudent(req.body);
@@ -212,7 +221,7 @@ export const getTeacherClasses = async (req, res) => {
 export const getClasses = async (req, res) => {
   try {
     const teacherClass = await schoolAdminService.getClasses(req.school._id);
-    ServerResponse(req, res, 200, teacherClass, "class successfull fetched");
+    ServerResponse(req, res, 200, teacherClass, "class successfully fetched");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
@@ -224,7 +233,7 @@ export const getClassById = async (req, res) => {
       req.school._id,
       req.params.classId
     );
-    ServerResponse(req, res, 200, teacherClass, "class successfull fetched");
+    ServerResponse(req, res, 200, teacherClass, "class successfully fetched");
   } catch (error) {
     ServerErrorHandler(req, res, error);
   }
