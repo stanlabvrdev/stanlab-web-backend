@@ -32,5 +32,5 @@ it("should update student grade", async () => {
   expect(res.statusCode).toBe(200);
   const updatedScore = await StudentScore.findOne({ _id: score._id });
 
-  expect(updatedScore.score).toBe(20);
+  expect(updatedScore!.score).toBe(20);
 });

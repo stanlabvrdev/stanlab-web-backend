@@ -158,4 +158,4 @@ function validateUpdateClass(classObj) {
 
 const TeacherClass = mongoose.model("TeacherClass", teacherClassSchema);
 
-export { TeacherClass, validateClass, validateUpdateClass };
+export { TeacherClass, TeacherClassDoc, validateClass, validateUpdateClass };
