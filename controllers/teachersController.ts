@@ -89,22 +89,42 @@ async function getClass(req, res) {
     const profile = await Profile.findOne({ teacher: req.teacher._id });
 
     if (profile) {
-      teacherCurrentSchool = profile.selectedSchool;
+      if (profile.selectedSchool) {
+        teacherCurrentSchool = profile.selectedSchool;
 
-      teacherClasses = await TeacherClass.find({
-        school: teacherCurrentSchool,
-      });
-
-      for (let clas of teacherClasses) {
-        const teacherClass = await StudentTeacherClass.find({
+        teacherClasses = await TeacherClass.find({
           school: teacherCurrentSchool,
-          class: clas._id,
         });
 
-        results.push({
-          class: clas,
-          numberOfStudents: teacherClass.length,
+        for (let clas of teacherClasses) {
+          const teacherClass = await StudentTeacherClass.find({
+            school: teacherCurrentSchool,
+            class: clas._id,
+          });
+
+          results.push({
+            class: clas,
+            numberOfStudents: teacherClass.length,
+          });
+        }
+      }
+
+      if (profile.selectedSchool == null) {
+        teacherClasses = await teacherClassService.getAll({
+          teacher: req.teacher._id,
         });
+
+        for (let clas of teacherClasses) {
+          const teacherClass = await StudentTeacherClass.find({
+            teacher: req.teacher._id,
+            class: clas._id,
+          });
+
+          results.push({
+            class: clas,
+            numberOfStudents: teacherClass.length,
+          });
+        }
       }
     }
 
