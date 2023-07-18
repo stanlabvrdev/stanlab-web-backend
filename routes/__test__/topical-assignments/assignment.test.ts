@@ -69,7 +69,6 @@ const testCreateAssignment = async (endpoint: string, testDetails: TestDetails, 
   expect(res.body.data).not.toBeNull();
   expect(res.body.data).toHaveProperty("type");
   expect(res.body.data).toHaveProperty("_id");
-  expect(res.body.data).not.toHaveProperty("students");
 };
 
 const generateTestData = async (classID: string, questions?: any, questGroupId?: string): Promise<TestDetails> => {

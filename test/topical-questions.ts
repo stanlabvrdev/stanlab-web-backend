@@ -1,5 +1,6 @@
 import { GeneratedQuestions, QuestionGroup } from "../models/generated-questions";
 import mcqAssignment from "../models/mcqAssignment";
+import { StudentScore } from "../models/studentScore";
 import { createClass } from "./teacher";
 
 export async function createGeneratedQuestion() {
@@ -36,10 +37,8 @@ export async function createAssignment(teacherID: string, studentID: string, sco
   const foundQuestions = questGroup.questions.map((eachQuestionGroup) => {
     return { question: eachQuestionGroup.question, image: eachQuestionGroup.image, options: eachQuestionGroup.options, type: eachQuestionGroup.type };
   });
-  let scores: any = [];
-  if (score) scores.push({ score });
 
-  return await mcqAssignment.create({
+  const assignment = await mcqAssignment.create({
     teacher: teacherID,
     questions: foundQuestions,
     subject: questGroup.subject,
@@ -49,6 +48,19 @@ export async function createAssignment(teacherID: string, studentID: string, sco
     dueDate,
     duration: 3000,
     type: "Test",
-    students: [{ student: studentID, scores }],
   });
+
+  const studentScore = await StudentScore.create({
+    classId: teacherClass._id,
+    assignmentId: assignment._id,
+    studentId: studentID,
+    teacherId: teacherID,
+  });
+  if (score) {
+    studentScore.score = score;
+    studentScore.isCompleted = true;
+    studentScore.save();
+  }
+
+  return assignment;
 }
