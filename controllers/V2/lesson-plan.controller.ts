@@ -48,7 +48,7 @@ export class LessonPlanController implements ILessonPlanController {
       const teacherId = req.teacher._id;
       const { subject, grade, topic } = req.body;
       const lessonPlan = await lessonPlanService.createLessonPlan(teacherId, { subject, grade, topic, lessonPlan: sanitizedMarkdown });
-      ServerResponse(req, res, 200, lessonPlan, "Lesson Plan Created");
+      ServerResponse(req, res, 201, lessonPlan, "Lesson Plan Created");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
