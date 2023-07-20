@@ -1,8 +1,10 @@
 import { Request, Response } from "express";
 import { ILessonPlanModel } from "../../models/lesson-plan.model";
+import { AxiosResponse } from "axios";
+import { CreateChatCompletionResponse } from "openai";
 
 export interface ILessonPlanService {
-  generateLessonPlan(): Promise<void>;
+  generateLessonPlan(subject: string, topic: string, grade: string): Promise<AxiosResponse<CreateChatCompletionResponse, any>>;
   getLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel>;
   getLessonPlans(teacherId: string): Promise<ILessonPlanModel[]>;
   createLessonPlan(teacherId: string, { subject, topic, grade, lessonPlan }: CreateLessonPlan): Promise<ILessonPlanModel>;

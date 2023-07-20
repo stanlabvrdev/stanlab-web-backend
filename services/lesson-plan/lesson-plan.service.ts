@@ -2,9 +2,15 @@ import { ILessonPlanModel, LessonPlanModel } from "../../models/lesson-plan.mode
 import NotFoundError from "../exceptions/not-found";
 import { CreateLessonPlan, ILessonPlanService } from "./lesson-plan.types";
 import { OpenAIService } from "../openai/openai.service";
+import { CreateChatCompletionResponse } from "openai";
+import { AxiosResponse } from "axios";
 
 export class LessonPlanService implements ILessonPlanService {
-  async generateLessonPlan() {}
+  async generateLessonPlan(subject: string, topic: string, grade: string): Promise<AxiosResponse<CreateChatCompletionResponse, any>> {
+    const prompt = `Generate 10 questions with objective options (indicate the correct choice) about the following:\nSubject: ${subject}\nTopic: ${topic}\nGrade: ${grade}\n\n`;
+    const response = await OpenAIService.createCompletion(prompt);
+    return response as AxiosResponse<CreateChatCompletionResponse, any>;
+  }
 
   async getLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel> {
     const lessonPlan = await LessonPlanModel.findOne({ _id: lessonId, teacher: teacherId }).exec();
