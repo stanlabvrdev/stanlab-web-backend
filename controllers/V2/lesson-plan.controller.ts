@@ -2,13 +2,20 @@ import { ILessonPlanController } from "../../services/lesson-plan/lesson-plan.ty
 import { ServerErrorHandler, ServerResponse } from "../../services/response/serverResponse";
 import { Request, Response } from "express";
 import { LessonPlanService } from "../../services/lesson-plan/lesson-plan.service";
+import { sanitizeMarkdown } from "../../utils/sanitize-markdown";
 import { OpenAIService } from "../../services/openai/openai.service";
 const lessonPlanService = new LessonPlanService();
-import { sanitizeMarkdown } from "../../utils/sanitize-markdown";
 
 export class LessonPlanController implements ILessonPlanController {
-  async generateLessonPlan(req: Request, res: Response): Promise<void> {
+  async generateLessonPlan(req: Request, res: Response) {
     try {
+      const { subject, grade, topic } = req.body;
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      const response = await lessonPlanService.generateLessonPlan(subject, topic, grade);
+      const stream = response.data as unknown as NodeJS.ReadableStream;
+      await OpenAIService.handleStream(stream, res);
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
