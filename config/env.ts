@@ -36,6 +36,7 @@ interface IEnv {
   flutterwave_public_key: string;
   flutterwave_recurring_payment_URL: string;
   open_ai_key: string;
+  organization_id: string;
 }
 
 class Env {
@@ -86,7 +87,8 @@ class Env {
       flutterwave_public_key: process.env.FLUTTERWAVE_PUBLIC_KEY!,
       flutterwave_secret_hash: process.env.FLUTTERWAVE_SECRET_HASH!,
       flutterwave_recurring_payment_URL: process.env.FLUTTERWAVE_RECURRING_PAYMENT_URL!,
-      open_ai_key: process.env.OPEN_AI_KEY!,
+      open_ai_key: process.env.OPENAI_API_KEY!,
+      organization_id: process.env.OPENAI_ORGANIZATION_ID!,
     };
   }
   getProduction() {
