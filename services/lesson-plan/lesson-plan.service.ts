@@ -1,30 +1,37 @@
-import { ILessonPlanModel, LessonPlanModel } from "../../models/lesson-plan.model";
+import { GeneratedLessonPlanModel } from "../../models/generated.lesson-plan";
+import { Response } from "express";
+import { TeacherLessonPlanModel, ITeacherLessonPlan } from "../../models/teacher.lesson-plan";
 import NotFoundError from "../exceptions/not-found";
 import { CreateLessonPlan, ILessonPlanService } from "./lesson-plan.types";
 import { OpenAIService } from "../openai/openai.service";
-import { CreateChatCompletionResponse } from "openai";
-import { AxiosResponse } from "axios";
 import { constructPrompt } from "./lesson-plan.prompt";
+import { streamResponse } from "../../utils/streamResponse";
 
 export class LessonPlanService implements ILessonPlanService {
-  async generateLessonPlan(subject: string, topic: string, grade: string): Promise<AxiosResponse<CreateChatCompletionResponse, any>> {
-    const prompt = constructPrompt(subject, grade, topic);
+  async generateLessonPlan(res: Response, data: { subject: string; topic: string; grade: string }): Promise<void> {
+    const existing = await GeneratedLessonPlanModel.findOne({ ...data });
+    if (existing) {
+      streamResponse(existing.lessonPlan, res);
+      return;
+    }
+    const prompt = constructPrompt(data.subject, data.grade, data.topic);
     const response = await OpenAIService.createCompletion(prompt);
-    return response as AxiosResponse<CreateChatCompletionResponse, any>;
+    const lessonPlan = await OpenAIService.handleStream(response.data as unknown as NodeJS.ReadableStream, res);
+    await GeneratedLessonPlanModel.create({ lessonPlan, ...data });
   }
 
-  async getLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel> {
-    const lessonPlan = await LessonPlanModel.findOne({ _id: lessonId, teacher: teacherId }).exec();
+  async getLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan> {
+    const lessonPlan = await TeacherLessonPlanModel.findOne({ _id: lessonId, teacher: teacherId }).exec();
     if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
     return lessonPlan;
   }
 
-  async getLessonPlans(teacherId: string): Promise<ILessonPlanModel[]> {
-    return await LessonPlanModel.find({ teacher: teacherId }).exec();
+  async getLessonPlans(teacherId: string): Promise<ITeacherLessonPlan[]> {
+    return await TeacherLessonPlanModel.find({ teacher: teacherId }).exec();
   }
 
-  async createLessonPlan(teacherId: string, { subject, grade, topic, lessonPlan }: CreateLessonPlan): Promise<ILessonPlanModel> {
-    return await LessonPlanModel.create({
+  async createLessonPlan(teacherId: string, { subject, grade, topic, lessonPlan }: CreateLessonPlan): Promise<ITeacherLessonPlan> {
+    return await TeacherLessonPlanModel.create({
       teacher: teacherId,
       subject,
       grade,
@@ -33,14 +40,14 @@ export class LessonPlanService implements ILessonPlanService {
     });
   }
 
-  async updateLessonPlan(lessonId: string, teacherId: string, updatedLessonPlan: string): Promise<ILessonPlanModel> {
-    const lessonPlan = await LessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, { lessonPlan: updatedLessonPlan }, { new: true }).exec();
+  async updateLessonPlan(lessonId: string, teacherId: string, updatedLessonPlan: string): Promise<ITeacherLessonPlan> {
+    const lessonPlan = await TeacherLessonPlanModel.findOneAndUpdate({ _id: lessonId, teacher: teacherId }, { lessonPlan: updatedLessonPlan }, { new: true }).exec();
     if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
     return lessonPlan;
   }
 
-  async deleteLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel> {
-    const lessonPlan = await LessonPlanModel.findOneAndDelete({ _id: lessonId, teacher: teacherId }).exec();
+  async deleteLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan> {
+    const lessonPlan = await TeacherLessonPlanModel.findOneAndDelete({ _id: lessonId, teacher: teacherId }).exec();
     if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
     return lessonPlan;
   }

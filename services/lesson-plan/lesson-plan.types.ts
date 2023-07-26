@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
-import { ILessonPlanModel } from "../../models/lesson-plan.model";
-import { AxiosResponse } from "axios";
-import { CreateChatCompletionResponse } from "openai";
+import { ITeacherLessonPlan } from "../../models/teacher.lesson-plan";
 
 export interface ILessonPlanService {
-  generateLessonPlan(subject: string, topic: string, grade: string): Promise<AxiosResponse<CreateChatCompletionResponse, any>>;
-  getLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel>;
-  getLessonPlans(teacherId: string): Promise<ILessonPlanModel[]>;
-  createLessonPlan(teacherId: string, { subject, topic, grade, lessonPlan }: CreateLessonPlan): Promise<ILessonPlanModel>;
-  updateLessonPlan(lessonId: string, teacherId: string, lessonPlan: string): Promise<ILessonPlanModel>;
-  deleteLessonPlan(lessonId: string, teacherId: string): Promise<ILessonPlanModel>;
+  generateLessonPlan(res: Response, data: { subject: string; topic: string; grade: string }): Promise<void>;
+  getLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan>;
+  getLessonPlans(teacherId: string): Promise<ITeacherLessonPlan[]>;
+  createLessonPlan(teacherId: string, { subject, topic, grade, lessonPlan }: CreateLessonPlan): Promise<ITeacherLessonPlan>;
+  updateLessonPlan(lessonId: string, teacherId: string, lessonPlan: string): Promise<ITeacherLessonPlan>;
+  deleteLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan>;
 }
 export type CreateLessonPlan = { subject: string; topic: string; grade: string; lessonPlan: string };
 
