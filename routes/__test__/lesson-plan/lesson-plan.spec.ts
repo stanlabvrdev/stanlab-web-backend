@@ -2,8 +2,6 @@ import request from "supertest";
 import app from "../../../app";
 import { createLessonPlan, sampleMarkdown } from "./lesson-plan.data";
 import { describe, it, expect } from "@jest/globals";
-import EventSource from "eventsource";
-import mockAxios from "jest-mock-axios";
 
 const baseURL = global.baseURL;
 const url = `${baseURL}/v2/lesson-plan/`;
@@ -14,42 +12,6 @@ describe("Lesson Plan Routes", () => {
       await request(app).get(url).send({}).expect(401);
     });
   });
-  //   describe("POST /v2/lesson-plan/generate", () => {
-  //     it("should generate a lesson plan", async () => {
-  //       const teacher = await global.loginTeacher();
-  //       const mockResponse = {
-  //         data: {
-  //           choices: [
-  //             {
-  //               delta: {
-  //                 content: sampleMarkdown,
-  //               },
-  //             },
-  //           ],
-  //         },
-  //       };
-  //       mockAxios.post.mockResolvedValue(mockResponse);
-  //       const res = await request(app)
-  //         .post("/v2/lesson-plan/generate")
-  //         .send({
-  //           subject: "Biology",
-  //           topic: "Pollination",
-  //           grade: "Grade 9",
-  //         })
-  //         .set("x-auth-token", teacher.token);
-
-  //       const eventSource = new EventSource("/v2/lesson-plan/generate");
-
-  //       eventSource.onmessage = (event) => {
-  //         // Check the received event
-  //         expect(event.data).toBeTruthy();
-  //         done();
-  //       };
-  //       expect(res.status).toBe(200);
-  //       expect(res.body.message).toBe("Successful");
-  //       // add more assertions based on the expected response
-  //     });
-  //   });
 
   describe("GET /v2/lesson-plan/", () => {
     it("should get lesson plans for the logged in teacher", async () => {
@@ -126,6 +88,3 @@ describe("Lesson Plan Routes", () => {
     });
   });
 });
-function done() {
-  throw new Error("Function not implemented.");
-}

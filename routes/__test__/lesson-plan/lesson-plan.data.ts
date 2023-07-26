@@ -1,4 +1,4 @@
-import { LessonPlanModel } from "../../../models/lesson-plan.model";
+import { TeacherLessonPlanModel } from "../../../models/teacher.lesson-plan";
 
 export const sampleMarkdown = `# Welcome to the Amazing World of Markdown!
 
@@ -20,7 +20,7 @@ In conclusion, Markdown is a powerful and versatile language that empowers you t
 So, go ahead and start using Markdown to express your ideas in a clear and stylish way. Happy writing!`;
 
 export const createLessonPlan = async (_id: string) => {
-  return await LessonPlanModel.create({
+  return await TeacherLessonPlanModel.create({
     teacher: _id,
     subject: "Biology",
     grade: "Grade 9",
