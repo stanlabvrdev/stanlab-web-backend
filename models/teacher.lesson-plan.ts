@@ -1,6 +1,6 @@
 import { model, Document, Schema } from "mongoose";
 
-export interface ILessonPlanModel extends Document {
+export interface ITeacherLessonPlan extends Document {
   teacher: string;
   lessonPlan: string;
   subject: string;
@@ -8,7 +8,7 @@ export interface ILessonPlanModel extends Document {
   topic: string;
 }
 
-const LessonPlanSchema = new Schema(
+const TeacherLessonPlanSchema = new Schema(
   {
     teacher: { type: Schema.Types.ObjectId, ref: "Teacher", required: true },
     lessonPlan: { type: String, required: true },
@@ -19,4 +19,4 @@ const LessonPlanSchema = new Schema(
   { timestamps: true }
 );
 
-export const LessonPlanModel = model<ILessonPlanModel>("LessonPlan", LessonPlanSchema);
+export const TeacherLessonPlanModel = model<ITeacherLessonPlan>("TeacherLessonPlan", TeacherLessonPlanSchema);
