@@ -81,10 +81,13 @@ describe("Lesson Plan Routes", () => {
     it("should delete a lesson plan with the passsed in id", async () => {
       const teacher = await global.loginTeacher();
       const { _id } = await createLessonPlan(teacher._id);
-      const res = await request(app).delete(`${url}/${_id}`).set("x-auth-token", teacher.token);
+      const res = await request(app)
+        .delete(url)
+        .send({ Ids: [_id] })
+        .set("x-auth-token", teacher.token);
 
       expect(res.status).toBe(200);
-      expect(res.body.data.teacher.toString()).toEqual(teacher._id.toString());
+      expect(res.body.data).toBeNull();
     });
   });
 });

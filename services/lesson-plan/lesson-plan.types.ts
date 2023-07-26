@@ -7,7 +7,7 @@ export interface ILessonPlanService {
   getLessonPlans(teacherId: string): Promise<ITeacherLessonPlan[]>;
   createLessonPlan(teacherId: string, { subject, topic, grade, lessonPlan }: CreateLessonPlan): Promise<ITeacherLessonPlan>;
   updateLessonPlan(lessonId: string, teacherId: string, lessonPlan: string): Promise<ITeacherLessonPlan>;
-  deleteLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan>;
+  deleteLessonPlan(lessonIds: string[], teacherId: string): Promise<void>;
 }
 export type CreateLessonPlan = { subject: string; topic: string; grade: string; lessonPlan: string };
 

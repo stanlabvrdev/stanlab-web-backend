@@ -65,10 +65,9 @@ export class LessonPlanController implements ILessonPlanController {
 
   async deleteLessonPlan(req: Request, res: Response): Promise<void> {
     try {
-      const { Id } = req.params;
       const teacherId = req.teacher._id;
-      const lessonPlan = await lessonPlanService.deleteLessonPlan(Id, teacherId);
-      ServerResponse(req, res, 200, lessonPlan, "Lesson Plan Deleted");
+      await lessonPlanService.deleteLessonPlan(req.body.Ids, teacherId);
+      ServerResponse(req, res, 200, null, "Lesson Plan Deleted");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

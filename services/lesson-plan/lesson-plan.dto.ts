@@ -19,3 +19,7 @@ export const UpdateLessonPlanSchema = Joi.object({
   grade: Joi.string().optional(),
   topic: Joi.string().optional(),
 });
+
+export const DeleteLessonPlanSchema = Joi.object({
+  Ids: Joi.array().items(Joi.string()).required(),
+});
