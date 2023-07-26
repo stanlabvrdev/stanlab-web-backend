@@ -3,7 +3,6 @@ import { ServerErrorHandler, ServerResponse } from "../../services/response/serv
 import { Request, Response } from "express";
 import { LessonPlanService } from "../../services/lesson-plan/lesson-plan.service";
 import { sanitizeMarkdown } from "../../utils/sanitize-markdown";
-import { OpenAIService } from "../../services/openai/openai.service";
 const lessonPlanService = new LessonPlanService();
 
 export class LessonPlanController implements ILessonPlanController {
@@ -13,9 +12,7 @@ export class LessonPlanController implements ILessonPlanController {
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
-      const response = await lessonPlanService.generateLessonPlan(subject, topic, grade);
-      const stream = response.data as unknown as NodeJS.ReadableStream;
-      await OpenAIService.handleStream(stream, res);
+      await lessonPlanService.generateLessonPlan(res, { subject, topic, grade });
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

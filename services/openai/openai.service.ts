@@ -23,25 +23,35 @@ export class OpenAIService {
     return response;
   }
 
-  static async handleStream(stream: NodeJS.ReadableStream, res: Response) {
-    stream.on("data", (chunk: Buffer) => {
-      const payloads = chunk.toString().split("\n\n");
-      for (const payload of payloads) {
-        if (payload.includes("[DONE]")) return;
+  static async handleStream(stream: NodeJS.ReadableStream, res: Response): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      let completeData = "";
 
-        if (payload.startsWith("data:")) {
-          const data = JSON.parse(payload.replace("data: ", ""));
-          const chunk: undefined | string = data.choices[0].delta?.content;
+      stream.on("data", (chunk: Buffer) => {
+        const payloads = chunk.toString().split("\n\n");
+        for (const payload of payloads) {
+          if (payload.includes("[DONE]")) return;
 
-          if (chunk) res.write(chunk);
+          if (payload.startsWith("data:")) {
+            const data = JSON.parse(payload.replace("data: ", ""));
+            const chunk: undefined | string = data.choices[0].delta?.content;
+
+            if (chunk) {
+              completeData += chunk;
+              res.write(chunk);
+            }
+          }
         }
-      }
-    });
+      });
 
-    stream.on("end", () => setTimeout(() => res.end(), 10));
+      stream.on("end", () => {
+        setTimeout(() => res.end(), 10);
+        resolve(completeData);
+      });
 
-    stream.on("error", (err: Error) => {
-      throw err;
+      stream.on("error", (err: Error) => {
+        reject(err);
+      });
     });
   }
 }
