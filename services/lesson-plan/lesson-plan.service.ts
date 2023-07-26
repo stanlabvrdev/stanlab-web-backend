@@ -46,9 +46,11 @@ export class LessonPlanService implements ILessonPlanService {
     return lessonPlan;
   }
 
-  async deleteLessonPlan(lessonId: string, teacherId: string): Promise<ITeacherLessonPlan> {
-    const lessonPlan = await TeacherLessonPlanModel.findOneAndDelete({ _id: lessonId, teacher: teacherId }).exec();
-    if (!lessonPlan) throw new NotFoundError("Lesson plan not found!");
-    return lessonPlan;
+  async deleteLessonPlan(lessonIds: string[], teacherId: string): Promise<void> {
+    await TeacherLessonPlanModel.deleteMany({
+      _id: { $in: lessonIds },
+      teacher: teacherId,
+    });
+    return;
   }
 }
