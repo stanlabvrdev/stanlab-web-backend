@@ -45,7 +45,7 @@ export class OpenAIService {
       });
 
       stream.on("end", () => {
-        setTimeout(() => res.end(), 10);
+        setTimeout(() => res.status(200).end(), 10);
         resolve(completeData);
       });
 
