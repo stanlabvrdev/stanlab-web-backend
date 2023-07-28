@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { QuizQuestion } from "../../../services/QuestionGeneration/questionGeneration";
 
-function generateRandomPassage() {
+export function generateRandomPassage() {
   let passage = "";
   for (let i = 0; i < 70; i++) {
     passage += faker.lorem.sentence() + " ";
