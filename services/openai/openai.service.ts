@@ -1,6 +1,7 @@
 import { Configuration, OpenAIApi } from "openai";
 import { Response } from "express";
 import ENV from "../../config/env";
+import BadRequestError from "../exceptions/bad-request";
 const { open_ai_key, organization_id } = ENV.getAll();
 
 const configuration = new Configuration({
@@ -12,6 +13,7 @@ const openai = new OpenAIApi(configuration);
 
 export class OpenAIService {
   static async createCompletion(prompt: string) {
+    if (open_ai_key === undefined || organization_id === undefined) throw new BadRequestError("OpenAI key or organization id is undefined");
     const response = await openai.createChatCompletion(
       {
         model: "gpt-3.5-turbo",
