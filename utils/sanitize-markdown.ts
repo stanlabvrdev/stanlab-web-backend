@@ -7,7 +7,7 @@ const DOMPurify = createDOMPurify(window);
 
 export function sanitizeMarkdown(markdown: string) {
   const html = marked(markdown);
-  const cleanHtml = DOMPurify.sanitize(html);
+  const cleanHtml = DOMPurify.sanitize(html, { ALLOWED_TAGS: ["splitHere"] }); //Client dev asked to allow splitHere tag
 
   return cleanHtml;
 }
