@@ -55,7 +55,7 @@ Upon the successful execution of a request, the response structure is organized 
 
 ## Utility Functions
 
-Various utility functions have been designed to enhance the operational efficiency and accuracy of the timetable management system:
+Various utility functions should been designed to enhance the operational efficiency and accuracy of the timetable management system:
 
 - Function to examine conflicting timestamps
 - Function to analyze changes in a timestamp object, aimed at minimizing database queries during updates
