@@ -40,14 +40,14 @@ Upon the successful execution of a request, the response structure is organized 
   },
   "data": {
     "mon": [
-      /* timetable objects */
+      /* timeslot objects */
     ],
     "tue": [
-      /* timetable objects */
+      /* timeslot objects */
     ],
     // ... (likewise for other days)
     "sun": [
-      /* timetable objects */
+      /* timeslot objects */
     ]
   }
 }
@@ -72,7 +72,7 @@ The process of creating a timetable involves the following steps:
 1. Validate the entered data structure
 2. Retrieve timetables of other classes within the school and convert them into a searchable data structure.
 3. Check for conflict with those other timetables with a focus on teacher availability, If no conflicting timetables are found, conduct validations and save the timetable.
-4. If conflicts arise at any stage generate informative error messages regarding errors. Provide detailed information along with the original entry to ensure consistent client-side state maintenance.
+4. If conflicts arise at any stage generate informative error messages regarding errors schedules. Provide detailed information along with the original entry to ensure consistent client-side state maintenance.
 5. If no issues arise, proceed with saving the timetable.
 
 ## Timetable Update
