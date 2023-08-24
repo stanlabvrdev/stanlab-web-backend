@@ -25,10 +25,10 @@ describe("Timetable endpoints", () => {
     it("should generate a timetable with valid details", async () => {
       const school = await global.loginSchool();
       const res = await request(app)
-        .put(endPoint)
+        .post(endPoint)
         .set("x-auth-token", school.token)
         .send(validData);
-
+      console.log(res.body);
       expect(res.statusCode).toBe(201);
       expect(res.body.data).toHaveProperty("data");
     });
