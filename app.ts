@@ -40,6 +40,7 @@ import TeacherPassport from "./services/teacherPassport";
 TeacherPassport(teacherPassport);
 
 import StudentPassport from "./services/studentPassport";
+import { timetableRoute } from "./routes/V2/timetable";
 
 StudentPassport(studentPassport);
 
@@ -104,6 +105,7 @@ app.use("/api/v2/notifications", notificationRoutes);
 app.use("/api/v2/ai/questions", generatedQuestionRoutes);
 app.use("/api/v2/grade-book", gradeBookRoutes);
 app.use("/api/v2/lesson-plan", lessonPlanRoutes);
+app.use("/api/v2/time-table", timetableRoute);
 
 //Scheduler
 schedule.scheduleJob("0 0 * * *", checkSubscription);
