@@ -30,5 +30,6 @@ router
     schoolAuth,
     ValidationMiddleware.validate(modifyTimetableMetadata),
     TimeTableController.modifyTimeTableMetadata
-  );
+  )
+  .delete(schoolAuth, TimeTableController.deleteTimetable);
 export { router as timetableRoute };
