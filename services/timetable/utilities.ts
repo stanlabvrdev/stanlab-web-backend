@@ -56,11 +56,3 @@ export function isThereConflict(
   }
   return false;
 }
-
-export function convertToAlternativeFormat(
-  timetable: any,
-  days: string[],
-  timeranges: string[]
-): any {
-  const finalOutput = [];
-}
