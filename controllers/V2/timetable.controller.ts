@@ -81,6 +81,17 @@ class TimeTableController {
       ServerErrorHandler(req, res, err);
     }
   }
+
+  async deleteTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const updatedTimetable = await timetableService.deleteTimetable(req.params.id, admin);
+      ServerResponse(req, res, 200, updatedTimetable, "TimeTable deleted successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
 }
 
 const timeTableController = new TimeTableController();

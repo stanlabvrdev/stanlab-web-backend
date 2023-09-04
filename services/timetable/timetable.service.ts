@@ -199,6 +199,24 @@ class TimeTableService {
     );
     return updatedTimetable;
   }
+
+  async deleteTimetable(timetable: string, admin: string) {
+    const session = await startSession();
+    session.startTransaction();
+    try {
+      const timeTable = await TimetableModel.findOne({ _id: timetable, admin });
+      if (!timeTable) throw new NotFoundError("Timetable not found");
+      await TimeSlotModel.deleteMany({ timetable, session });
+      await TimetableModel.deleteOne({ _id: timetable, session });
+
+      await session.commitTransaction();
+      session.endSession();
+    } catch (err) {
+      await session.abortTransaction();
+      session.endSession();
+      throw err;
+    }
+  }
 }
 
 const timetableService = new TimeTableService();
