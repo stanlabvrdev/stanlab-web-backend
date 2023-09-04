@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { ServerErrorHandler, ServerResponse } from "../../services/response/serverResponse";
-import { TimeTableService } from "../../services/timetable/timetable.service";
+import { timetableService } from "../../services/timetable/timetable.service";
+
+interface RequestWithSchool extends Request {
+  school: {
+    _id: string;
+  };
+}
 
 class TimeTableController {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -19,8 +25,58 @@ class TimeTableController {
       //     { isTimeFixed: true, name: "Science", TimeRange: "8:00-9:00" },
       //   ],
       // };
-      const timeTable = await TimeTableService.create(classes, days, timeRanges, activities);
+      const timeTable = await timetableService.generate(classes, days, timeRanges, activities);
       ServerResponse(req, res, 201, timeTable, "TimeTable generated successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+
+  async saveTimeTable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const { timetables } = req.body;
+      const admin = schoolRequest.school._id;
+      const savedTimeTable = await timetableService.save(timetables, admin);
+      ServerResponse(req, res, 201, savedTimeTable, "TimeTable saved successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+
+  async getTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const timetable = await timetableService.getTimetable(id, admin);
+      ServerResponse(req, res, 200, timetable, "TimeTable Fetched successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+
+  async getTimetables(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const timetables = await timetableService.getTimetables(admin);
+      ServerResponse(req, res, 200, timetables, "TimeTables Fetched successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+
+  async modifyTimeTableMetadata(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const updatedTimetable = await timetableService.modifyTimetableMetadata(
+        req.params.id,
+        admin,
+        req.body
+      );
+      ServerResponse(req, res, 200, updatedTimetable, "TimeTable updated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }

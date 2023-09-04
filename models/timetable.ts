@@ -1,6 +1,8 @@
 import { Schema, model, ObjectId } from "mongoose";
 
 export interface Timetable {
+  _id: ObjectId;
+  timeTableName: string;
   admin: ObjectId;
   collaborators: ObjectId[];
   class: ObjectId;
@@ -31,16 +33,18 @@ const timetableSchema = new Schema<Timetable>(
     class: {
       type: Schema.Types.ObjectId,
       ref: "TeacherClass",
-      required: true,
     },
     published: {
       type: String,
       enum: TimetablePublishStatus,
       default: TimetablePublishStatus.Draft,
     },
-    teacherName: String,
-    className: String,
-    lastUpdate: Date,
+    className: String, //Where the class selected is not one that is in our database
+    timeTableName: {
+      type: String,
+      required: true,
+      default: `Timetable - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`,
+    },
   },
   { timestamps: true }
 );
