@@ -2,11 +2,11 @@ import TimetableModel from "../../models/timetable";
 import TimeSlotModel from "../../models/timeslots";
 import TimetableBuilder from "./generator";
 import { Activity, Data, EachClass, Teacher } from "./classes";
-import { Day, IModifyTimetableMetadata, IsaveTimetable, SaveActivity } from "./timetable.dto";
+import { Day, IModifyTimetableMetadata, ISaveGroup } from "./timetable.dto";
 import { ClientSession, ObjectId, Types, startSession } from "mongoose";
 import { TimeSlot } from "../../models/timeslots";
-import { TeacherClass } from "../../models/teacherClass";
 import NotFoundError from "../exceptions/not-found";
+import TimetableGroupModel from "../../models/timetable-group";
 
 class TimeTableService {
   async generate(
@@ -51,6 +51,7 @@ class TimeTableService {
       });
     });
     const finalData = {
+      name: `Timetable-${Date.now()}`,
       periods: timeRanges,
       days,
       data: formattedData,
@@ -58,19 +59,19 @@ class TimeTableService {
     return finalData;
   }
 
-  async save(timetables: IsaveTimetable[], adminId: string) {
+  async save(group: ISaveGroup, adminId: string) {
     const session = await startSession();
     session.startTransaction();
     try {
-      const { timeSlotObjects, savedTimetables } = await this.createTimetables(
-        timetables,
+      const { timeSlotObjects, savedTimetables, groupId } = await this.createTimetables(
+        group,
         adminId,
         session
       );
       await TimeSlotModel.insertMany(timeSlotObjects, { session });
       await session.commitTransaction();
       session.endSession();
-      return savedTimetables;
+      return { groupId, savedTimetables };
     } catch (err) {
       await session.abortTransaction();
       session.endSession();
@@ -78,8 +79,12 @@ class TimeTableService {
     }
   }
 
-  async createTimetables(timetables: IsaveTimetable[], admin: string, session: ClientSession) {
+  async createTimetables(timetableGroup: ISaveGroup, admin: string, session: ClientSession) {
     const timeSlotObjects: Partial<TimeSlot>[] = [];
+    const timetables = timetableGroup.timetables;
+    const group = await TimetableGroupModel.create([{ admin, name: timetableGroup.groupName }], {
+      session,
+    });
     const savedTimetables: { id: string; name: string }[] = [];
     for (let timetable of timetables) {
       const newTimetable = await TimetableModel.create(
@@ -89,6 +94,7 @@ class TimeTableService {
             classID: timetable.classID,
             className: timetable.className,
             admin,
+            group: group[0]._id,
           },
         ],
         { session }
@@ -96,7 +102,8 @@ class TimeTableService {
       savedTimetables.push({ id: newTimetable[0]._id, name: newTimetable[0].timeTableName });
       timeSlotObjects.push(...this.createTimeslots(newTimetable[0]._id, timetable.days));
     }
-    return { timeSlotObjects, savedTimetables };
+
+    return { timeSlotObjects, savedTimetables, groupId: group[0]._id };
   }
 
   createTimeslots(timetable: string, days: Day[]) {
@@ -120,95 +127,111 @@ class TimeTableService {
     return timeSlotObjects;
   }
 
-  async getTimetable(timetableId: string, admin: string) {
-    const timeTable = await TimetableModel.findOne({ _id: timetableId, admin });
-    if (!timeTable) throw new Error("Timetable not found");
-    const timeSlots = await TimeSlotModel.find({ timetable: timetableId });
-    const days = new Set(timeSlots.map((timeSlot) => timeSlot.day));
-    const periods = new Set(timeSlots.map((timeSlot) => timeSlot.timeSlot));
-    //How do I get the days, and then the periods and then group the timeslots by each day?
-    const formattedData = {
-      days: Array.from(days),
-      periods: Array.from(periods),
-      data: {
+  async getGroup(groupId: string, admin: string) {
+    const group = await TimetableGroupModel.findOne({ _id: groupId, admin });
+    if (!group) throw new NotFoundError("Timetable group not found");
+
+    const timeTables = await TimetableModel.find({ group: groupId, admin });
+    const days = new Set();
+    const periods = new Set();
+    const formattedTimetables: {
+      classid: Types.ObjectId;
+      className: string | undefined;
+      timetable: {};
+    }[] = [];
+    for (let timeTable of timeTables) {
+      const timeSlots = await TimeSlotModel.find({ timetable: timeTable._id });
+
+      const timetableDays = timeSlots.map((timeSlot) => timeSlot.day);
+      timetableDays.forEach((day) => days.add(day));
+
+      const timetablePeriods = timeSlots.map((timeSlot) => timeSlot.timeSlot);
+      timetablePeriods.forEach(periods.add, periods);
+
+      const formattedData = {
         classid: timeTable.class,
         className: timeTable.className,
         timetable: {},
-      },
-    };
-    for (let day of Array.from(days)) {
-      formattedData.data.timetable[day] = [];
-      timeSlots
-        .filter((timeSlot) => timeSlot.day === day)
-        .forEach((timeSlot) => {
-          formattedData.data.timetable[day].push({
-            timeSlot: timeSlot.timeSlot,
-            teacher: timeSlot.teacher,
-            subject: timeSlot.subject,
-            teacherName: timeSlot.teacherName,
-            color: timeSlot.color,
+      };
+
+      for (let day of Array.from(timetableDays)) {
+        formattedData.timetable[day] = [];
+        timeSlots
+          .filter((timeSlot) => timeSlot.day === day)
+          .forEach((timeSlot) => {
+            formattedData.timetable[day].push({
+              timeSlot: timeSlot.timeSlot,
+              teacher: timeSlot.teacher,
+              subject: timeSlot.subject,
+              teacherName: timeSlot.teacherName,
+              color: timeSlot.color,
+            });
           });
-        });
+      }
+      formattedTimetables.push(formattedData);
     }
-    return formattedData;
+    return {
+      name: group.name,
+      id: group._id,
+      periods: Array.from(periods),
+      days: Array.from(days),
+      data: formattedTimetables,
+    };
   }
 
-  async getTimetables(admin: string) {
-    const timetables = await TimetableModel.find({ admin });
-    const timeSlotsGroup = await Promise.all(
-      timetables.map((timetable) => {
-        return TimeSlotModel.find({ timetable: timetable._id });
+  async getGroups(admin: string) {
+    const groups = await TimetableGroupModel.find({ admin });
+
+    const groupsDetails = await Promise.all(
+      groups.map(async (group) => {
+        const timetables = await TimetableModel.find({ group: group._id });
+        const timeSlots = await TimeSlotModel.find({
+          timetable: { $in: timetables.map((t) => t._id) },
+        });
+
+        const teachers = new Set(timeSlots.map((timeSlot) => timeSlot.teacher)).size;
+        const periods = new Set(timeSlots.map((timeSlot) => timeSlot.timeSlot)).size;
+        const subjects = new Set(timeSlots.map((timeSlot) => timeSlot.subject)).size;
+
+        return {
+          name: group.name,
+          teachers,
+          periods,
+          subjects,
+          id: group._id,
+        };
       })
     );
-    const timetableDetails = timeSlotsGroup.map((timeSlots) => {
-      const teachers = new Set(
-        timeSlots.map((timeSlot) => {
-          if (timeSlot.teacherName) return timeSlot.teacherName;
-          return timeSlot.teacher;
-        })
-      ).size;
-      const periods = new Set(timeSlots.map((timeSlot) => timeSlot.timeSlot)).size;
-      const subjects = new Set(timeSlots.map((timeSlot) => timeSlot.subject)).size;
-      return {
-        teachers,
-        periods,
-        subjects,
-      };
-    });
 
-    return timetables.map((timetable, index) => {
-      const subjects = timetableDetails[index].subjects;
-      const teachers = timetableDetails[index].teachers;
-      const periods = timetableDetails[index].periods;
-      return { name: timetable.timeTableName, subjects, teachers, periods };
-    });
+    return groupsDetails;
   }
 
-  async modifyTimetableMetadata(timetable: string, admin: string, data: IModifyTimetableMetadata) {
-    const timeTable = await TimetableModel.findOne({ _id: timetable, admin });
-    if (!timeTable) throw new NotFoundError("Timetable not found");
-    if (data.class) {
-      const classExist = await TeacherClass.findOne({ _id: data.class, school: admin });
-      if (!classExist) throw new NotFoundError("Class not found");
-    }
+  async modifyGroupMetadata(groupId: string, admin: string, data: IModifyTimetableMetadata) {
+    const group = await TimetableGroupModel.findOne({ _id: groupId, admin });
+    if (!group) throw new NotFoundError("Timetable not found");
     //Check that the collaborators exist is not neccessary because the check will occur when trying to access the timetable
-    const updatedTimetable = await TimetableModel.findOneAndUpdate(
-      { _id: timetable, admin },
+    const updatedGroup = await TimetableGroupModel.findOneAndUpdate(
+      { _id: groupId, admin },
       { $set: data },
       { new: true }
     );
-    return updatedTimetable;
+    return updatedGroup;
   }
 
-  async deleteTimetable(timetable: string, admin: string) {
+  async deleteGroup(group: string, admin: string) {
     const session = await startSession();
     session.startTransaction();
     try {
-      const timeTable = await TimetableModel.findOne({ _id: timetable, admin });
+      const timeTable = await TimetableGroupModel.findOne({ _id: group, admin });
       if (!timeTable) throw new NotFoundError("Timetable not found");
-      await TimeSlotModel.deleteMany({ timetable, session });
-      await TimetableModel.deleteOne({ _id: timetable, session });
 
+      const timetables = await TimetableModel.find({ group, admin });
+      for (let timetable of timetables) {
+        await TimeSlotModel.deleteMany({ timetable: timetable._id }, { session });
+      }
+
+      await TimetableModel.deleteMany({ group: group }, { session });
+      await TimetableGroupModel.deleteOne({ _id: group }, { session });
       await session.commitTransaction();
       session.endSession();
     } catch (err) {
