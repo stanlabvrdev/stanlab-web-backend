@@ -2,11 +2,18 @@ import TimetableModel from "../../models/timetable";
 import TimeSlotModel from "../../models/timeslots";
 import TimetableBuilder from "./generator";
 import { Activity, Data, EachClass, Teacher } from "./classes";
-import { Day, IModifyTimetableMetadata, IsaveTimetable, SaveActivity } from "./timetable.dto";
+import {
+  Day,
+  IModifyTimetableMetadata,
+  ISaveGroup,
+  IsaveTimetable,
+  SaveActivity,
+} from "./timetable.dto";
 import { ClientSession, ObjectId, Types, startSession } from "mongoose";
 import { TimeSlot } from "../../models/timeslots";
 import { TeacherClass } from "../../models/teacherClass";
 import NotFoundError from "../exceptions/not-found";
+import TimetableGroupModel from "../../models/timetable-group";
 
 class TimeTableService {
   async generate(
@@ -51,6 +58,7 @@ class TimeTableService {
       });
     });
     const finalData = {
+      name: `Timetable-${Date.now()}`,
       periods: timeRanges,
       days,
       data: formattedData,
@@ -58,12 +66,12 @@ class TimeTableService {
     return finalData;
   }
 
-  async save(timetables: IsaveTimetable[], adminId: string) {
+  async save(group: ISaveGroup, adminId: string) {
     const session = await startSession();
     session.startTransaction();
     try {
       const { timeSlotObjects, savedTimetables } = await this.createTimetables(
-        timetables,
+        group,
         adminId,
         session
       );
@@ -78,8 +86,12 @@ class TimeTableService {
     }
   }
 
-  async createTimetables(timetables: IsaveTimetable[], admin: string, session: ClientSession) {
+  async createTimetables(timetableGroup: ISaveGroup, admin: string, session: ClientSession) {
     const timeSlotObjects: Partial<TimeSlot>[] = [];
+    const timetables = timetableGroup.timetables;
+    const group = await TimetableGroupModel.create([{ admin, name: timetableGroup.groupName }], {
+      session,
+    });
     const savedTimetables: { id: string; name: string }[] = [];
     for (let timetable of timetables) {
       const newTimetable = await TimetableModel.create(
@@ -89,6 +101,7 @@ class TimeTableService {
             classID: timetable.classID,
             className: timetable.className,
             admin,
+            group: group[0]._id,
           },
         ],
         { session }

@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { Types } from "mongoose";
-import { TimetablePublishStatus } from "../../models/timetable";
+import { TimetablePublishStatus } from "../../models/timetable-group";
 import { WeekDays } from "../../models/timeslots";
 
 const extendedJOI = Joi.extend((joi) => ({
@@ -77,6 +77,7 @@ const daySchema = Joi.object({
 });
 
 export const saveTimetableSchema = Joi.object({
+  groupName: Joi.string().optional(),
   timetables: Joi.array().items(
     Joi.object({
       name: Joi.string().optional(),
@@ -105,6 +106,11 @@ export interface IsaveTimetable {
   classID?: string;
   className?: string;
   days: Day[];
+}
+
+export interface ISaveGroup {
+  groupName: string;
+  timetables: IsaveTimetable[];
 }
 
 export const modifyTimetableMetadata = Joi.object({
