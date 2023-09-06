@@ -2,7 +2,7 @@ import { Schema, model, ObjectId } from "mongoose";
 
 export interface ITimetableGroup {
   _id: ObjectId;
-  timeTableName: string;
+  name: string;
   admin: ObjectId;
   collaborators: ObjectId[];
   published: TimetablePublishStatus;
@@ -32,10 +32,10 @@ const timetableGroup = new Schema<ITimetableGroup>(
       enum: TimetablePublishStatus,
       default: TimetablePublishStatus.Draft,
     },
-    timeTableGroupName: {
+    name: {
       type: String,
       required: true,
-      default: `Timetable - ${new Date().getFullYear()}-${new Date().getMonth()}-${new Date().getDate()}`,
+      default: `Timetable - ${Date.now()}`,
     },
   },
   { timestamps: true }
