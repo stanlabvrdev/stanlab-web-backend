@@ -1,6 +1,6 @@
 import Joi from "joi";
 import { Types } from "mongoose";
-import { TimetablePublishStatus } from "../../models/timetable";
+import { TimetablePublishStatus } from "../../models/timetable-group";
 import { WeekDays } from "../../models/timeslots";
 
 const extendedJOI = Joi.extend((joi) => ({
@@ -77,6 +77,7 @@ const daySchema = Joi.object({
 });
 
 export const saveTimetableSchema = Joi.object({
+  groupName: Joi.string().optional(),
   timetables: Joi.array().items(
     Joi.object({
       name: Joi.string().optional(),
@@ -107,10 +108,13 @@ export interface IsaveTimetable {
   days: Day[];
 }
 
+export interface ISaveGroup {
+  groupName: string;
+  timetables: IsaveTimetable[];
+}
+
 export const modifyTimetableMetadata = Joi.object({
-  timeTableName: Joi.string().optional(),
-  class: extendedJOI.objectId().optional(),
-  className: Joi.string().optional(),
+  name: Joi.string().optional(),
   collaborators: Joi.array().items(extendedJOI.objectId()).optional(),
   published: Joi.string()
     .valid(TimetablePublishStatus.Published, TimetablePublishStatus.Draft)
@@ -118,9 +122,7 @@ export const modifyTimetableMetadata = Joi.object({
 });
 
 export interface IModifyTimetableMetadata {
-  timeTableName?: string;
-  class?: Types.ObjectId;
-  className?: string;
+  name?: string;
   collaborators?: Types.ObjectId[];
   published?: TimetablePublishStatus;
 }

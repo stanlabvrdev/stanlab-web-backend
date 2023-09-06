@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import TimetableModel from "../../../models/timetable";
 import TimeSlotModel from "../../../models/timeslots";
+import TimetableGroupModel from "../../../models/timetable-group";
 
 export const invalidData = {
   classes: [
@@ -80,11 +81,16 @@ export const saveTimetableFake = {
 };
 
 export const createTimetableFake = async (schoolID: string) => {
+  const group = await TimetableGroupModel.create({
+    name: faker.lorem.word(),
+    admin: schoolID,
+  });
   const timetable = await TimetableModel.create({
     timeTableName: faker.lorem.word(),
     classID: "64f5b75925b92b109c3aaed9",
     className: faker.lorem.word(),
     admin: schoolID,
+    group: group._id,
   });
   const timeslot1 = await TimeSlotModel.create({
     day: "Monday",
@@ -106,5 +112,5 @@ export const createTimetableFake = async (schoolID: string) => {
     color: faker.lorem.word(),
   });
 
-  return { timetable, timeslot1, timeslot2 };
+  return { timetable, timeslot1, timeslot2, group };
 };
