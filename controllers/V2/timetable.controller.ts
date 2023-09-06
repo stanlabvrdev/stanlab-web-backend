@@ -32,46 +32,45 @@ class TimeTableController {
     }
   }
 
-  async saveTimeTable(req: Request, res: Response, next: NextFunction) {
+  async saveGroup(req: Request, res: Response, next: NextFunction) {
     try {
       const schoolRequest = req as RequestWithSchool;
-      const { timetables } = req.body;
       const admin = schoolRequest.school._id;
-      const savedTimeTable = await timetableService.save(timetables, admin);
+      const savedTimeTable = await timetableService.save(req.body, admin);
       ServerResponse(req, res, 201, savedTimeTable, "TimeTable saved successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   }
 
-  async getTimetable(req: Request, res: Response, next: NextFunction) {
+  async getGroup(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
-      const timetable = await timetableService.getTimetable(id, admin);
+      const timetable = await timetableService.getGroup(id, admin);
       ServerResponse(req, res, 200, timetable, "TimeTable Fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   }
 
-  async getTimetables(req: Request, res: Response, next: NextFunction) {
+  async getGroups(req: Request, res: Response, next: NextFunction) {
     try {
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
-      const timetables = await timetableService.getTimetables(admin);
+      const timetables = await timetableService.getGroups(admin);
       ServerResponse(req, res, 200, timetables, "TimeTables Fetched successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
     }
   }
 
-  async modifyTimeTableMetadata(req: Request, res: Response, next: NextFunction) {
+  async modifyGroupMetadata(req: Request, res: Response, next: NextFunction) {
     try {
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
-      const updatedTimetable = await timetableService.modifyTimetableMetadata(
+      const updatedTimetable = await timetableService.modifyGroupMetadata(
         req.params.id,
         admin,
         req.body
@@ -82,11 +81,11 @@ class TimeTableController {
     }
   }
 
-  async deleteTimetable(req: Request, res: Response, next: NextFunction) {
+  async deleteGroup(req: Request, res: Response, next: NextFunction) {
     try {
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
-      const updatedTimetable = await timetableService.deleteTimetable(req.params.id, admin);
+      const updatedTimetable = await timetableService.deleteGroup(req.params.id, admin);
       ServerResponse(req, res, 200, updatedTimetable, "TimeTable deleted successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);

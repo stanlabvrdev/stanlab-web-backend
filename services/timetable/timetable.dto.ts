@@ -114,9 +114,7 @@ export interface ISaveGroup {
 }
 
 export const modifyTimetableMetadata = Joi.object({
-  timeTableName: Joi.string().optional(),
-  class: extendedJOI.objectId().optional(),
-  className: Joi.string().optional(),
+  name: Joi.string().optional(),
   collaborators: Joi.array().items(extendedJOI.objectId()).optional(),
   published: Joi.string()
     .valid(TimetablePublishStatus.Published, TimetablePublishStatus.Draft)
@@ -124,9 +122,7 @@ export const modifyTimetableMetadata = Joi.object({
 });
 
 export interface IModifyTimetableMetadata {
-  timeTableName?: string;
-  class?: Types.ObjectId;
-  className?: string;
+  name?: string;
   collaborators?: Types.ObjectId[];
   published?: TimetablePublishStatus;
 }

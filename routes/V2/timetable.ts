@@ -19,17 +19,17 @@ router
   .post(
     schoolAuth,
     ValidationMiddleware.validate(saveTimetableSchema),
-    TimeTableController.saveTimeTable
+    TimeTableController.saveGroup
   )
-  .get(schoolAuth, TimeTableController.getTimetables);
+  .get(schoolAuth, TimeTableController.getGroups);
 
 router
   .route("/:id")
-  .get(schoolAuth, TimeTableController.getTimetable)
+  .get(schoolAuth, TimeTableController.getGroup)
   .put(
     schoolAuth,
     ValidationMiddleware.validate(modifyTimetableMetadata),
-    TimeTableController.modifyTimeTableMetadata
+    TimeTableController.modifyGroupMetadata
   )
-  .delete(schoolAuth, TimeTableController.deleteTimetable);
+  .delete(schoolAuth, TimeTableController.deleteGroup);
 export { router as timetableRoute };
