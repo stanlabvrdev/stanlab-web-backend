@@ -6,7 +6,7 @@ export interface ITimetableGroup {
   admin: ObjectId;
   collaborators: ObjectId[];
   published: TimetablePublishStatus;
-  lastUpdate?: Date;
+  shareId: string;
 }
 export enum TimetablePublishStatus {
   Published = "Published",
@@ -37,6 +37,7 @@ const timetableGroup = new Schema<ITimetableGroup>(
       required: true,
       default: `Timetable - ${Date.now()}`,
     },
+    shareId: String,
   },
   { timestamps: true }
 );
