@@ -32,4 +32,9 @@ router
     TimeTableController.modifyGroupMetadata
   )
   .delete(schoolAuth, TimeTableController.deleteGroup);
+
+router
+  .route("/share/:id")
+  .post(schoolAuth, TimeTableController.generateShareablelink)
+  .get(TimeTableController.getSharedTimetable);
 export { router as timetableRoute };

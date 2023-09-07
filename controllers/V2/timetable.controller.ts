@@ -91,6 +91,25 @@ class TimeTableController {
       ServerErrorHandler(req, res, err);
     }
   }
+
+  async generateShareablelink(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const updatedTimetable = await timetableService.generateShareablelink(req.params.id, admin);
+      ServerResponse(req, res, 200, updatedTimetable, "Link generated successfully");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+  async getSharedTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const timetable = await timetableService.getSharedTimetable(req.params.id);
+      ServerResponse(req, res, 200, timetable, "Successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
 }
 
 const timeTableController = new TimeTableController();
