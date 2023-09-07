@@ -240,6 +240,29 @@ class TimeTableService {
       throw err;
     }
   }
+
+  async generateShareablelink(groupId: string, admin: string) {
+    const baseURL = "https://app.stanlab.co/share/";
+    const group = await TimetableGroupModel.findOne({ _id: groupId, admin });
+    if (!group) throw new NotFoundError("Timetable not found");
+    if (group.shareId) return `${baseURL}${group.shareId}`;
+    let isUnique: boolean = false;
+    let shareId: string = "";
+    while (!isUnique) {
+      shareId = Date.now().toString(36);
+      const existingGroup = await TimetableGroupModel.findOne({ shareId });
+      if (!existingGroup) isUnique = true;
+    }
+    await TimetableGroupModel.updateOne({ _id: groupId, admin }, { shareId });
+    return `${baseURL}${shareId}`;
+    //TODO: Add a max loop count to prevent infinite loop, though unlikely
+  }
+
+  async getSharedTimetable(shareId: string) {
+    const group = await TimetableGroupModel.findOne({ shareId });
+    if (!group) throw new NotFoundError("Resource not found");
+    return await this.getGroup(group._id, String(group.admin));
+  }
 }
 
 const timetableService = new TimeTableService();

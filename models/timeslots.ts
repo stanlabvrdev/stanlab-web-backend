@@ -39,6 +39,7 @@ const timeSlotSchema = new Schema<TimeSlot>(
     },
     teacher: {
       type: Schema.Types.ObjectId,
+      ref: "Teacher",
     },
     activity: String,
     subject: String,
@@ -51,6 +52,15 @@ const timeSlotSchema = new Schema<TimeSlot>(
     timestamps: true,
   }
 );
+
+timeSlotSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: "teacher",
+    select: "name",
+  });
+  next();
+});
+
 const TimeSlotModel = model<TimeSlot>("TimeSlot", timeSlotSchema);
 
 export default TimeSlotModel;
