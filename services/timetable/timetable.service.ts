@@ -7,6 +7,19 @@ import { ClientSession, ObjectId, Types, startSession } from "mongoose";
 import { TimeSlot } from "../../models/timeslots";
 import NotFoundError from "../exceptions/not-found";
 import TimetableGroupModel from "../../models/timetable-group";
+import { SchoolAdmin } from "../../models/schoolAdmin";
+import { Student } from "../../models/student";
+import { SchoolTeacher } from "../../models/schoolTeacher";
+import { Profile } from "../../models/profile";
+import { Teacher as TeacherModel } from "../../models/teacher";
+import {
+  privateTeacherAddedToSchoolAccount,
+  teachersGetStartedEmail,
+  welcomeNewTeacher,
+} from "../email";
+import { passwordService } from "../passwordService";
+import generateRandomString from "../../utils/randomStr";
+import BadRequestError from "../exceptions/bad-request";
 
 class TimeTableService {
   async generate(
@@ -262,6 +275,131 @@ class TimeTableService {
     const group = await TimetableGroupModel.findOne({ shareId });
     if (!group) throw new NotFoundError("Resource not found");
     return await this.getGroup(group._id, String(group.admin));
+  }
+
+  async addTeachersToTimetable(
+    admin: string,
+    teachers: { name: string; email: string }[],
+    timetable: string
+  ) {
+    const group = await TimetableGroupModel.findOne({ _id: timetable, admin });
+    if (!group) throw new NotFoundError("Timetable group not found");
+    const timetables = await TimetableModel.find({ group: timetable, admin });
+    const timeSlots = await TimeSlotModel.find({
+      timetable: { $in: timetables.map((t) => t._id) },
+    });
+    const errors: string[] = [];
+    const success: string[] = [];
+    for (const teacher of teachers) {
+      const timeSlotWithTeacher = timeSlots.filter(
+        (timeSlot) => timeSlot.teacherName === teacher.name
+      );
+      if (timeSlotWithTeacher.length == 0) {
+        errors.push(
+          `${teacher.name} was not added because ${teacher.name} is not a teacher in this timetable`
+        );
+        continue;
+      }
+      const session = await this.startTransaction();
+      try {
+        const teacherId = await this.addTeacherToSchool(admin, teacher, session);
+        await Promise.all(
+          timeSlotWithTeacher.map((slot) => slot.updateOne({ teacher: teacherId }, { session }))
+        );
+        //Send notification here
+        await this.commitTransaction(session);
+        success.push(teacher.name + " was added successfully");
+      } catch (err: any) {
+        await this.abortTransaction(session);
+        errors.push(`${teacher.name} was not added, the following error occured: ${err.message}`);
+      }
+    }
+
+    if (success.length == 0) throw new BadRequestError("No teacher was added");
+    return { success, errors };
+  }
+
+  private async emailExists(email: string) {
+    const existingUsers = await Promise.all([
+      SchoolAdmin.findOne({ email }),
+      Student.findOne({ email }),
+    ]);
+    return existingUsers.some((user) => user);
+  }
+
+  private async addExistingTeacherToSchool(teacher: any, school: string, session: ClientSession) {
+    await teacher.updateOne({ schoolTeacher: true }, { session });
+
+    await SchoolTeacher.create([{ school, teacher: teacher._id }], { session });
+
+    await Profile.create([{ teacher: teacher._id, selectedSchool: school }], { session });
+  }
+
+  private async saveNewTeacher(
+    password: string,
+    teacher: { name: string; email: string },
+    school: string,
+    session: ClientSession
+  ) {
+    const newTeacher = await TeacherModel.create(
+      [
+        {
+          name: teacher.name,
+          email: teacher.email,
+          password: await passwordService.hash(password),
+          schoolTeacher: true,
+        },
+      ],
+      { session }
+    );
+    await SchoolTeacher.create([{ school, teacher: newTeacher[0]._id }], { session });
+    await Profile.create([{ teacher: newTeacher[0]._id, selectedSchool: school }], { session });
+    return newTeacher[0]._id;
+  }
+  private async startTransaction() {
+    const session = await startSession();
+    session.startTransaction();
+    return session;
+  }
+
+  private async commitTransaction(session: ClientSession) {
+    await session.commitTransaction();
+    session.endSession();
+  }
+
+  private async abortTransaction(session: ClientSession) {
+    await session.abortTransaction();
+    session.endSession();
+  }
+
+  //More robust and thought out implementation - can be used to refactor other similar implementations
+  async addTeacherToSchool(
+    admin: string,
+    teacher: { name: string; email: string },
+    session: ClientSession
+  ): Promise<string> {
+    const schoolAdmin = await SchoolAdmin.findOne({ _id: admin });
+    if (!schoolAdmin) throw new NotFoundError("School not found");
+
+    if (await this.emailExists(teacher.email)) throw new BadRequestError("Email already exists");
+    const teacherExists = await TeacherModel.findOne({ email: teacher.email });
+
+    const isSchoolTeacher = await SchoolTeacher.findOne({
+      school: admin,
+      teacher: teacherExists ? teacherExists._id : undefined,
+    });
+
+    if (teacherExists && isSchoolTeacher) return teacherExists._id;
+    if (teacherExists && !isSchoolTeacher) {
+      await this.addExistingTeacherToSchool(teacherExists, admin, session);
+      privateTeacherAddedToSchoolAccount(teacherExists, schoolAdmin.schoolName);
+      return teacherExists._id;
+    }
+    const password = generateRandomString(7);
+    const newTeacherID = await this.saveNewTeacher(password, teacher, admin, session);
+    welcomeNewTeacher(teacher, password);
+    teachersGetStartedEmail(teacher);
+    return newTeacherID;
   }
 }
 
