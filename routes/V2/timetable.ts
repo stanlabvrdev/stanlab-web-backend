@@ -2,6 +2,7 @@ import express from "express";
 import { TimeTableController } from "../../controllers/V2/timetable.controller";
 import { ValidationMiddleware } from "../../middleware/validate.lesson-plan";
 import {
+  addTeachersDto,
   modifyTimetableMetadata,
   saveTimetableSchema,
   scheduleSchema,
@@ -38,3 +39,11 @@ router
   .post(schoolAuth, TimeTableController.generateShareablelink)
   .get(TimeTableController.getSharedTimetable);
 export { router as timetableRoute };
+
+router
+  .route("/teachers/:id")
+  .post(
+    schoolAuth,
+    ValidationMiddleware.validate(addTeachersDto),
+    TimeTableController.addTeachersToTimetable
+  );

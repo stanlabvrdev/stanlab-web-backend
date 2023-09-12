@@ -4,7 +4,6 @@ import _ from "lodash";
 
 import { Student, validateStudent } from "../models/student";
 import { Teacher } from "../models/teacher";
-import constants from "../utils/constants";
 import { ServerErrorHandler, ServerResponse } from "../services/response/serverResponse";
 import { excelParserService } from "../services/excelParserService";
 import { passwordService } from "../services/passwordService";
@@ -12,8 +11,6 @@ import BadRequestError from "../services/exceptions/bad-request";
 import { generateUserName, getFullName } from "../services/student/generator";
 import NotFoundError from "../services/exceptions/not-found";
 import { TeacherClass } from "../models/teacherClass";
-import generateRandomString from "../utils/randomStr";
-import { StudentTeacher } from "../models/teacherStudent";
 import studentTeacherService from "../services/teacherClass/teacher-student";
 import studentService from "../services/student/student.service";
 import teacherService from "../services/teacher/teacher.service";

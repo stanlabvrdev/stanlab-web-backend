@@ -126,3 +126,11 @@ export interface IModifyTimetableMetadata {
   collaborators?: Types.ObjectId[];
   published?: TimetablePublishStatus;
 }
+const teacherInfo = Joi.object({
+  name: Joi.string().required(),
+  email: Joi.string().email().required(),
+});
+
+export const addTeachersDto = Joi.object({
+  teachers: Joi.array().items(teacherInfo).required(),
+});
