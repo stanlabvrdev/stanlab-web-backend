@@ -110,6 +110,23 @@ class TimeTableController {
       ServerErrorHandler(req, res, err);
     }
   }
+
+  async addTeachersToTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { teachers } = req.body;
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      console.log(teachers, req.params.id, admin);
+      const timetable = await timetableService.addTeachersToTimetable(
+        admin,
+        teachers,
+        req.params.id
+      );
+      ServerResponse(req, res, 200, timetable, "Successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
 }
 
 const timeTableController = new TimeTableController();
