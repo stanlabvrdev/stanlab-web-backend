@@ -143,7 +143,6 @@ class TimeTableController {
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
       const timetables = await timetableService.getAllTimetables(admin);
-      console.log(timetables);
       ServerResponse(req, res, 200, timetables, "Successful");
     } catch (err) {
       ServerErrorHandler(req, res, err);
