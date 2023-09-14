@@ -24,6 +24,8 @@ router
   )
   .get(schoolAuth, TimeTableController.getGroups);
 
+router.route("/single").get(schoolAuth, TimeTableController.getTimetables);
+
 router
   .route("/:id")
   .get(schoolAuth, TimeTableController.getGroup)
@@ -38,7 +40,6 @@ router
   .route("/share/:id")
   .post(schoolAuth, TimeTableController.generateShareablelink)
   .get(TimeTableController.getSharedTimetable);
-export { router as timetableRoute };
 
 router
   .route("/teachers/:id")
@@ -47,3 +48,10 @@ router
     ValidationMiddleware.validate(addTeachersDto),
     TimeTableController.addTeachersToTimetable
   );
+
+router
+  .route("/single/:id")
+  .get(schoolAuth, TimeTableController.getTimetable)
+  .delete(schoolAuth, TimeTableController.deleteTimetable);
+
+export { router as timetableRoute };
