@@ -82,6 +82,7 @@ export const saveTimetableFake = {
 
 export const createTimetableFake = async (schoolID: string) => {
   const group = await TimetableGroupModel.create({
+    grade: faker.lorem.word(),
     name: faker.lorem.word(),
     admin: schoolID,
   });
