@@ -155,7 +155,7 @@ class TimeTableController {
       const { id } = req.params;
       const schoolRequest = req as RequestWithSchool;
       const admin = schoolRequest.school._id;
-      await timetableService.deleteTimetable(id, admin);
+      await timetableService.deleteTimetable(admin, id);
       ServerResponse(req, res, 200, null, "Successful");
     } catch (err) {
       ServerErrorHandler(req, res, err);
