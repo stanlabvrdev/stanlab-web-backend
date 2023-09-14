@@ -95,9 +95,12 @@ class TimeTableService {
   async createTimetables(timetableGroup: ISaveGroup, admin: string, session: ClientSession) {
     const timeSlotObjects: Partial<TimeSlot>[] = [];
     const timetables = timetableGroup.timetables;
-    const group = await TimetableGroupModel.create([{ admin, name: timetableGroup.groupName }], {
-      session,
-    });
+    const group = await TimetableGroupModel.create(
+      [{ admin, name: timetableGroup.groupName, grade: timetableGroup.grade }],
+      {
+        session,
+      }
+    );
     const savedTimetables: { id: string; name: string }[] = [];
     for (let timetable of timetables) {
       const newTimetable = await TimetableModel.create(
@@ -147,6 +150,7 @@ class TimeTableService {
     const timeTables = await TimetableModel.find({ group: groupId, admin });
     const days = new Set();
     const periods = new Set();
+    const teachers = new Set();
     const formattedTimetables: {
       classid: Types.ObjectId;
       className: string | undefined;
@@ -160,6 +164,9 @@ class TimeTableService {
 
       const timetablePeriods = timeSlots.map((timeSlot) => timeSlot.timeSlot);
       timetablePeriods.forEach(periods.add, periods);
+
+      const timetableTeachers = timeSlots.map((timeslots) => timeslots.teacherName);
+      timetableTeachers.forEach(teachers.add, teachers);
 
       const formattedData = {
         classid: timeTable.class,
@@ -186,10 +193,84 @@ class TimeTableService {
     return {
       name: group.name,
       id: group._id,
+      grade: group.grade,
       periods: Array.from(periods),
       days: Array.from(days),
+      teachers: Array.from(teachers),
       data: formattedTimetables,
     };
+  }
+  async getAllTimetables(admin: string) {
+    const timetables = await TimetableModel.find({ admin });
+    return await Promise.all(
+      timetables.map(async (timetable) => {
+        const timeslots = await TimeSlotModel.find({ timetable: timetable._id });
+        const periods = new Set(timeslots.map((timeSlot) => timeSlot.timeSlot)).size;
+        const subjects = new Set(timeslots.map((timeSlot) => timeSlot.subject)).size;
+        const group = await TimetableGroupModel.findOne({ _id: timetable.group });
+        return {
+          grade: group?.grade ?? "Not Specified",
+          class: timetable.className,
+          subjects,
+          periods,
+        };
+      })
+    );
+  }
+
+  async getATimetable(admin: string, timetable: string) {
+    const ttable = await TimetableModel.findOne({ _id: timetable, admin });
+    if (!ttable) throw new NotFoundError("Timetable not found");
+    const timeSlots = await TimeSlotModel.find({ timetable: ttable._id });
+
+    const days = new Set(timeSlots.map((timeSlot) => timeSlot.day));
+    const periods = new Set(timeSlots.map((timeSlot) => timeSlot.timeSlot));
+    const teachers = new Set(timeSlots.map((timeSlot) => timeSlot.teacherName));
+
+    const formattedData = {
+      classid: ttable.class,
+      className: ttable.className,
+      timetable: {},
+    };
+
+    for (let day of Array.from(days)) {
+      formattedData.timetable[day] = [];
+      timeSlots
+        .filter((timeSlot) => timeSlot.day === day)
+        .forEach((timeSlot) => {
+          formattedData.timetable[day].push({
+            timeSlot: timeSlot.timeSlot,
+            teacher: timeSlot.teacher,
+            subject: timeSlot.subject,
+            teacherName: timeSlot.teacherName,
+            color: timeSlot.color,
+          });
+        });
+    }
+    const group = await TimetableGroupModel.findOne({ _id: ttable.group });
+    return {
+      name: ttable.timeTableName,
+      id: timetable,
+      grade: group?.grade ?? "Not Specified",
+      periods: Array.from(periods),
+      days: Array.from(days),
+      teachers: Array.from(teachers),
+      data: formattedData,
+    };
+  }
+
+  async deleteTimetable(admin: string, ttable: string) {
+    const session = await this.startTransaction();
+    try {
+      const timetable = await TimetableModel.findOne({ _id: ttable, admin });
+      if (!timetable) throw new NotFoundError("Timetable not found");
+      await TimeSlotModel.deleteMany({ timetable: timetable._id }, { session });
+      await TimetableModel.deleteOne({ _id: ttable, admin }, { session });
+      await this.commitTransaction(session);
+    } catch (err) {
+      await this.abortTransaction(session);
+      throw err;
+    }
   }
 
   async getGroups(admin: string) {
@@ -208,6 +289,7 @@ class TimeTableService {
 
         return {
           name: group.name,
+          grade: group.grade,
           teachers,
           periods,
           subjects,

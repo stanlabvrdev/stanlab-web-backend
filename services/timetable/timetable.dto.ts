@@ -78,6 +78,7 @@ const daySchema = Joi.object({
 
 export const saveTimetableSchema = Joi.object({
   groupName: Joi.string().optional(),
+  grade: Joi.string().required(),
   timetables: Joi.array().items(
     Joi.object({
       name: Joi.string().optional(),
@@ -110,6 +111,7 @@ export interface IsaveTimetable {
 
 export interface ISaveGroup {
   groupName: string;
+  grade: string;
   timetables: IsaveTimetable[];
 }
 

@@ -76,7 +76,7 @@ class TimetableBuilder {
           let isAssigned = false;
 
           function assignActivityRecursively(assignablePool: string[]) {
-            if (assignablePool.length === 0) assignablePool = activityQueueHashMap;
+            if (assignablePool.length === 0) assignablePool = [...activityQueueHashMap];
             if (isAssigned) return;
 
             const tentativeActivity = getRandomElement(assignablePool)!;
@@ -110,6 +110,7 @@ class TimetableBuilder {
               assignActivityRecursively(assignablePool); // Retry with another random element
             }
           }
+          console.log(timetable);
 
           // Call the recursive function with initial parameters
           assignActivityRecursively(assignablePool);
@@ -120,4 +121,25 @@ class TimetableBuilder {
 }
 
 export default TimetableBuilder;
-//Free periods?????????????????
+
+/*
+
+{
+  classid: id
+  classname: name
+  timetable: {
+    day: [timeslots]
+  }
+}
+
+
+// 1. Initialise fixed activities
+// 2. Randomly pick a starting class
+// 3. Create a hashmap of available activities
+// 4. 
+
+
+
+
+
+ */
