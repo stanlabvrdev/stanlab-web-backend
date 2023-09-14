@@ -126,6 +126,41 @@ class TimeTableController {
       ServerErrorHandler(req, res, err);
     }
   }
+
+  async getTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const timetable = await timetableService.getATimetable(admin, id);
+      ServerResponse(req, res, 200, timetable, "Successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+  async getTimetables(req: Request, res: Response, next: NextFunction) {
+    try {
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      const timetables = await timetableService.getAllTimetables(admin);
+      console.log(timetables);
+      ServerResponse(req, res, 200, timetables, "Successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
+
+  async deleteTimetable(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const schoolRequest = req as RequestWithSchool;
+      const admin = schoolRequest.school._id;
+      await timetableService.deleteTimetable(id, admin);
+      ServerResponse(req, res, 200, null, "Successful");
+    } catch (err) {
+      ServerErrorHandler(req, res, err);
+    }
+  }
 }
 
 const timeTableController = new TimeTableController();
