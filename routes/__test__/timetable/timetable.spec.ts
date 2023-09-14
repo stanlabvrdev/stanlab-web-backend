@@ -52,7 +52,7 @@ describe("Timetable endpoints", () => {
     const res = await request(app)
       .get(`${endPoint}/${group._id}`)
       .set("x-auth-token", school.token);
-    console.log(res.body);
+    // console.log(res.body);
     expect(res.statusCode).toBe(200);
     expect(res.body.data).toHaveProperty("name");
     expect(res.body.data).toHaveProperty("id");
