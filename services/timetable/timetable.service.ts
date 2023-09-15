@@ -23,6 +23,7 @@ import BadRequestError from "../exceptions/bad-request";
 
 class TimeTableService {
   async generate(
+    grade: string,
     classes: EachClass[],
     days: string[],
     timeRanges: string[],
@@ -46,10 +47,11 @@ class TimeTableService {
     });
     const data = new Data(allClasses, timeRanges, days, allActivities);
     const timetable = new TimetableBuilder(data).buildTimetable();
-    return this.formatCreateResponse(timetable, classes, timeRanges, days);
+    return this.formatCreateResponse(grade, timetable, classes, timeRanges, days);
   }
 
   private formatCreateResponse(
+    grade: string,
     timetable: any,
     classes: EachClass[],
     timeRanges: string[],
@@ -64,6 +66,7 @@ class TimeTableService {
       });
     });
     const finalData = {
+      grade,
       name: `Timetable-${Date.now()}`,
       periods: timeRanges,
       days,
