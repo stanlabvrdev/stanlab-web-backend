@@ -4,6 +4,7 @@ import TimeSlotModel from "../../../models/timeslots";
 import TimetableGroupModel from "../../../models/timetable-group";
 
 export const invalidData = {
+  grade: `${faker.lorem.word()}`,
   classes: [
     { classid: "1", classname: `${faker.lorem.word()}` },
     { classid: "2", classname: `${faker.lorem.word()}` },
