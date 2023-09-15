@@ -66,7 +66,6 @@ class TimeTableService {
       });
     });
     const finalData = {
-      grade,
       name: `Timetable-${Date.now()}`,
       periods: timeRanges,
       days,
@@ -215,6 +214,7 @@ class TimeTableService {
           grade: group?.grade ?? "Not Specified",
           class: timetable.className,
           subjects,
+          id: timetable._id,
           periods,
         };
       })
