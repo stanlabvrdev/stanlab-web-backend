@@ -36,7 +36,7 @@ const timetableGroup = new Schema<ITimetableGroup>(
     name: {
       type: String,
       required: true,
-      default: `Tt - ${new Date().getDay()}${new Date().getMonth}${new Date().getFullYear()}`,
+      default: `Tt - ${new Date().getDay()}${new Date().getMonth()}${new Date().getFullYear()}`,
     },
     grade: {
       type: String,
