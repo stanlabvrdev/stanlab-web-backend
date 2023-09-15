@@ -67,6 +67,7 @@ class TimeTableService {
     });
     const finalData = {
       name: `Timetable-${Date.now()}`,
+      grade,
       periods: timeRanges,
       days,
       data: formattedData,
