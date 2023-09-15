@@ -11,7 +11,7 @@ interface RequestWithSchool extends Request {
 class TimeTableController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { classes, days, timeRanges, activities } = req.body;
+      const { grade, classes, days, timeRanges, activities } = req.body;
       // const scheduleInput = {
       //   classes: [
       //     { classid: "1", classname: "1A" },
@@ -25,7 +25,13 @@ class TimeTableController {
       //     { isTimeFixed: true, name: "Science", TimeRange: "8:00-9:00" },
       //   ],
       // };
-      const timeTable = await timetableService.generate(classes, days, timeRanges, activities);
+      const timeTable = await timetableService.generate(
+        grade,
+        classes,
+        days,
+        timeRanges,
+        activities
+      );
       ServerResponse(req, res, 201, timeTable, "TimeTable generated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
