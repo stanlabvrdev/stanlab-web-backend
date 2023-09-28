@@ -4,10 +4,10 @@ import TimeSlotModel from "../../../models/timeslots";
 import TimetableGroupModel from "../../../models/timetable-group";
 
 export const invalidData = {
-  grade: `${faker.lorem.word()}`,
-  classes: [
-    { classid: "1", classname: `${faker.lorem.word()}` },
-    { classid: "2", classname: `${faker.lorem.word()}` },
+  // grade: `${faker.lorem.word()}`,
+  grades: [
+    { gradeName: "Grade 1", numberOfVariations: 2 },
+    { gradeName: " Grade 2", numberOfVariations: 3 },
   ],
   days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
   //   timeRanges: ["8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00"],
