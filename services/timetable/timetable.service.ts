@@ -23,15 +23,19 @@ import BadRequestError from "../exceptions/bad-request";
 
 class TimeTableService {
   async generate(
-    grade: string,
-    classes: EachClass[],
+    // grade: string,
+    grades: { gradeName: string; numberOfVariations: number }[],
     days: string[],
     timeRanges: string[],
     activities: Activity[]
   ) {
-    const allClasses = classes.map(
-      (eachClass) => new EachClass(eachClass.classid, eachClass.classname)
-    );
+    const classes: any[] = [];
+    for (let grade of grades) {
+      for (let i = 0; i < grade.numberOfVariations; i++) {
+        classes.push(new EachClass(grade.gradeName + (i + 1), grade.gradeName));
+      }
+    }
+    // const allClasses = grades.map((grade) => new EachClass(grade.gradeId, grade.gradeName));
     const allActivities = activities.map((activity) => {
       const teacher = activity.Teacher
         ? new Teacher(activity.Teacher.teacherid, activity.Teacher.name)
@@ -45,13 +49,13 @@ class TimeTableService {
         teacher
       );
     });
-    const data = new Data(allClasses, timeRanges, days, allActivities);
+    const data = new Data(classes, timeRanges, days, allActivities);
     const timetable = new TimetableBuilder(data).buildTimetable();
-    return this.formatCreateResponse(grade, timetable, classes, timeRanges, days);
+    return this.formatCreateResponse(timetable, classes, timeRanges, days);
   }
 
   private formatCreateResponse(
-    grade: string,
+    // grade: string,
     timetable: any,
     classes: EachClass[],
     timeRanges: string[],
@@ -67,7 +71,7 @@ class TimeTableService {
     });
     const finalData = {
       name: `Timetable-${Date.now()}`,
-      grade,
+      // grade,
       periods: timeRanges,
       days,
       data: formattedData,
