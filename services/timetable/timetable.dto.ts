@@ -38,12 +38,11 @@ const activitySchema = Joi.object({
 });
 
 export const scheduleSchema = Joi.object({
-  grade: Joi.string().required(),
-  classes: Joi.array()
+  grades: Joi.array()
     .items(
       Joi.object({
-        classid: Joi.string().required(),
-        classname: Joi.string().required(),
+        gradeName: Joi.string().required(),
+        numberOfVariations: Joi.number().required(), //Basically number of classes in that grade
       })
     )
     .required(),

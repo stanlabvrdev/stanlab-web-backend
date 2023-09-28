@@ -11,11 +11,11 @@ interface RequestWithSchool extends Request {
 class TimeTableController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { grade, classes, days, timeRanges, activities } = req.body;
+      const { grades, days, timeRanges, activities } = req.body;
       // const scheduleInput = {
-      //   classes: [
-      //     { classid: "1", classname: "1A" },
-      //     { classid: "2", classname: "1B" },
+      //   grades: [
+      //     { gradeId: "1", gradeName: "1A", numberOfVariations: 2 },
+      //     { gradeId: "2", gradeName: "1B" , numberOfVariations: 3},
       //   ],
       //   days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       //   timeRanges: ["8:00-9:00", "9:00-10:00", "10:00-11:00", "11:00-12:00"],
@@ -25,13 +25,7 @@ class TimeTableController {
       //     { isTimeFixed: true, name: "Science", TimeRange: "8:00-9:00" },
       //   ],
       // };
-      const timeTable = await timetableService.generate(
-        grade,
-        classes,
-        days,
-        timeRanges,
-        activities
-      );
+      const timeTable = await timetableService.generate(grades, days, timeRanges, activities);
       ServerResponse(req, res, 201, timeTable, "TimeTable generated successfully");
     } catch (err) {
       ServerErrorHandler(req, res, err);
