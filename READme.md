@@ -1,6 +1,6 @@
-# Stanlab backend
+#Stanlab backend
 
-## Installation
+##Installation
 
 To clone the project:
 
@@ -10,9 +10,9 @@ https://github.com/stanlabvrdev/stanlab-web-backend.git
 
 `cd` into the `stanlab-web-backend` directory
 
-```bash
+``bash
 cd stanlab-backend
-```
+``
 
 create a `.env` file with actual values similar to the `.env.sample` file.
 
